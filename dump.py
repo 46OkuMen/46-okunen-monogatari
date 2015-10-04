@@ -1,20 +1,26 @@
 # Python's shift-jis codec has not proven terribly useful - I may be better off using the
 # shinkaron.tbl file in a maketrans
 
+# Or maybe just try to keep it as bytes the whole time?
+# Or use a string but with \x ?
+
 import xlsxwriter
 import codecs
 import string
 
 hex_full = ""
+hex_chars = ""
 hex_chunks = {}
 
 offsets = [(0x4de0, 0x539a), (0x53a9, 0x555d), (0x55e9, 0x5638), (0x5657, 0x5868)]
 
 with open('./A/OPENING.EXE', 'rb') as f:
     # Encode the exe binary into hex.
-    for chunk in iter(lambda: f.read(), b''):
-        hex_full = chunk.encode('hex')
+    for binary in iter(lambda: f.read(), b''):
+        hex_full = binary.encode('hex')
     f.close()
+    
+    hex_chars = [text[i:i+4] for i in range(0, len(text), 4]
     
     # Run through the offset ranges and grab sections separated by 0x00.
     for (start, stop) in offsets:
