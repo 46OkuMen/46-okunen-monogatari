@@ -4,30 +4,29 @@ import codecs
 hex_full = ""
 hex_chunks = {}
 
-offsets = [(0x4de0, 0x539a), (0x53A9, 0x555D), (0x5657, 0x5868)]
+offsets = [(0x4de0, 0x539a), (0x53a9, 0x555d), (0x55e9, 0x5638), (0x5657, 0x5868)]
 
 with open('./A/OPENING.EXE', 'rb') as f:
+    # Encode the exe binary into hex.
     for chunk in iter(lambda: f.read(), b''):
         hex_full = chunk.encode('hex')
     f.close()
-    #print hex_text
+    
+    # Run through the offset ranges and grab sections separated by 0x00.
     for (start, stop) in offsets:
-        section_text = hex_full[(start*2):(stop*2)+1]
+        section_text = hex_full[(start*2):(stop*2)]  # hex size = twice the binary size.
         chunks = section_text.split('00')   # TODO: Test on "80-0B" or similar
-        # This is definitely giving me some weird results, look for a better way to split it.
-        #print chunks
-        #offset = start + length of all previous chunks
         offset = start
-        print hex(offset)
         length_of_previous_chunks = 0
         for chunk in chunks:
-            offset += length_of_previous_chunks
-            hex_chunks[hex(offset)] = chunk
-            length_of_previous_chunks += ((len(chunk)/2) + 2)   # 2 chars in a hex pair, add 2 for the 00
-            print hex(offset)
-            print chunk
-            print length_of_previous_chunks
-            print "\n"
+            offset = start + length_of_previous_chunks
+            hex_chunks[("OPENING.EXE", hex(offset))] = chunk
+            length_of_previous_chunks += ((len(chunk)+2)/2)   # 2 chars in a hex pair, add 2 for the removed 0x00
+            #print hex(offset)
+            #print chunk
+            #print hex(length_of_previous_chunks)
+            #print "\n"
+        
             
         
     #print hex_chunks
@@ -37,35 +36,6 @@ with open('./A/OPENING.EXE', 'rb') as f:
 # 
 # split the chunk into smaller chunks by the end character (0x00)
 # (make sure to keep track of the original offsets)
-# remove the '.GDT' strings
+# if the text is '' or '*.GDT', remove it
 
 # excel columns: file, offset, japanese, english
-
-# Hexdump sample from c2.com
-"""
- import sys
-
- def hexdump(fname, start, end, width):
-    for line in get_lines(fname, int(start), int(end), int(width)):
-        nums = ["%02x" % ord(c) for c in line]
-        txt = [fixchar(c) for c in line]
-        print " ".join(nums), "".join(txt)
-
- def fixchar(char):    
-    from string import printable
-    if char not in printable[:-5]:
-        return "."
-    return char
-
- def get_lines(fname, start, end, width):
-    f = open(fname, "rb")
-    f.seek(start)
-    chunk = f.read(end-start)
-    gap = width - (len(chunk) % width)
-    chunk += gap * '\000'
-    while chunk:
-        yield chunk[:width]
-        chunk = chunk[width:]
-
- hexdump('./A/OPENING.EXE', 0x4de0, 0x539a, 16)
- """
