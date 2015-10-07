@@ -23,41 +23,54 @@ with open('opening', 'rb') as f:
         print byte.encode('hex')
         byte = f.read(2)
 
-#clean_bytes_string.replace("\xe6\x7f", "")
 print clean_bytes_string
 
 clean_bytes = bytearray(clean_bytes_string)
 
 with open('opening', 'wb') as f:
     f.write(clean_bytes)
-        
-  
+    
+# Now the SJIS-Dump is clean, parse it and deal with it in memory.
         
 dump = {}
 
 fo = codecs.open("opening", "r", encoding='shift_jis')
 lines = fo.readlines()
 
-for n in range(0, len(lines)+1, 3):
+for n in range(0, len(lines)-1, 3):
     offset_string = lines[n][11:].rstrip()     # first line of three, minus "Position : ", minus "\n"
-    offset = int(offset_string, 16)
+    offset = hex(int(offset_string, 16))
+    #offset = hex(offset_string)
+    print offset
     #print offset_string
     #print offset
-    text_raw = lines[n+1]
-    #print text_raw[0:2]             # omg this was breaking it???
+    text = lines[n+1]
+    # no longer going to get rid of the spaces... it'll help to know how much room we have.
+    #print text_raw[0:2]
     #while text_raw[0:2] == '\xc3':    # checking for the space.  (Encoding error)
     #    text_raw = text_raw[5:]
     #    offset += 2
-    hex_offset = hex(offset)
+    #hex_offset = hex(offset)
     
-    print hex_offset
+    #print hex_offset
     #print text_raw
     
-    dump[hex_offset] = text_raw
+    dump[offset] = text
     
+    
+workbook = xlsxwriter.Workbook('opening_dump.xlsx')
+worksheet = workbook.add_worksheet()
 
-# Position : 3920
-# japanese text
-# blank
+worksheet.set_column('C:C', 50)
 
-# ...
+row = 0
+
+for source, text in dump.iteritems():
+    # excel cols: File, Offset, Japanese, English
+    worksheet.write(row, 1, offset)
+    worksheet.write(row, 2, text)
+    #print text
+    row += 1
+    
+    
+workbook.close()
