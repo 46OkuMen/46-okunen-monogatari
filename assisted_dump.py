@@ -9,10 +9,19 @@ import subprocess
 import codecs
 import xlsxwriter
 
-files = ['OPENING.EXE',]
+files = ['OPENING.EXE', 'SINKA.DAT']
+
+workbook = xlsxwriter.Workbook('opening_dump.xlsx')
+worksheet = workbook.add_worksheet()
+
+worksheet.set_column('A:A', 30)
+worksheet.set_column('C:C', 80)
+worksheet.set_column('D:D', 90)
+
+excel_row = 0
 
 for file in files:
-    file_dump = file + "_dump"
+    file_dump = "dump_" + file
     subprocess.call(".\SJIS_Dump %s %s 7 0" % (file, file_dump))
 
     # need to remove characters like E67F that freak the SJIS parser out for some reason
@@ -49,22 +58,12 @@ for file in files:
         text = lines[n+1]
     
         dump[(file, offset)] = text
-    
-    
-    workbook = xlsxwriter.Workbook('opening_dump.xlsx')
-    worksheet = workbook.add_worksheet()
-
-    worksheet.set_column('A:A', 30)
-    worksheet.set_column('C:C', 80)
-    worksheet.set_column('D:D', 90)
-
-    row = 0
 
     for source, text in dump.iteritems():
         # excel cols: File, Offset, Japanese, English
-        worksheet.write(row, 0, source[0])
-        worksheet.write(row, 1, source[1])
-        worksheet.write(row, 2, text)
-        row += 1
+        worksheet.write(excel_row, 0, source[0])
+        worksheet.write(excel_row, 1, source[1])
+        worksheet.write(excel_row, 2, text)
+        excel_row += 1
     
     workbook.close()
