@@ -1,15 +1,15 @@
 # Disk A
 
 ## 46.EXE
-*93F8-940E: Data allocation error.
-*9439-946C: COMON loading stuff
-*94BB-94F4: **"Please insert Disk B in Slot No. 2" error message**
-*9550-9559: "Cancel"?
-*9686-96AB: GEAGR driver loading stuff
-*96B1-96B8: **"Evolution Factor" stat**
-*96BE-971A: Buffer overflow, syntax error, not enough brackets
-*9CB6-9CD6: Graph LIO cannot be initialized
-*9D6E-A079: File error messages
+* 93F8-940E: Data allocation error.
+* 9439-946C: COMON loading stuff
+* 94BB-94F4: **"Please insert Disk B in Slot No. 2" error message**
+* 9550-9559: "Cancel"?
+* 9686-96AB: GEAGR driver loading stuff
+* 96B1-96B8: **"Evolution Factor" stat**
+* 96BE-971A: Buffer overflow, syntax error, not enough brackets
+* 9CB6-9CD6: Graph LIO cannot be initialized
+* 9D6E-A079: File error messages
 
 
 ## .GDT Files
@@ -17,10 +17,10 @@
 * Appear in a S-JIS editor as various single kanji separated by lots of garbage. Compressed text, or just a different format?
 
 ## COMMAND.COM
-*Mostly DOS related error messages.
-*540-E60: Error descriptions.
-*2370-27FA: DOS error messages
-*9340-BE80: More error descriptions/system messages.
+* Mostly DOS related error messages.
+* 540-E60: Error descriptions.
+* 2370-27FA: DOS error messages
+* 9340-BE80: More error descriptions/system messages.
 
 ## **ENDING.EXE**
 * 3C63-440F: Credits
@@ -46,7 +46,7 @@
 * 0000-8740: Tons of text. No quotation marks/speakers, but it looks like dialogue... maybe it's narration or everything that occurs against a graphic backdrop?
 
 ## **SINKA.DAT**
-*29KB of plaintext encyclopedia text.
+* 29KB of plaintext encyclopedia text.
 * Format: -XYZ (animal index?), 0D-0A, name, 0D-0A-09, height/size, 0D-0A-09, line 1, 0D-0A-09, line 2, 0D-0A-09, line 3, 0D-0A-0D-0A.
 
 ## **ST1-STS1.EXE**
@@ -70,6 +70,9 @@
 
 ### ST3.EXE**
 * B49D-EE8D: Dialogue and stuff, basically same format as above ST.EXE files
+
+### ST5S3.EXE
+* In-battle text.
 
 ### ST6.EXE
 * BBD0: **"OK! TAKE IT EASY!" text** (only English text I remembered seeing, clued me in to the presence of the other text)
