@@ -43,7 +43,7 @@
 ## PC0-100.46
 
 ## **SEND.DAT**
-* 0000-8740: Tons of text. No quotation marks/speakers, but it looks like dialogue... maybe it's narration or everything that occurs against a graphic backdrop?
+* 0000-8740: Text from the bad endings/evolutionary dead ends.
 
 ## **SINKA.DAT**
 * 29KB of plaintext encyclopedia text.

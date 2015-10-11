@@ -24,7 +24,7 @@ excel_row = 0
 
 for file in files:
     file_dump = "dump_" + file
-    subprocess.call(".\SJIS_Dump %s %s 5 0" % (file, file_dump))
+    subprocess.call(".\SJIS_Dump %s %s 2 0" % (file, file_dump))
 
     # need to remove characters like E67F that freak the SJIS parser out for some reason
     # TODO: Here is the place to do post-processing, like inserting control codes, etc
@@ -35,6 +35,28 @@ for file in files:
         while byte !="":
             if byte.encode('hex') != "e67f":
                 clean_bytes_string += byte
+            # also see if byte.encode('hex') == ...
+            # opening: '00' = <ln>
+            # sinka.dat = '00-0A-09' = <ln>, '00-0A-00-0A' = <ln><ln>, '0D-0A' = <entry#>
+            # send.dat : '0D-0A' = <wait> ?
+            # st1.exe : 
+            #'00' = <ln>, '0A' = <speaker>, '0A-13-00' = <end>? (sometimes 13-00?) (76 is part of the end quote) '13-0A-00'? '0A-13-0A-00'?
+            # 0A-13-0A-00: <wait><ln><ln>, same window, different speaker
+            # 13-0A-0A-00: <wait><ln><ln>, same window, different speaker
+            # 0A-13-00:    <wait><ln><ln>, same window, same speaker
+            # 0A-13-00 end, close window
+            # 0A-00: <ln><ln>, keep printing in same window without waiting
+            # 13-00: <wait>, maybe <end>?
+            # 16-22: <clear>
+            # 16-1E: <clear>
+            # 83-65: ?
+            # 81-40 or 81-41: just a space. used as a line break in some cases - so looks like line breaks themselves are handled in software
+            # 81-41-0A: Line break in the middle of a line
+            
+            # screen pans down: w, W, [, ], 
+            # 3 fish move right: [N...N...N..]. ..
+            # fish waggles: 16-22?
+            # may require several passes through the data, looking for the larger chunks first
             else:
                 print "Found an E67F, got rid of it"
             #print byte.encode('hex')
