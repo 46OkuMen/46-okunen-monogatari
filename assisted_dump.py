@@ -40,13 +40,13 @@ for file in files:
             # sinka.dat = '00-0A-09' = <ln>, '00-0A-00-0A' = <ln><ln>, '0D-0A' = <entry#>
             # send.dat : '0D-0A' = <wait> ?
             # st1.exe : 
-            #'00' = <ln>, '0A' = <speaker>, '0A-13-00' = <end>? (sometimes 13-00?) (76 is part of the end quote) '13-0A-00'? '0A-13-0A-00'?
-            # 0A-13-0A-00: <wait><ln><ln>, same window, different speaker
-            # 13-0A-0A-00: <wait><ln><ln>, same window, different speaker
-            # 0A-13-00:    <wait><ln><ln>, same window, same speaker
-            # 0A-13-00 end, close window
+            # 0A-13-0A-00: <wait>
+            # 13-0A-0A-00: <wait>
+            # 0A-13-00:    <wait>
+            # 0A-0A-00: <wait>
             # 0A-00: <ln><ln>, keep printing in same window without waiting
-            # 13-00: <wait>, maybe <end>?
+            # 13-00: <wait>
+            # 16-21: <new window>
             # 16-22: <clear>
             # 16-1E: <clear>
             # 83-65: ?
@@ -55,7 +55,6 @@ for file in files:
             
             # screen pans down: w, W, [, ], 
             # 3 fish move right: [N...N...N..]. ..
-            # fish waggles: 16-22?
             # may require several passes through the data, looking for the larger chunks first
             else:
                 print "Found an E67F, got rid of it"
