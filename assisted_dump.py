@@ -24,7 +24,11 @@ excel_row = 0
 
 for file in files:
     file_dump = "dump_" + file
-    subprocess.call(".\SJIS_Dump %s %s 2 0" % (file, file_dump))
+    subprocess.call(".\SJIS_Dump %s %s 3 0" % (file, file_dump))
+    # What is the optimal sensitivity? Smaller = lesser chance of missing text,
+    # but more image-file-kanji garbage and more SJIS codes will break the parser.
+    # Sorting the dump helps the garbage problem - garbage regions are collected in one place.
+    # Just gotta find more parser-breaking codes and go down to sensitivity=2, for the 2-kanji stats.
 
     # need to remove characters like E67F that freak the SJIS parser out for some reason
     # TODO: Here is the place to do post-processing, like inserting control codes, etc
@@ -33,7 +37,8 @@ for file in files:
     with open(file_dump, 'rb') as f:
         byte = f.read(2)
         while byte !="":
-            if byte.encode('hex') != "e67f":
+            hx = byte.encode('hex')
+            if hx != "e67f" and hx != "7fe6" and hx != "e97f" and hx != "8259":  # this'll leave a spare e6 and 7f on either side if it's like "XX-E6-7F-YY", but it's a garbage line to begin with
                 clean_bytes_string += byte
             # also see if byte.encode('hex') == ...
             # opening: '00' = <ln>
@@ -70,25 +75,24 @@ for file in files:
     f.close()
     # Now the SJIS-Dump is clean, parse it and deal with it in memory.
         
-    dump = {}
+    dump = []
 
     fo = codecs.open(file_dump, "r", encoding='shift_jis')
     lines = fo.readlines()
 
-    # TODO: good way to sort these before inserting? (Or is it better to just sort in excel?)
     for n in range(0, len(lines)-1, 3):
         offset_string = lines[n][11:].rstrip()     # first line of three, minus "Position : ", minus "\n"
         offset = hex(int(offset_string, 16))
     
         text = lines[n+1]
     
-        dump[(file, offset)] = text
+        dump.append((file, offset, text))
 
-    for source, text in dump.iteritems():
+    for snippet in dump:
         # excel cols: File, Offset, Japanese, English
-        worksheet.write(excel_row, 0, source[0])
-        worksheet.write(excel_row, 1, source[1])
-        worksheet.write(excel_row, 2, text)
+        worksheet.write(excel_row, 0, snippet[0])
+        worksheet.write(excel_row, 1, snippet[1])
+        worksheet.write(excel_row, 2, snippet[2])
         excel_row += 1
     
     fo.close()
