@@ -1,6 +1,6 @@
 # Makes use of a tool called SJIS_Dump which deals with the encoding better.
 
-# Execute the command ".\SJIS_Dump OPENING.EXE opening 4 0"
+# Execute the command ".\SJIS_Dump OPENING.EXE opening 2 0"
 # Clean that dump of any characters that freak out my SJIS decoder.
 # Parse the dump into offset:text pairs.
 # Insert the text into the excel spreadsheet. Columns: File, Offset, Japanese, English.
@@ -24,7 +24,7 @@ excel_row = 0
 
 for file in files:
     file_dump = "dump_" + file
-    subprocess.call(".\SJIS_Dump %s %s 3 0" % (file, file_dump))
+    subprocess.call(".\SJIS_Dump %s %s 2 0" % (file, file_dump))
     # What is the optimal sensitivity? Smaller = lesser chance of missing text,
     # but more image-file-kanji garbage and more SJIS codes will break the parser.
     # Sorting the dump helps the garbage problem - garbage regions are collected in one place.
@@ -38,7 +38,7 @@ for file in files:
         byte = f.read(2)
         while byte !="":
             hx = byte.encode('hex')
-            if hx != "e67f" and hx != "7fe6" and hx != "e97f" and hx != "8259":  # this'll leave a spare e6 and 7f on either side if it's like "XX-E6-7F-YY", but it's a garbage line to begin with
+            if hx != "e67f" and hx != "7fe6" and hx != "e97f" and hx != "8259" and hx != "9a82" and hx != "5c83" and hx != "9382":  # should probably figure out what's going on with these
                 clean_bytes_string += byte
             # also see if byte.encode('hex') == ...
             # opening: '00' = <ln>
@@ -76,7 +76,7 @@ for file in files:
     # Now the SJIS-Dump is clean, parse it and deal with it in memory.
         
     dump = []
-
+    print file, " might be the one breaking it"
     fo = codecs.open(file_dump, "r", encoding='shift_jis')
     lines = fo.readlines()
 
