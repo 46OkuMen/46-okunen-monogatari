@@ -2,8 +2,11 @@
 
 # Execute the command ".\SJIS_Dump OPENING.EXE opening 2 0"
 # Clean that dump of any characters that freak out my SJIS decoder.
-# Parse the dump into offset:text pairs.
+# Parse the dump into (source, offset, dump)
 # Insert the text into the excel spreadsheet. Columns: File, Offset, Japanese, English.
+
+# TODO: Add a field for the pointers.
+# TODO: Add control codes?
 
 import subprocess
 import codecs
@@ -11,12 +14,11 @@ import xlsxwriter
 
 files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE',
          'ST6.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SEND.DAT', 'SINKA.DAT', 'ENDING.EXE']
-# Make sure the files aren't hidden in Windows!
 
 workbook = xlsxwriter.Workbook('shinkaron_dump.xlsx')
 worksheet = workbook.add_worksheet()
 
-worksheet.set_column('A:A', 30)
+worksheet.set_column('A:A', 20)
 worksheet.set_column('C:C', 80)
 worksheet.set_column('D:D', 90)
 
@@ -25,21 +27,10 @@ excel_row = 0
 for file in files:
     file_dump = "dump_" + file
     subprocess.call(".\SJIS_Dump %s %s 2 0" % (file, file_dump))
-    # What is the optimal sensitivity? Smaller = lesser chance of missing text,
-    # but more image-file-kanji garbage and more SJIS codes will break the parser.
-    # Sorting the dump helps the garbage problem - garbage regions are collected in one place.
-    # Just gotta find more parser-breaking codes and go down to sensitivity=2, for the 2-kanji stats.
+    # How small to go? Gotta minimize the signal-to-noise ratio to avoid annoying the translator.
+    # But there are definitely some legit/important strings that are just 2 kanji (stats)
+    # and maybe some one-kanji (the "rest" ability name?).
 
-    # need to remove characters like E67F that freak the SJIS parser out for some reason
-    # TODO: Here is the place to do post-processing, like inserting control codes, etc
-    clean_bytes_string = ""
-
-    with open(file_dump, 'rb') as f:
-        byte = f.read(2)
-        while byte !="":
-            hx = byte.encode('hex')
-            if hx != "e67f" and hx != "7fe6" and hx != "e97f" and hx != "8259" and hx != "9a82" and hx != "5c83" and hx != "9382":  # should probably figure out what's going on with these
-                clean_bytes_string += byte
             # also see if byte.encode('hex') == ...
             # opening: '00' = <ln>
             # sinka.dat = '00-0A-09' = <ln>, '00-0A-00-0A' = <ln><ln>, '0D-0A' = <entry#>
@@ -61,23 +52,12 @@ for file in files:
             # screen pans down: w, W, [, ], 
             # 3 fish move right: [N...N...N..]. ..
             # may require several passes through the data, looking for the larger chunks first
-            else:
-                print "Found an E67F, got rid of it"
-            #print byte.encode('hex')
-            byte = f.read(2)
-    f.close()
-    #print clean_bytes_string
-
-    clean_bytes = bytearray(clean_bytes_string)
-
-    with open(file_dump, 'wb') as f:
-        f.write(clean_bytes)
-    f.close()
-    # Now the SJIS-Dump is clean, parse it and deal with it in memory.
         
     dump = []
-    print file, " might be the one breaking it"
-    fo = codecs.open(file_dump, "r", encoding='shift_jis')
+    # SJIS-Dump spits out some garbage characters not included in SJIS specification.
+    # Rather than try to get rid of them, just ignore all decoding errors and it'll be fine.
+    fo = codecs.open(file_dump, "r", encoding='shift_jis', errors='ignore') 
+
     lines = fo.readlines()
 
     for n in range(0, len(lines)-1, 3):
