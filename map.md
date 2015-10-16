@@ -13,8 +13,8 @@
 
 
 ## .GDT Files
-* Unsure. Maps?
-* Appear in a S-JIS editor as various single kanji separated by lots of garbage. Compressed text, or just a different format?
+* Images, animations...
+* Appear in a SJIS editor as various single kanji separated by lots of garbage.
 
 ## COMMAND.COM
 * Mostly DOS related error messages.
@@ -35,10 +35,12 @@
 * 5553-5AA3: Probably different music settings related text?
 
 ## **OPENING.EXE**
-* 4DE0-539A: Credits?
+* 4DE0-539A: CCredits
 * 53A9-555D: Scrolling intro text w/earth formation graphics
 * 55E9-5638: MUSIC/GEAGR driver stuff, unlikely to be seen
 * 5657-5868: Beginning static text, ENIX PRESENTS, then scrolling intro text
+* Control codes:
+** 00=<ln>
 
 ## PC0-100.46
 
@@ -48,17 +50,30 @@
 ## **SINKA.DAT**
 * 29KB of plaintext encyclopedia text.
 * Format: -XYZ (animal index?), 0D-0A, name, 0D-0A-09, height/size, 0D-0A-09, line 1, 0D-0A-09, line 2, 0D-0A-09, line 3, 0D-0A-0D-0A.
+* Control codes:
+** 0D-0A=<ln>
+** 09=<tab>
 
 ## **ST1-STS1.EXE**
 * Lots of dialogue, important game text
 
 ### ST1.EXE
-* D984-D9CF: Save files menu text?
-* D9D4-ED8F: Dialogue
-* EDC7-....: First scene dialogue
-* 10FCA-11565: Various sea creature names
-* 117C7-117DE: Yes/No/Cancel
-* keep looking
+* (0xd873, 0xd9cf)
+* d873-d9cf: System, save file stuff, "EVO.P" stat
+* d9d4-e6e6: Dialogue
+* e6fb-ec5b: Battle text
+* ec6c-ed87: Menu, options
+* edc7-10e1d: Dialogue
+* 10e39-10f7a: Environmental narration, ???, "EVO.P" stat again
+* 10fca-11560: Sea creature names (check in between them...)
+* 117c7-117d5: Yes/No/Cancel
+* 11839-1198f-ish: Battle text
+
+* edc7: First scene dialogue
+* eb8f: fight menu options
+* eca7: stats
+
+* 11ca0: some kind of pointer table?? little-endian, separated by 53-0d
 
 ### ST2.EXE
 * C23B-DD4E: Dialogue?
@@ -78,19 +93,27 @@
 * BBD0: **"OK! TAKE IT EASY!" text** (only English text I remembered seeing, clued me in to the presence of the other text)
 
 
-# Disk B1
-
-# Disk B2
-
-# Disk B3
-
-# Disk B4
+# Disk B1-B4
+* All other disks appear to just hold images and maps... no text.
 
 # Etc
 ## Control Codes
-* 00 = <END>
-* 13-0A-0A-00? = <WAIT>
-* ?? = <LN>
+* for ST1.EXE, etc.:
+* 0A-13-0A-00=<wait><ln><ln>
+* 13-0A-0A-00=<wait><ln><ln>
+* 0A-13-00=<wait><ln><ln>
+* 0A-0A-00=<wait>
+* 0A-00=<ln><ln>, keep printing in same window without waiting
+* 13-00: <wait>
+* 13=<wait>
+* 16-21: <new window>
+* 16-22: <clear>
+* 16-1E: <clear>
+* 83-65: ?
+* 81-40 or 81-41: just a space. used as a line break in some cases - so looks like line breaks themselves are handled in software
+* 81-41-0A: Line break in the middle of a line
 
 ## Misc. Info
-*Line length: 22 characters
+* Line length, dialogue: 22 characters
+* Line length, battle:
+* Line length, bottom narration: 
