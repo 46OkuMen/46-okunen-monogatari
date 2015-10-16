@@ -58,22 +58,29 @@
 * Lots of dialogue, important game text
 
 ### ST1.EXE
-* (0xd873, 0xd9cf)
-* d873-d9cf: System, save file stuff, "EVO.P" stat
-* d9d4-e6e6: Dialogue
-* e6fb-ec5b: Battle text
-* ec6c-ed87: Menu, options
-* edc7-10e1d: Dialogue
+* (0xd873, 0xd9cf), (11d40, 11204d)
+* 0d873-0d9cf: System, save file stuff, "EVO.P" stat
+* 0d9d4-0e6e6: Dialogue
+* 0e6fb-0ec5b: Battle text
+* 0ec6c-0ed87: Menu, options
+* 0edc7-10e1d: Dialogue
 * 10e39-10f7a: Environmental narration, ???, "EVO.P" stat again
 * 10fca-11560: Sea creature names (check in between them...)
 * 117c7-117d5: Yes/No/Cancel
 * 11839-1198f-ish: Battle text
+* 11d40-1204d: Error messages
 
-* edc7: First scene dialogue
-* eb8f: fight menu options
-* eca7: stats
+* Landmarks:
+** edc7: First scene dialogue
+** eb8f: fight menu options
+** eca7: stats
 
-* 11ca0: some kind of pointer table?? little-endian, separated by 53-0d
+* Pointer Tables:
+** 00032-00082: At top
+** 000a2-000d7: Below that (check above and below for stuff separated by 00 00)
+** 0d934-0d983: Above menu options & dialogue (though kinda small for dialogue...)
+** 10f96-10fc9: Above the sea creature names
+** 11ca0-11d41: Above the error messages
 
 ### ST2.EXE
 * C23B-DD4E: Dialogue?
