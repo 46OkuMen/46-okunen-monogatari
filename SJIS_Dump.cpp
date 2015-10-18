@@ -11,7 +11,7 @@ using namespace std;
 //Globals are the devils tool!
 bool ENABLE_ASCII = false;
 
-bool ContainsLetter(unsigned char buffer[0x100], unsigned char buffer_pos)
+bool ContainsLetter(unsigned char buffer[0x16a02], unsigned char buffer_pos)
 {
 	//ASCII ranges
 	if (ENABLE_ASCII)
@@ -50,7 +50,7 @@ bool ContainsLetter(unsigned char buffer[0x100], unsigned char buffer_pos)
 }
 
 
-int LetterLength(unsigned char buffer[0x100], unsigned char buffer_pos)
+int LetterLength(unsigned char buffer[0x16a02], unsigned char buffer_pos)
 {
 	if (ENABLE_ASCII)
 	{
@@ -121,9 +121,9 @@ int main(int argc,char *argv[])
 
 	int file_pos = 0;
 
-	unsigned char buffer[0x100];
+	unsigned char buffer[0x16a02];
 	unsigned char buffer_size = 0x00;
-	for(unsigned short i = 0; i < 0x100 && !file_in.eof() && i < file_size; i++)
+	for(unsigned short i = 0; i < 0x16a02 && !file_in.eof() && i < file_size; i++)
 	{
 		file_in.read(reinterpret_cast<char*>(&buffer[i]),1);
 		buffer_size++;
