@@ -35,7 +35,8 @@
 * 5553-5AA3: Probably different music settings related text?
 
 ## **OPENING.EXE**
-* 4DE0-539A: CCredits
+* (0x4dda, 0x5868)
+* 4DDA-539A: Credits
 * 53A9-555D: Scrolling intro text w/earth formation graphics
 * 55E9-5638: MUSIC/GEAGR driver stuff, unlikely to be seen
 * 5657-5868: Beginning static text, ENIX PRESENTS, then scrolling intro text
@@ -58,7 +59,7 @@
 * Lots of dialogue, important game text
 
 ### ST1.EXE
-* (0xd873, 0xd9cf), (11d40, 11204d)
+* (0xd873, 11204d)
 * 0d873-0d9cf: System, save file stuff, "EVO.P" stat
 * 0d9d4-0e6e6: Dialogue
 * 0e6fb-0ec5b: Battle text
@@ -83,6 +84,7 @@
 ** 11ca0-11d41: Above the error messages
 
 ### ST2.EXE
+* (0xc23b, 0x1085e)
 * C23B-DD4E: Dialogue?
 * DE34-FA9F: More dialogue
 * FAE5-FE2C: Animal names?
@@ -90,8 +92,12 @@
 * 100D4-101E1: Error messages?
 * 10571-1087B: Error messages?
 
-### ST3.EXE**
-* B49D-EE8D: Dialogue and stuff, basically same format as above ST.EXE files
+### ST3.EXE
+* (0xb49d, 0xee70)
+
+### ST4.EXE
+* (e263, 1688a)
+* e263-ea3e: Battle
 
 ### ST5S3.EXE
 * In-battle text.
