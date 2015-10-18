@@ -11,6 +11,27 @@
 # This is really hard to recognize and will result in a bad translation.
 # I should look into writing a script to do this myself, or at least see if I can modify SJIS-Dump.
 
+# Errors:
+# ST1.EXE, 0xdefd-dfd00
+# ST1.EXE, 0xfb00
+# ST1.EXE, 0xe000-e001
+# ST1.EXE, 0x100ff-10100
+# ST1.EXE, 0x10e00
+# ST1.EXE, 0x113df-113e0
+
+# ST2.EXE, 0xc900
+#            d700
+#            d901
+#            da00
+#            db00
+#            dc00
+
+# ST3.EXE, 0xbb00
+
+# ST4.EXE, 0x120b4 (just a random piece of kanji, fix with the ranges)
+
+# So these errors only really show up at 00, sometimes at 0. Why???
+
 # TODO: Add a field for the pointers.
 # TODO: Add control codes?
 
@@ -20,10 +41,11 @@ import xlsxwriter
 
 # Dict of files and dump blocks.
 files = { 'OPENING.EXE': ((0x4dda, 0x5868),),
-          'ST1.EXE': ((0xd873, 0x1240d),),
+          'ST1.EXE': ((0xd873, 0x119a3), (0x11d42, 0x1240d),),
           'ST2.EXE': ((0xc23b, 0x1085e),),
           'ST3.EXE': ((0xb49d, 0xee70),),
-          'ST4.EXE': ((0xe263, 0x1688a),),          }
+          'ST4.EXE': ((0xe263, 0x1620d), (0x1659c, 0x168a8),),
+}
 
 
 
