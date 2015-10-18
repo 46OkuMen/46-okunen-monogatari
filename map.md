@@ -1,6 +1,7 @@
 # Disk A
 
 ## 46.EXE
+* (0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a)
 * 93F8-940E: Data allocation error.
 * 9439-946C: COMON loading stuff
 * 94BB-94F4: **"Please insert Disk B in Slot No. 2" error message**
@@ -21,10 +22,6 @@
 * 540-E60: Error descriptions.
 * 2370-27FA: DOS error messages
 * 9340-BE80: More error descriptions/system messages.
-
-## **ENDING.EXE**
-* 3C63-440F: Credits
-* 443B-4B1E: Ending text
 
 ## GEAGRDRV.EXE
 
@@ -99,11 +96,26 @@
 * (e263, 1688a)
 * e263-ea3e: Battle
 
+### ST5.EXE
+* (0xcc01, 0x11465), (0x11977, 0x11b52), (0x11ef2, 0x121fd)
+
+### ST5S1.EXE
+* (0x24ee, 0x3af1)
+
+### ST5S2.EXE
+* (0x23f9, 0x3797)
+
 ### ST5S3.EXE
-* In-battle text.
+* (0x3db9, 0x4ed0)
 
 ### ST6.EXE
+* (0xa51a, 0xcdf4)
 * BBD0: **"OK! TAKE IT EASY!" text** (only English text I remembered seeing, clued me in to the presence of the other text)
+
+## **ENDING.EXE**
+* (0x3c4e, 0x4b1f)
+* 3C4e-440F: Credits
+* 443B-4B1E: Ending text
 
 
 # Disk B1-B4

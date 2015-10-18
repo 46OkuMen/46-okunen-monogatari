@@ -4,7 +4,6 @@
 # Parse the dump into (source, offset, dump).
 # Insert the text into the excel spreadsheet. Columns: File, Offset, Japanese, English.
 
-
 # TODO: SJIS-Dump might not be the best tool for the job - like in ST1.EXE:0xfb00, it gets off-by-one
 # and reads some pretty innocuous hiragana as really dense meaningless kanji. 
 # (Like, it reads 82-E9 82-E6 as ...E9-82 E6-82.)
@@ -31,8 +30,10 @@
 # ST4.EXE, 0x120b4 (just a random piece of kanji, fix with the ranges)
 
 # So these errors only really show up at 00, sometimes at 0. Why???
+# Answer: SJIS_Dump has a buffer 0x100 long. So it'll always misread the 0x100th byte whenever there's carryover.
+# I'll just modify the source code to have a large enough buffer.
 
-# TODO: Add a field for the pointers.
+# TODO: Add a column for the string's pointer location, if there is one.
 # TODO: Add control codes?
 
 import subprocess
@@ -44,7 +45,16 @@ files = { 'OPENING.EXE': ((0x4dda, 0x5868),),
           'ST1.EXE': ((0xd873, 0x119a3), (0x11d42, 0x1240d),),
           'ST2.EXE': ((0xc23b, 0x1085e),),
           'ST3.EXE': ((0xb49d, 0xee70),),
-          'ST4.EXE': ((0xe263, 0x1620d), (0x1659c, 0x168a8),),
+          'ST4.EXE': ((0xe263, 0x1620d), (0x1659c, 0x168a8)),
+          'ST5.EXE': ((0xcc01, 0x11465), (0x11977, 0x11b52), (0x11ef2, 0x121fd)),
+          'ST5S1.EXE': ((0x24ee, 0x3af1),),
+          'ST5S2.EXE': ((0x23f9, 0x3797),),
+          'ST5S3.EXE': ((0x3db9, 0x4ed0),),
+          'ST6.EXE': ((0xa51a, 0xcdf4),),
+          'ENDING.EXE': ((0x3c4e, 0x4b1f),),
+          'SINKA.DAT': ((0x0000, 0x874a),),
+          'SEND.DAT': ((0x000, 0x8740),),
+          '46.EXE': ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a)),
 }
 
 
@@ -55,6 +65,7 @@ files = { 'OPENING.EXE': ((0x4dda, 0x5868),),
 workbook = xlsxwriter.Workbook('shinkaron_dump.xlsx')
 worksheet = workbook.add_worksheet()
 
+# Set column sizes to something reasonable.
 worksheet.set_column('A:A', 20)
 worksheet.set_column('C:C', 80)
 worksheet.set_column('D:D', 90)
