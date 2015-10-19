@@ -32,6 +32,7 @@
 # So these errors only really show up at 00, sometimes at 0. Why???
 # Answer: SJIS_Dump has a buffer 0x100 long. So it'll always misread the 0x100th byte whenever there's carryover.
 # I'll just modify the source code to have a large enough buffer.
+# That seems to have weird effects - when it's too large, it just dumps the same few sequences a lot... weird.
 
 # TODO: Add a column for the string's pointer location, if there is one.
 # TODO: Add control codes?
@@ -54,7 +55,7 @@ files = { 'OPENING.EXE': ((0x4dda, 0x5868),),
           'ENDING.EXE': ((0x3c4e, 0x4b1f),),
           'SINKA.DAT': ((0x0000, 0x874a),),
           'SEND.DAT': ((0x000, 0x8740),),
-          '46.EXE': ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a)),
+          '46.EXE': ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a))
 }
 
 
