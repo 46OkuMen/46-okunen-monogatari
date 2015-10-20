@@ -37,13 +37,14 @@
 # TODO: Add a column for the string's pointer location, if there is one.
 # TODO: Add control codes?
 
+import os
 import subprocess
 import codecs
 import xlsxwriter
 
 # Dict of files and dump blocks.
 files = { 'OPENING.EXE': ((0x4dda, 0x5868),),
-          'ST1.EXE': ((0xd873, 0x119a3), (0x11d42, 0x1240d),),
+          'ST1.EXE': ((0xd873, 0x117df), (0x11838, 0x119a3), (0x11d42, 0x1240d),),
           'ST2.EXE': ((0xc23b, 0x1085e),),
           'ST3.EXE': ((0xb49d, 0xee70),),
           'ST4.EXE': ((0xe263, 0x1620d), (0x1659c, 0x168a8)),
@@ -57,11 +58,6 @@ files = { 'OPENING.EXE': ((0x4dda, 0x5868),),
           'SEND.DAT': ((0x000, 0x8740),),
           '46.EXE': ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a))
 }
-
-
-
-#files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE',
-#         'ST6.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SEND.DAT', 'SINKA.DAT', 'ENDING.EXE']
 
 workbook = xlsxwriter.Workbook('shinkaron_dump.xlsx')
 worksheet = workbook.add_worksheet()
@@ -105,5 +101,7 @@ for file, blocks in files.iteritems():
         excel_row += 1
     
     fo.close()
+    
+    #os.remove(file_dump)
     
 workbook.close()

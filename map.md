@@ -40,6 +40,9 @@
 * Control codes:
 ** 00=<ln>
 
+* Pointer Tables:
+** (0x4bf5, 0x4dbc), sep: 68-04
+
 ## PC0-100.46
 
 ## **SEND.DAT**
@@ -74,11 +77,14 @@
 ** eca7: stats
 
 * Pointer Tables:
-** 00032-00082: At top
-** 000a2-000d7: Below that (check above and below for stuff separated by 00 00)
-** 0d934-0d983: Above menu options & dialogue (though kinda small for dialogue...)
-** 10f96-10fc9: Above the sea creature names
-** 11ca0-11d41: Above the error messages
+** 00032-00082: Points to pointers in the menu options region, in reverse order. 5e-0d.
+** 00082-000a1: (?) Sep: 00-00.
+** 000a2-000d7: (?) Below that (check above and below for stuff separated by 00 00)
+** 000d8-0014d: (?) Sep: 00-00.
+** 0014e-001e1: Points to the pointers of the error messages table. (they increment by 4 each time.) 5e-0d.
+** 0d934-0d983: Menu options! Pointers point to their little-endian value + 0xd7e0. Not in order. Sep: 5e-0d.
+** 10f96-10fc9: Yes/No/Cancel, ascii numbers 1-6... 0d7e0 as usual. (13 ptrs total) Sep: 5e-0d.
+** 11cae-11d41: Error messages! Pointers point to their little-endian value + 0xd7e0. Sep: 5e-0d.
 
 ### ST2.EXE
 * (0xc23b, 0x1085e)
