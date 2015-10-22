@@ -13,8 +13,6 @@ files = [('ST1.EXE', ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11565), (
 for file in files:
     in_file = open(file[0], 'rb')
     out_file = open("dump_" + file[0], "w")
-    
-    
     for block in file[1]:
         block_length = block[1] - block[0]
         in_file.seek(block[0], 0)
@@ -23,8 +21,14 @@ for file in files:
         for segment in segments:
             segment.decode('shift_jis', errors='ignore').encode('utf-8')
             print repr(segment)
+            # Sub in control codes.
             clean = segment.replace('\x0d', '<LINE>\n').replace('\x0a', '<LINE>\n').replace('\x13', '<WAIT>\n') 
-            if clean.strip():
+            # Delete the just-ASCII lines, but keep ASCII within lines of SJIS text.
+            # If there's any string left when you remove the ASCII, insert the line.
+            without_ascii = filter(lambda x: x not in string.printable, clean)
+            
+            if clean.strip() and without_ascii.strip():
                 out_file.write(clean + "\n")
+                #out_file.write(repr(clean) + "\n")
     
     
