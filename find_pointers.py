@@ -1,6 +1,9 @@
+# TODO: Someitmes it gets tripped up by a consistent 2nd byte of the pointer, and it counts it as a delimiter. How to avoid this?
+# TODO: Define a function to identify pointers that point to other pointer tables - identify whether some segment of the tables' unpacked values are increasing or decreasing by 0x4 the whole time.
+
 import re
 
-files = ['ST1.EXE', 'OPENING.EXE']
+files = ['ST1.EXE', 'OPENING.EXE', 'ST2.EXE']
 
 pointers = {}
 # hex loc: (hex a, hex b)
@@ -15,10 +18,14 @@ def pack(h):
     t = h // 0x100
     return (s, t)
     
+def go_to_pointer(pointer, offset):
+    return unpack(pointer[0], pointer[1]) + offset
+    
 def find_pointers():
     p = re.compile(pointer_regex)
     for file in files:
         in_file = open(file, 'rb')
+        print file
         bytes = in_file.read()
         #text.decode('shift_jis', errors='ignore').encode('utf-8')
         only_hex = ""

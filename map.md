@@ -41,7 +41,8 @@
 ** 00=<ln>
 
 * Pointer Tables:
-** (0x4bf5, 0x4dbc), sep: 68-04
+** 36-1fd: 114 pointers, sep: 68-04. Point to the table below.
+** 4c51-4dbc: (?) 113 or 114 pointers, sep: 68-04. (Hopefully for the text? No other real candidates)
 
 ## PC0-100.46
 
@@ -77,13 +78,17 @@
 ** eca7: stats
 
 * Pointer Tables:
-** 00032-00082: Points to pointers in the menu options region, in reverse order. 5e-0d.
-** 00082-000a1: (?) Sep: 00-00.
-** 000a2-000d7: (?) Below that (check above and below for stuff separated by 00 00)
-** 000d8-0014d: (?) Sep: 00-00.
+** 53-0d: Add 0xd7e0.
+** 00-00: (?)
+
+** 00022-00031: (?) 4 pointers, 00-00.
+** 00032-00081: 20 pointers, 5e-0d. Points to pointers in the menu options region, in reverse order.
+** 00082-000a2: (?) 8 pointers, 00-00.
+** 000a2-000d7: 13 pointers, 5e-0d. Point to the yes/no/cancel, etc. pointer locations below.
+** 000d6-0014d: (?) 30 pointers, 00-00.
 ** 0014e-001e1: Points to the pointers of the error messages table. (they increment by 4 each time.) 5e-0d.
-** 0d934-0d983: Menu options! Pointers point to their little-endian value + 0xd7e0. Not in order. Sep: 5e-0d.
-** 10f96-10fc9: Yes/No/Cancel, ascii numbers 1-6... 0d7e0 as usual. (13 ptrs total) Sep: 5e-0d.
+** 0d934-0d983: Menu options, some battle skills. Add 0xd7e0. 5e-0d.
+** 10f96-10fc9: 13 pointers, 5e-od. Yes/No/Cancel, ascii numbers 1-6...
 ** 11cae-11d41: Error messages! Pointers point to their little-endian value + 0xd7e0. Sep: 5e-0d.
 
 ### ST2.EXE
