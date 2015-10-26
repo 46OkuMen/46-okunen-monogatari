@@ -32,7 +32,7 @@
 * 5553-5AA3: Probably different music settings related text?
 
 ## **OPENING.EXE**
-* (0x4dda, 0x5868)
+* (0x4dd1, 0x5868)
 * 4DDA-539A: Credits
 * 53A9-555D: Scrolling intro text w/earth formation graphics
 * 55E9-5638: MUSIC/GEAGR driver stuff, unlikely to be seen
@@ -42,7 +42,10 @@
 
 * Pointer Tables:
 ** 36-1fd: 114 pointers, sep: 68-04. Point to the table below.
-** 4c51-4dbc: (?) 113 or 114 pointers, sep: 68-04. (Hopefully for the text? No other real candidates)
+** 4c51-4dbc: 114 pointers, sep: 68-04. Point to the text.
+* 0x4bf7 (location pointed to, probably) - 0x177 (value of pointer) = 0x4b80
+* Use the pointers that point to other pointers to determine the constant!
+* Constant = 0x4b80.
 
 ## PC0-100.46
 
@@ -60,7 +63,8 @@
 * Lots of dialogue, important game text
 
 ### ST1.EXE
-* (0xd873, 11204d)
+* ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11595), (0x117c7, 0x119a3), (0x11d42, 0x1204e))
+* System, dialog/battle, creatures, battle, errors
 * 0d873-0d9cf: System, save file stuff, "EVO.P" stat
 * 0d9d4-0e6e6: Dialogue
 * 0e6fb-0ec5b: Battle text
@@ -92,7 +96,8 @@
 ** 11cae-11d41: Error messages! Pointers point to their little-endian value + 0xd7e0. Sep: 5e-0d.
 
 ### ST2.EXE
-* (0xc23b, 0x1085e)
+* (0xc23b, 0xdd4f), (0xde35, 0xfaa0), (0xfae4, 0xfe50), (0x10004, 0x101df), (0x10570, 0x1087b)
+* System, dialog/battle, creatures, battle, errors
 * C23B-DD4E: Dialogue?
 * DE34-FA9F: More dialogue
 * FAE5-FE2C: Animal names?
@@ -101,17 +106,21 @@
 * 10571-1087B: Error messages?
 
 ### ST3.EXE
-* (0xb49d, 0xee70)
+* (0xb49d, 0xb548), (0xb58a, 0xdb3a), (0xdb7e, 0xe2d5), (0xe617, 0xe7f3), (0xeb82, 0xee8e)
+* System, dialog/battle, creatures, battle, errors
 
 ### ST4.EXE
+* (0xe262, 0xe29e), (0xe2f4, 0x120a0), (0x12114, 0x149e4), (0x14a28, 0x15a1e), (0x16031, 0x1620d), (0x1659c, 0x168a8) 
+* System, dialog/battle 1, dialog/battle 2, creatures, battle, errors
 * (e263, 1688a)
 * e263-ea3e: Battle
 
 ### ST5.EXE
-* (0xcc01, 0x11465), (0x11977, 0x11b52), (0x11ef2, 0x121fd)
+* (0xcc02, 0xcc5e), (0xccf2, 0xcd2e), (0xcd74, 0xeabe), (0xebc3, 0x107a3), (0x107e6, 0x11466), (0x11976, 0x11b53), (0x11ef2, 0x121fe)
 
 ### ST5S1.EXE
-* (0x24ee, 0x3af1)
+* (0x24e8, 0x3af1)
+* (just one block - dialog/battle)
 
 ### ST5S2.EXE
 * (0x23f9, 0x3797)
@@ -120,7 +129,7 @@
 * (0x3db9, 0x4ed0)
 
 ### ST6.EXE
-* (0xa51a, 0xcdf4)
+* (0xa4f1, 0xa55b), (0xa59c, 0xccd1), (0xcd14, 0xce25), (0xcede, 0xd0bb), (0xd44a, 0xd756)
 * BBD0: **"OK! TAKE IT EASY!" text** (only English text I remembered seeing, clued me in to the presence of the other text)
 
 ## **ENDING.EXE**

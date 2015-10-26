@@ -3,7 +3,9 @@
 
 import re
 
-files = ['ST1.EXE', 'OPENING.EXE', 'ST2.EXE']
+files = ['ST1.EXE',]
+
+file_blocks = [('ST1.EXE', ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11595), (0x117c7, 0x119a3), (0x11d42, 0x1204e))),]
 
 pointers = {}
 # hex loc: (hex a, hex b)
@@ -43,8 +45,7 @@ def find_pointers():
             elif "\\x00\\x00\\x00\\x00" in table.group(0):  # sometimes they sneak by. catch them here
                 pass
             else:
-            
-                #print table.group(0)
+                print table.group(0)
                 start = table.start() / 4 # divide by four, since 4 characters per byte in our dump)
                 stop = table.end() / 4
                 count = (stop - start) / 4 # div by 4 again, since 4 bytes per pointer
@@ -53,4 +54,35 @@ def find_pointers():
         #out_file = open('dump_' + file, 'w+')
         #out_file.write(only_hex)
         
-find_pointers()
+def find_string_offsets():
+    pointeds = []
+    diffs = []
+    for (file, blocks) in file_blocks:
+        for block in blocks:
+            print file
+            block_start = block[0]
+            block_stop = block[1]
+            block_length = block_stop - block_start
+            in_file = open(file, 'rb')
+            in_file.seek(block_start)
+            bytes = in_file.read(block_length)
+            only_hex = ""
+            for c in bytes:
+                only_hex += "\\x%02x" % ord(c)
+            strings = only_hex.split('\\x00')
+            for s in strings:
+                if s:
+                    string_start = only_hex.index(s)
+                    offset = hex(block_start + (string_start / 4))
+                    pointeds.append(offset)
+                    #string_bytes = s.replace('\\x', '').decode('hex')
+                    print offset
+                
+    for p in range(len(pointeds)-1):
+        diff = int(pointeds[p+1], 16) - int(pointeds[p], 16)
+        diffs.append(diff)
+        print diff
+    print pointeds
+    print diffs
+        
+find_string_offsets()
