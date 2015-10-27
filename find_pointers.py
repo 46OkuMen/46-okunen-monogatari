@@ -5,7 +5,21 @@ import re
 
 files = ['ST1.EXE',]
 
-file_blocks = [('ST1.EXE', ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11595), (0x117c7, 0x119a3), (0x11d42, 0x1204e))),]
+file_blocks = [ ('OPENING.EXE', ((0x4dda, 0x5868),),),
+('ST1.EXE', ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11595), (0x117c7, 0x119a3), (0x11d42, 0x1204e))),
+          ('ST2.EXE', ((0xc23b, 0xdd4f), (0xde35, 0xfaa0), (0xfae4, 0xfe50), (0x10004, 0x101df), (0x10570, 0x1087b))),
+          ('ST3.EXE', ((0xb49d, 0xb548), (0xb58a, 0xdb3a), (0xdb7e, 0xe2d5), (0xe617, 0xe7f3), (0xeb82, 0xee8e))),
+          ('ST4.EXE', ((0xe262, 0xe29e), (0xe2f4, 0x120a0), (0x12114, 0x149e4), (0x14a28, 0x15a1e), (0x16031, 0x1620d), (0x1659c, 0x168a8))),
+          ('ST5.EXE', ((0xcc02, 0xcc5e), (0xccf2, 0xcd2e), (0xcd74, 0xeabe), (0xebc3, 0x107a3), (0x107e6, 0x11466), (0x11976, 0x11b53), (0x11ef2, 0x121fe))),
+          ('ST5S1.EXE', ((0x24e8, 0x3af1),),),
+          ('ST5S2.EXE', ((0x23f9, 0x3797),),),
+          ('ST5S3.EXE', ((0x3db9, 0x4ed0),),),
+          ('ST6.EXE', ((0xa4f1, 0xa55b), (0xa59c, 0xccd1), (0xcd14, 0xce25), (0xcede, 0xd0bb), (0xd44a, 0xd756))),
+          ('ENDING.EXE', ((0x3c4e, 0x4b1f),)),
+          ('SINKA.DAT', ((0x0000, 0x874a),)),
+          ('SEND.DAT', ((0x000, 0x8740),)),
+          ('46.EXE', ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a)))
+]
 
 pointers = {}
 # hex loc: (hex a, hex b)
@@ -55,34 +69,43 @@ def find_pointers():
         #out_file.write(only_hex)
         
 def find_string_offsets():
-    pointeds = []
-    diffs = []
     for (file, blocks) in file_blocks:
+        diffs_filename = "diffs_" + file
+        diffs_out_file = open(diffs_filename, "w")
         for block in blocks:
-            print file
+            diffs_out_file.write(str(file) + " " + str(block) + "\n")
+            
+            pointeds = []
+            diffs = [0,]
+            
             block_start = block[0]
             block_stop = block[1]
             block_length = block_stop - block_start
+            
             in_file = open(file, 'rb')
             in_file.seek(block_start)
             bytes = in_file.read(block_length)
             only_hex = ""
+            
             for c in bytes:
                 only_hex += "\\x%02x" % ord(c)
+                
             strings = only_hex.split('\\x00')
+
             for s in strings:
                 if s:
                     string_start = only_hex.index(s)
                     offset = hex(block_start + (string_start / 4))
                     pointeds.append(offset)
-                    #string_bytes = s.replace('\\x', '').decode('hex')
-                    print offset
-                
-    for p in range(len(pointeds)-1):
-        diff = int(pointeds[p+1], 16) - int(pointeds[p], 16)
-        diffs.append(diff)
-        print diff
-    print pointeds
-    print diffs
+                    
+                    try:
+                        diffs.append(int(pointeds[-1], 16) - int(pointeds[-2], 16))
+                    except IndexError:
+                        diffs.append(0)
+            
+            for d in range(0, len(diffs)-7, 8):
+                diffs_out_file.write(str(diffs[d]) + " " + str(diffs[d+1]) + " " + str(diffs[d+2]) + " " + str(diffs[d+3]) + str(diffs[d+4]) + " " + str(diffs[d+5]) + " " + str(diffs[d+6]) + " " + str(diffs[d+7]) + " " + "\n")
+            diffs_out_file.write("\n")
+        diffs_out_file.close()
         
 find_string_offsets()
