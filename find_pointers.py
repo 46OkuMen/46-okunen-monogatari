@@ -59,12 +59,28 @@ def find_pointers():
             elif "\\x00\\x00\\x00\\x00" in table.group(0):  # sometimes they sneak by. catch them here
                 pass
             else:
-                print table.group(0)
+                #print table.group(0)
                 start = table.start() / 4 # divide by four, since 4 characters per byte in our dump)
                 stop = table.end() / 4
                 count = (stop - start) / 4 # div by 4 again, since 4 bytes per pointer
                 delimiter = table.group(2)
+                #print table.group(0)
+                #print delimiter
+                values = []
+                # Can't do this - sometimes part of the delimiter shows up in the pointer itself! (10-00-00-00)
+                 #values = table.group(0).split(delimiter)
+                # So just slice the string into the first two bytes.
+                for x in range(0, len(table.group(0))-15, 16):
+                    pointer_string = table.group(0)[x:x+8]
+                    pointer_tuple = pointer_string.split('\\x')[1], pointer_string.split('\\x')[2]
+                    values.append(pointer_tuple)
+                #print values
+                pointers = []
+                for (first, second) in values:
+                    pointers.append(hex(unpack(int(first, 16), int(second, 16))))
                 print str(count) + " pointers at " + hex(start) + ", delimiter: " + delimiter
+                print pointers
+                # next, calculate the diffs. and figure out if it's just 4 over and over
         #out_file = open('dump_' + file, 'w+')
         #out_file.write(only_hex)
         
@@ -99,6 +115,9 @@ def find_string_offsets():
                     pointeds.append(offset)
                     
                     try:
+                        print pointeds[-1]
+                        print pointeds[-2]
+                        print "\n"
                         diffs.append(int(pointeds[-1], 16) - int(pointeds[-2], 16))
                     except IndexError:
                         diffs.append(0)
@@ -107,5 +126,6 @@ def find_string_offsets():
                 diffs_out_file.write(str(diffs[d]) + " " + str(diffs[d+1]) + " " + str(diffs[d+2]) + " " + str(diffs[d+3]) + str(diffs[d+4]) + " " + str(diffs[d+5]) + " " + str(diffs[d+6]) + " " + str(diffs[d+7]) + " " + "\n")
             diffs_out_file.write("\n")
         diffs_out_file.close()
-        
-find_string_offsets()
+ 
+find_pointers() 
+#find_string_offsets()
