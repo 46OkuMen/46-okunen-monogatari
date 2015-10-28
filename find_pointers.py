@@ -1,9 +1,10 @@
 # TODO: Someitmes it gets tripped up by a consistent 2nd byte of the pointer, and it counts it as a delimiter. How to avoid this?
+# Is there any way to perform the regex search from right-to-left?
 # TODO: Define a function to identify pointers that point to other pointer tables - identify whether some segment of the tables' unpacked values are increasing or decreasing by 0x4 the whole time.
 
 import re
 
-files = ['ST1.EXE',]
+files = ['ST1.EXE', 'OPENING.EXE']
 
 file_blocks = [ ('OPENING.EXE', ((0x4dda, 0x5868),),),
 ('ST1.EXE', ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11595), (0x117c7, 0x119a3), (0x11d42, 0x1204e))),
@@ -24,7 +25,8 @@ file_blocks = [ ('OPENING.EXE', ((0x4dda, 0x5868),),),
 pointers = {}
 # hex loc: (hex a, hex b)
 
-pointer_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
+old_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
+pointer_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f])(\\x[0-f][0-f]))((\\x[0-f][0-f])\\x[0-f][0-f]\2\3(?!\3\5)){7,}"
 
 def unpack(s, t):
     return (t * 0x100) + s
@@ -34,8 +36,8 @@ def pack(h):
     t = h // 0x100
     return (s, t)
     
-def go_to_pointer(pointer, offset):
-    return unpack(pointer[0], pointer[1]) + offset
+def go_to_pointer(pointer, constant):
+    return unpack(pointer[0], pointer[1]) + constant
     
 def find_pointers():
     p = re.compile(pointer_regex)
@@ -52,7 +54,7 @@ def find_pointers():
         #print bytes.encode('hex')
         tables = p.finditer(only_hex)
         for table in tables:
-            last_part = table.group(3).split('\\x')
+            last_part = table.group(4).split('\\x')
             #print last_part
             if last_part[1] == last_part[2] == last_part[3] == last_part[4]: # ignore FFFFFFFFFF sections
                 pass
@@ -63,24 +65,29 @@ def find_pointers():
                 start = table.start() / 4 # divide by four, since 4 characters per byte in our dump)
                 stop = table.end() / 4
                 count = (stop - start) / 4 # div by 4 again, since 4 bytes per pointer
-                delimiter = table.group(2)
+                delimiter = table.group(2) + table.group(3)
                 #print table.group(0)
                 #print delimiter
                 values = []
-                # Can't do this - sometimes part of the delimiter shows up in the pointer itself! (10-00-00-00)
+                # Can't just do this - sometimes part of the delimiter shows up in the pointer itself! (10-00-00-00)
                  #values = table.group(0).split(delimiter)
                 # So just slice the string into the first two bytes.
                 for x in range(0, len(table.group(0))-15, 16):
                     pointer_string = table.group(0)[x:x+8]
                     pointer_tuple = pointer_string.split('\\x')[1], pointer_string.split('\\x')[2]
                     values.append(pointer_tuple)
-                #print values
                 pointers = []
                 for (first, second) in values:
                     pointers.append(hex(unpack(int(first, 16), int(second, 16))))
                 print str(count) + " pointers at " + hex(start) + ", delimiter: " + delimiter
+                pointers.sort()
                 print pointers
                 # next, calculate the diffs. and figure out if it's just 4 over and over
+                diffs = []
+                for pointer in range(0, len(pointers)-1):
+                    diffs.append(int(pointers[pointer+1],16) - (int(pointers[pointer],16)))
+                print diffs
+                
         #out_file = open('dump_' + file, 'w+')
         #out_file.write(only_hex)
         
@@ -88,6 +95,9 @@ def find_string_offsets():
     for (file, blocks) in file_blocks:
         diffs_filename = "diffs_" + file
         diffs_out_file = open(diffs_filename, "w")
+        
+        text_filename = "text_" + file
+        text_out_file = open(text_filename, 'w')
         for block in blocks:
             diffs_out_file.write(str(file) + " " + str(block) + "\n")
             
@@ -114,18 +124,22 @@ def find_string_offsets():
                     offset = hex(block_start + (string_start / 4))
                     pointeds.append(offset)
                     
-                    try:
-                        print pointeds[-1]
-                        print pointeds[-2]
-                        print "\n"
-                        diffs.append(int(pointeds[-1], 16) - int(pointeds[-2], 16))
-                    except IndexError:
-                        diffs.append(0)
+                    s.strip('\\x').decode('shift_jis', errors='ignore').encode('utf-8')
+                    text_out_file.write(s + "\n")
+            
+            pointeds.sort()
+            print pointeds
+            for i in range(0, len(pointeds)-1):
+                diff = int(pointeds[i+1], 16) - int(pointeds[i], 16)
+                if diff == 0 or diff > 1000:
+                    print i, pointeds[i+1], pointeds[i], diff
+                diffs.append(diff)
+            print diffs
             
             for d in range(0, len(diffs)-7, 8):
                 diffs_out_file.write(str(diffs[d]) + " " + str(diffs[d+1]) + " " + str(diffs[d+2]) + " " + str(diffs[d+3]) + str(diffs[d+4]) + " " + str(diffs[d+5]) + " " + str(diffs[d+6]) + " " + str(diffs[d+7]) + " " + "\n")
             diffs_out_file.write("\n")
         diffs_out_file.close()
  
-find_pointers() 
-#find_string_offsets()
+#find_pointers() 
+find_string_offsets()

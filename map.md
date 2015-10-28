@@ -105,18 +105,35 @@
 * 100D4-101E1: Error messages?
 * 10571-1087B: Error messages?
 
+* Pointers:
+* Separator: f7-0b
+* Constant: 0xc170
+* (0x104dcc, 0x1056f): Error message pointers. Sep: f7-0b.
+
 ### ST3.EXE
 * (0xb49d, 0xb548), (0xb58a, 0xdb3a), (0xdb7e, 0xe2d5), (0xe617, 0xe7f3), (0xeb82, 0xee8e)
 * System, dialog/battle, creatures, battle, errors
 
+* Pointers:
+* Separator: 20-0b
+* Constant: 0xb400
+* (0xeaee, 0xed81): Error message pointers. Sep: 20-0b.
+
 ### ST4.EXE
 * (0xe262, 0xe29e), (0xe2f4, 0x120a0), (0x12114, 0x149e4), (0x14a28, 0x15a1e), (0x16031, 0x1620d), (0x1659c, 0x168a8) 
 * System, dialog/battle 1, dialog/battle 2, creatures, battle, errors
-* (e263, 1688a)
 * e263-ea3e: Battle
+
+* Pointers:
+* Separator: f4-0d
+* Constant: 0xe140
 
 ### ST5.EXE
 * (0xcc02, 0xcc5e), (0xccf2, 0xcd2e), (0xcd74, 0xeabe), (0xebc3, 0x107a3), (0x107e6, 0x11466), (0x11976, 0x11b53), (0x11ef2, 0x121fe)
+
+* Pointers:
+* Separator: 96-0c
+* Constant: 0xcb60
 
 ### ST5S1.EXE
 * (0x24e8, 0x3af1)
@@ -128,9 +145,16 @@
 ### ST5S3.EXE
 * (0x3db9, 0x4ed0)
 
+* Pointers:
+* Separator: ae-03
+
 ### ST6.EXE
 * (0xa4f1, 0xa55b), (0xa59c, 0xccd1), (0xcd14, 0xce25), (0xcede, 0xd0bb), (0xd44a, 0xd756)
 * BBD0: **"OK! TAKE IT EASY!" text** (only English text I remembered seeing, clued me in to the presence of the other text)
+
+* Pointers:
+* Separator: 26-0a
+* Constant: 0xa460
 
 ## **ENDING.EXE**
 * (0x3c4e, 0x4b1f)
@@ -162,3 +186,5 @@
 * Line length, dialogue: 22 characters
 * Line length, battle:
 * Line length, bottom narration: 
+* Menu item length: 6 characters?
+* Creature name: 10 characters?
