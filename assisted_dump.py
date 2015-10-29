@@ -10,10 +10,7 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window.
 
-# TODO: Look for garbage.
 # TODO: Where is the weird ASCII at the end of SINKA.DAT strings coming from?
-
-# TODO: Print progress.
 
 # TODO: Add a column for the string's pointer location, if there is one.
 # TODO: Add control codes?
@@ -22,6 +19,13 @@ import os
 import subprocess
 import codecs
 import xlsxwriter
+import re
+
+from utils import file_blocks
+from utils import specific_pointer_regex
+from utils import pointer_constants, pointer_separators
+from utils import pack, unpack, location_from_pointer
+
 
 # Game contains disks.
 # Disks contain files.
@@ -29,41 +33,47 @@ import xlsxwriter
 # Blocks contain snippets, separated by \x00. (<END> tags)
 # Snippets contain strings, separated by \x0a or \x0d. (line beaks)
         
-
-# Dict of files and dump blocks.
-files = [ ('OPENING.EXE', ((0x4dda, 0x5868),),),
-('ST1.EXE', ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11595), (0x117c7, 0x119a3), (0x11d42, 0x1204e))),
-          ('ST2.EXE', ((0xc23b, 0xdd4f), (0xde35, 0xfaa0), (0xfae4, 0xfe50), (0x10004, 0x101df), (0x10570, 0x1087b))),
-          ('ST3.EXE', ((0xb49d, 0xb548), (0xb58a, 0xdb3a), (0xdb7e, 0xe2d5), (0xe617, 0xe7f3), (0xeb82, 0xee8e))),
-          ('ST4.EXE', ((0xe262, 0xe29e), (0xe2f4, 0x120a0), (0x12114, 0x149e4), (0x14a28, 0x15a1e), (0x16031, 0x1620d), (0x1659c, 0x168a8))),
-          ('ST5.EXE', ((0xcc02, 0xcc5e), (0xccf2, 0xcd2e), (0xcd74, 0xeabe), (0xebc3, 0x107a3), (0x107e6, 0x11466), (0x11976, 0x11b53), (0x11ef2, 0x121fe))),
-          ('ST5S1.EXE', ((0x24e8, 0x3af1),),),
-          ('ST5S2.EXE', ((0x23f9, 0x3797),),),
-          ('ST5S3.EXE', ((0x3db9, 0x4ed0),),),
-          ('ST6.EXE', ((0xa4f1, 0xa55b), (0xa59c, 0xccd1), (0xcd14, 0xce25), (0xcede, 0xd0bb), (0xd44a, 0xd756))),
-          ('ENDING.EXE', ((0x3c4e, 0x4b1f),)),
-          ('SINKA.DAT', ((0x0000, 0x874a),)),
-          ('SEND.DAT', ((0x000, 0x8740),)),
-          ('46.EXE', ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a)))
-]
-
 workbook = xlsxwriter.Workbook('shinkaron_dump.xlsx')
 worksheet = workbook.add_worksheet()
 
-# Set column sizes to something reasonable.
+# Set column sizes to something reasonable where necessary.
 worksheet.set_column('A:A', 20)
-worksheet.set_column('C:C', 80)
-worksheet.set_column('D:D', 90)
+worksheet.set_column('D:D', 80)
+worksheet.set_column('E:E', 90)
 
 excel_row = 0
 
 dump_files = []
 
-for file in files:
+for file in file_blocks:
+    print "Dumping file %s..." % file[0]
+    in_file = open(file[0], 'rb')
+    
+    pointer_locations = {}
+    if file[0] in pointer_constants:
+        first, second = pointer_separators[file[0]]
+        print specific_pointer_regex(first, second)
+        pattern = re.compile(specific_pointer_regex(first, second))
+        
+        bytes = in_file.read()
+        only_hex = ""
+        for c in bytes:
+            only_hex += "\\x%02x" % ord(c)
+        #print only_hex
+        pointers = pattern.finditer(only_hex)
+        
+        for p in pointers:
+            print p.group(2), p.group(3)
+            pointer_location = only_hex.index(p.group(0))
+            location_pointed_to = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file[0]])
+            pointer_locations[pointer_location] = location_pointed_to
+            
+            # wait, how should I make sure these are just associated with their own files?
+    
     for (block_start, block_end) in file[1]:
         dat_dump = file[0] == 'SINKA.DAT' or file[0] == 'SEND.DAT'
         block_length = block_end - block_start
-        in_file = open(file[0], 'rb')
+        
         in_file.seek(block_start)
         bytes = in_file.read(block_length)
         only_hex = ""
@@ -92,6 +102,7 @@ for file in files:
                 
                 dump_files.append(snippet_dump)
                 os.remove(snippet_filename)
+    in_file.close()
         
 dump = []
 #print dump_files
@@ -128,10 +139,11 @@ for file in dump_files:
 
 # Access this in a separate for loop, since there might be multiple texts in a snippet
 for snippet in dump:
-    # excel cols: File, Offset, Japanese, English
+    # excel cols: File, Offset, Pointer, Japanese, English
     worksheet.write(excel_row, 0, snippet[0])
     worksheet.write(excel_row, 1, snippet[1])
     worksheet.write(excel_row, 2, snippet[2])
+    worksheet.write(excel_row, 3, snippet[2])
     excel_row += 1
 
 workbook.close()

@@ -5,12 +5,9 @@
 # 3. Still more random garbage.
 
 import string
+from utils import file_blocks
 
-files = [('ST1.EXE', ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11565), (0x11839, 0x119a3), (0x11d42, 0x1204e),),),
-
-        ]
-
-for file in files:
+for file in blocks:
     in_file = open(file[0], 'rb')
     out_file = open("dump_" + file[0], "w")
     for block in file[1]:
@@ -20,15 +17,15 @@ for file in files:
         segments = text.split("\x00")
         for segment in segments:
             segment.decode('shift_jis', errors='ignore').encode('utf-8')
-            print repr(segment)
+            #print repr(segment)
             # Sub in control codes.
-            clean = segment.replace('\x0d', '<LINE>\n').replace('\x0a', '<LINE>\n').replace('\x13', '<WAIT>\n') 
+            #clean = segment.replace('\x0d', '<LINE>\n').replace('\x0a', '<LINE>\n').replace('\x13', '<WAIT>\n') 
             # Delete the just-ASCII lines, but keep ASCII within lines of SJIS text.
             # If there's any string left when you remove the ASCII, insert the line.
-            without_ascii = filter(lambda x: x not in string.printable, clean)
+            #without_ascii = filter(lambda x: x not in string.printable, clean)
             
-            if clean.strip() and without_ascii.strip():
-                out_file.write(clean + "\n")
+            #if clean.strip() and without_ascii.strip():
+            #    out_file.write(clean + "\n")
                 #out_file.write(repr(clean) + "\n")
-    
+            out.file.write(segment + "\n")
     

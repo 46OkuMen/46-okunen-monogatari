@@ -93,7 +93,7 @@
 ** 0014e-001e1: Points to the pointers of the error messages table. (they increment by 4 each time.) 5e-0d.
 ** 0d934-0d983: Menu options, some battle skills. Add 0xd7e0. 5e-0d.
 ** 10f96-10fc9: 13 pointers, 5e-od. Yes/No/Cancel, ascii numbers 1-6...
-** 11cae-11d41: Error messages! Pointers point to their little-endian value + 0xd7e0. Sep: 5e-0d.
+** 11cae-11d41: Error messages! Pointers point to their little-endian value + . Sep: 5e-0d.
 
 ### ST2.EXE
 * (0xc23b, 0xdd4f), (0xde35, 0xfaa0), (0xfae4, 0xfe50), (0x10004, 0x101df), (0x10570, 0x1087b)
