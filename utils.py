@@ -52,4 +52,4 @@ def pack(h):
     return (s, t)
     
 def location_from_pointer(pointer, constant):
-    return unpack(pointer[0], pointer[1]) + constant
+    return hex(unpack(pointer[0], pointer[1]) + constant)

@@ -45,14 +45,15 @@ excel_row = 0
 
 dump_files = []
 
+pointer_locations = {}
+
 for file in file_blocks:
     print "Dumping file %s..." % file[0]
     in_file = open(file[0], 'rb')
     
-    pointer_locations = {}
     if file[0] in pointer_constants:
         first, second = pointer_separators[file[0]]
-        print specific_pointer_regex(first, second)
+        #print specific_pointer_regex(first, second)
         pattern = re.compile(specific_pointer_regex(first, second))
         
         bytes = in_file.read()
@@ -63,12 +64,13 @@ for file in file_blocks:
         pointers = pattern.finditer(only_hex)
         
         for p in pointers:
-            print p.group(2), p.group(3)
-            pointer_location = only_hex.index(p.group(0))
-            location_pointed_to = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file[0]])
-            pointer_locations[pointer_location] = location_pointed_to
+            # pointer_locations[(file, offset of text in file)] = pointer location
+            text_location = hex(only_hex.index(p.group(0)))
+            print text_location
+            pointer_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file[0]])
+            print pointer_location
+            pointer_locations[(file[0], pointer_location)] = text_location
             
-            # wait, how should I make sure these are just associated with their own files?
     
     for (block_start, block_end) in file[1]:
         dat_dump = file[0] == 'SINKA.DAT' or file[0] == 'SEND.DAT'
@@ -81,7 +83,7 @@ for file in file_blocks:
             only_hex += "\\x%02x" % ord(c)
         if dat_dump:
             snippets = only_hex.split('\\x0d\\x0a')  # these don't have any x00s in them
-            print snippets
+            #print snippets
         else:
             snippets = only_hex.split('\\x00')
         for snippet in snippets:
@@ -107,6 +109,7 @@ for file in file_blocks:
 dump = []
 #print dump_files
 #print len(dump_files)
+#print pointer_locations
         
 for file in dump_files:
     # file.split('_') is ('dump', 'snippet', sourcefile, offset)
@@ -132,8 +135,13 @@ for file in dump_files:
         #print total_offset
         
         text = lines[n+1]
+        
+        try:
+            pointer = pointer_locations[(source, total_offset)]
+        except KeyError:
+            pointer = ''
     
-        dump.append((source, total_offset, text))
+        dump.append((source, total_offset, pointer, text))
         
     fo.close()
 
@@ -143,7 +151,7 @@ for snippet in dump:
     worksheet.write(excel_row, 0, snippet[0])
     worksheet.write(excel_row, 1, snippet[1])
     worksheet.write(excel_row, 2, snippet[2])
-    worksheet.write(excel_row, 3, snippet[2])
+    worksheet.write(excel_row, 3, snippet[3])
     excel_row += 1
 
 workbook.close()

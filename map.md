@@ -139,6 +139,10 @@
 * (0x24e8, 0x3af1)
 * (just one block - dialog/battle)
 
+* Pointers:
+* Separator: 24-02
+* Constant: 0x243e
+
 ### ST5S2.EXE
 * (0x23f9, 0x3797)
 
@@ -147,6 +151,7 @@
 
 * Pointers:
 * Separator: ae-03
+* Constant: 0x3cde (?)
 
 ### ST6.EXE
 * (0xa4f1, 0xa55b), (0xa59c, 0xccd1), (0xcd14, 0xce25), (0xcede, 0xd0bb), (0xd44a, 0xd756)
@@ -161,6 +166,9 @@
 * 3C4e-440F: Credits
 * 443B-4B1E: Ending text
 
+* Pointers:
+* Separator: 5a-03
+* Constant: 399e? (Close but not totally right)
 
 # Disk B1-B4
 * All other disks appear to just hold images and maps... no text.
