@@ -5,9 +5,10 @@
 import re
 from utils import file_blocks
 from utils import pointer_regex
+from utils import pack, unpack
 
 
-files = ['ST1.EXE', 'OPENING.EXE']
+files = ['ST1.EXE', 'OPENING.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 
 pointers = {}
 # hex loc: (hex a, hex b)
@@ -51,10 +52,15 @@ def find_pointers():
                     values.append(pointer_tuple)
                 pointers = []
                 for (first, second) in values:
-                    pointers.append(hex(unpack(int(first, 16), int(second, 16))))
+                    pointers.append(hex(unpack(first, second)))
                 print str(count) + " pointers at " + hex(start) + ", delimiter: " + delimiter
                 pointers.sort()
                 print pointers
+                pointers_filename = "pointers_" + file
+                out_file = open(pointers_filename, 'w')
+                for ptr in pointers:
+                    out_file.write(ptr + "\n")
+                
                 # next, calculate the diffs. and figure out if it's just 4 over and over
                 diffs = []
                 for pointer in range(0, len(pointers)-1):
@@ -114,5 +120,5 @@ def find_string_offsets():
             diffs_out_file.write("\n")
         diffs_out_file.close()
  
-#find_pointers() 
-find_string_offsets()
+find_pointers() 
+#find_string_offsets()

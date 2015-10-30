@@ -2,7 +2,7 @@
 
 # Use SJIS-Dump to dump all the SJIS from the game's source files.
 # Parse the dump into (source, offset, dump).
-# Insert the text into the excel spreadsheet. Columns: File, Offset, Japanese, English.
+# Insert the text into the excel spreadsheet. Columns: File, Offset, Pointer, Japanese, English.
 
 # SJIS_Dump on its own messes up any file larger than 0x100 bytes, since its internal buffer is
 # that size. It splits two-byte characters across multiple buffers, and as a result, it mis-encodes them.
@@ -12,7 +12,6 @@
 
 # TODO: Where is the weird ASCII at the end of SINKA.DAT strings coming from?
 
-# TODO: Add a column for the string's pointer location, if there is one.
 # TODO: Add control codes?
 
 import os
@@ -47,12 +46,12 @@ dump_files = []
 
 pointer_locations = {}
 
-for file in file_blocks:
-    print "Dumping file %s..." % file[0]
-    in_file = open(file[0], 'rb')
+for (file, blocks) in file_blocks:
+    print "Dumping file %s..." % file
+    in_file = open(file, 'rb')
     
-    if file[0] in pointer_constants:
-        first, second = pointer_separators[file[0]]
+    if file in pointer_constants:
+        first, second = pointer_separators[file]
         #print specific_pointer_regex(first, second)
         pattern = re.compile(specific_pointer_regex(first, second))
         
@@ -64,16 +63,18 @@ for file in file_blocks:
         pointers = pattern.finditer(only_hex)
         
         for p in pointers:
-            # pointer_locations[(file, offset of text in file)] = pointer location
-            text_location = hex(only_hex.index(p.group(0)))
-            print text_location
-            pointer_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file[0]])
+            # pointer_locations[(file, text_location)] = pointer_location
+            # Since we want to take a piece of text from the file and find its pointer.
+            pointer_location = hex(only_hex.index(p.group(0)))  # Where is this pointer found?
             print pointer_location
-            pointer_locations[(file[0], pointer_location)] = text_location
+            # Take the value of the pointer, 
+            text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
+            print text_location
+            pointer_locations[(file, text_location)] = pointer_location
             
     
-    for (block_start, block_end) in file[1]:
-        dat_dump = file[0] == 'SINKA.DAT' or file[0] == 'SEND.DAT'
+    for (block_start, block_end) in blocks:
+        dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
         block_length = block_end - block_start
         
         in_file.seek(block_start)
@@ -83,14 +84,14 @@ for file in file_blocks:
             only_hex += "\\x%02x" % ord(c)
         if dat_dump:
             snippets = only_hex.split('\\x0d\\x0a')  # these don't have any x00s in them
-            #print snippets
+            print snippets
         else:
             snippets = only_hex.split('\\x00')
         for snippet in snippets:
             if snippet and len(snippet) > 4:       # at least one byte representation
                 snippet_start = only_hex.index(snippet)
                 offset = hex(block_start + (snippet_start / 4))
-                snippet_filename = "snippet_" + offset + "_" + file[0]
+                snippet_filename = "snippet_" + offset + "_" + file
                 snippet_file = open(snippet_filename, 'wb')
                 snippet_bytes = snippet.replace('\\x', '').decode('hex')
                 snippet_file.write(snippet_bytes)
