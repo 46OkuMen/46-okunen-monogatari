@@ -12,10 +12,16 @@
 * 9CB6-9CD6: Graph LIO cannot be initialized
 * 9D6E-A079: File error messages
 
+* Pointers:
+* Constant: 0x92c0
+
 
 ## .GDT Files
 * Images, animations...
 * Appear in a SJIS editor as various single kanji separated by lots of garbage.
+
+## .MAP Files
+* Map tilesets. Graphics only, don't seem to affect object locations or map shape.
 
 ## COMMAND.COM
 * Mostly DOS related error messages.
@@ -42,10 +48,8 @@
 
 * Pointer Tables:
 ** 36-1fd: 114 pointers, sep: 68-04. Point to the table below.
-** 4c51-4dbc: 114 pointers, sep: 68-04. Point to the text.
-* 0x4bf7 (location pointed to, probably) - 0x177 (value of pointer) = 0x4b80
-* Use the pointers that point to other pointers to determine the constant!
-* Constant = 0x4b80.
+** 4c51-4dbc: 114 pointers, sep: 68-04. Point to the text, I hope.
+* Constant = 0x4a80 ?
 
 ## PC0-100.46
 
@@ -107,7 +111,7 @@
 
 * Pointers:
 * Separator: f7-0b
-* Constant: 0xc170
+* Constant: 0xc170 (This is most definitely wrong - only one hit)
 * (0x104dcc, 0x1056f): Error message pointers. Sep: f7-0b.
 
 ### ST3.EXE
@@ -141,17 +145,23 @@
 
 * Pointers:
 * Separator: 24-02
-* Constant: 0x243e
+* 0092, 0096, 009a, 009e, 00a2, 00a6, 1582, 1586, 158a
+* 06d4, 06db, 06e4, 0bd0, 06db, 06e3
+* Constant: 0x243e ?
 
 ### ST5S2.EXE
 * (0x23f9, 0x3797)
+
+* Pointers:
+* Weird, there don't seem to be normal pointers in this one.
+* Constant: 0x2360
 
 ### ST5S3.EXE
 * (0x3db9, 0x4ed0)
 
 * Pointers:
 * Separator: ae-03
-* Constant: 0x3cde (?)
+* Constant: 0x3ce0 (halfway between 00-00-00-00 and 00-00-00-00 right before Turbo-C)
 
 ### ST6.EXE
 * (0xa4f1, 0xa55b), (0xa59c, 0xccd1), (0xcd14, 0xce25), (0xcede, 0xd0bb), (0xd44a, 0xd756)
