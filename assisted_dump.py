@@ -10,8 +10,7 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window.
 
-# TODO: Where is the weird ASCII at the end of SINKA.DAT strings coming from?
-
+# TODO: These pointer values are straight up wrong, where are they coming from?
 # TODO: Add control codes?
 
 import os
@@ -66,45 +65,71 @@ for (file, blocks) in file_blocks:
             # pointer_locations[(file, text_location)] = pointer_location
             # Since we want to take a piece of text from the file and find its pointer.
             pointer_location = hex(only_hex.index(p.group(0)))  # Where is this pointer found?
-            print pointer_location
+            #print pointer_location
             # Take the value of the pointer, 
             text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
-            print text_location
+            #print text_location
             pointer_locations[(file, text_location)] = pointer_location
             
     
     for (block_start, block_end) in blocks:
         dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
-        block_length = block_end - block_start
-        
-        in_file.seek(block_start)
-        bytes = in_file.read(block_length)
-        only_hex = ""
-        for c in bytes:
-            only_hex += "\\x%02x" % ord(c)
         if dat_dump:
-            snippets = only_hex.split('\\x0d\\x0a')  # these don't have any x00s in them
-            print snippets
-        else:
-            snippets = only_hex.split('\\x00')
-        for snippet in snippets:
-            if snippet and len(snippet) > 4:       # at least one byte representation
-                snippet_start = only_hex.index(snippet)
-                offset = hex(block_start + (snippet_start / 4))
-                snippet_filename = "snippet_" + offset + "_" + file
-                snippet_file = open(snippet_filename, 'wb')
-                snippet_bytes = snippet.replace('\\x', '').decode('hex')
-                snippet_file.write(snippet_bytes)
-                snippet_file.close()
-                
-                snippet_dump = "dump_" + snippet_filename
-                if dat_dump:
+            #print "dat dumping"
+            in_file = codecs.open(file, 'r', 'shift_jis')
+            whole_file = in_file.read()
+            in_file.seek(0)
+            snippets = in_file.readlines()
+            for snippet in snippets:
+                if snippet and len(snippet) > 4:
+                    snippet_start = whole_file.index(snippet)
+                    offset = hex(snippet_start)
+                    #print offset
+                    
+                    snippet_filename = "snippet_" + offset + "_" + file
+                    snippet_file = open(snippet_filename, 'w')
+                    snippet_file.write(snippet.encode('shift_jis'))
+                    snippet_file.close()
+                    
+                    snippet_dump = "dump_" + snippet_filename
+                    
                     subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_filename, snippet_dump))
-                else:
+                    
+                    dump_files.append(snippet_dump)
+                    os.remove(snippet_filename)
+            
+        else:
+            block_length = block_end - block_start
+        
+            in_file.seek(block_start)
+            bytes = in_file.read(block_length)
+            only_hex = ""
+            for c in bytes:
+                only_hex += "\\x%02x" % ord(c)
+                
+            snippets = only_hex.split(r'\\x00')
+        #if dat_dump:
+            #snippets = only_hex.split(r'\\x0d\\x0a')  # these don't have any x00s in them
+            #print snippets
+            
+            for snippet in snippets:
+                if snippet and len(snippet) > 4:       # at least one byte representation
+                    snippet_start = only_hex.index(snippet)
+                    offset = hex(block_start + (snippet_start / 4))
+                    if len(snippet) / 4 > 0x100:
+                        print str(len(snippet)/4) + " check " + offset + " for garbage"
+                    snippet_filename = "snippet_" + offset + "_" + file
+                    snippet_file = open(snippet_filename, 'wb')
+                    snippet_bytes = snippet.replace('\\x', '').decode('hex')
+                    snippet_file.write(snippet_bytes)
+                    snippet_file.close()
+                
+                    snippet_dump = "dump_" + snippet_filename
+                    
                     subprocess.call(".\SJIS_Dump %s %s 1 0" % (snippet_filename, snippet_dump))
                 
-                dump_files.append(snippet_dump)
-                os.remove(snippet_filename)
+                    dump_files.append(snippet_dump)
+                    os.remove(snippet_filename)
     in_file.close()
         
 dump = []
@@ -155,8 +180,12 @@ for snippet in dump:
     worksheet.write(excel_row, 3, snippet[3])
     excel_row += 1
 
+    
+# Cleanup.
 workbook.close()
 
 for file in dump_files:
-    #os.remove(file)       #Wonder why it's not finding these?
-    pass
+    try:
+        os.remove(file)       #Wonder why it's not finding these?
+    except WindowsError:
+        pass

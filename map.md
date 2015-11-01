@@ -13,12 +13,16 @@
 * 9D6E-A079: File error messages
 
 * Pointers:
+* Separator: 0a-0c
 * Constant: 0x92c0
 
 
 ## .GDT Files
 * Images, animations...
 * Appear in a SJIS editor as various single kanji separated by lots of garbage.
+* Corupting something by increasing a few bytes tends to produce vertical smears of one color. Maybe it's arranged by columns?
+* MAP100.GDT, etc. is the world map in the top right corner of each chapter.
+* TITLE.GDT, etc. contains text, should probably look this one up.
 
 ## .MAP Files
 * Map tilesets. Graphics only, don't seem to affect object locations or map shape.
@@ -201,8 +205,9 @@
 * 81-41-0A: Line break in the middle of a line
 
 ## Misc. Info
-* Line length, dialogue: 22 characters
+* Not only do you get twice the number of Latin characters per Japanese character on the byte level, you also get twice as many Latin characters in onscreen space. 
+* Line length, dialogue: 43 Latin characters (auto-line-break)
 * Line length, battle:
-* Line length, bottom narration: 
-* Menu item length: 6 characters?
-* Creature name: 10 characters?
+* Line length, bottom narration: 76 Latin characters
+* Menu item length: 12 Latin characters
+* Creature name: 22 Latin characters is pretty snug Tyrannosaurus rex

@@ -11,7 +11,7 @@ file_blocks = [ ('OPENING.EXE', ((0x4dda, 0x5868),),),
           ('ENDING.EXE', ((0x3c4e, 0x4b1f),)),
           ('SINKA.DAT', ((0x0000, 0x874a),)),
           ('SEND.DAT', ((0x000, 0x8740),)),
-          #('46.EXE', ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a)))
+          ('46.EXE', ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a)))
 ]
 
 pointer_separators = {
@@ -25,6 +25,7 @@ pointer_separators = {
         'ST5S1.EXE': ("24", "02"),
         'ST5S3.EXE': ("ae", "03"),
         'ENDING.EXE': ("5a", "03"),
+        '46.EXE': ('0a', '0c')
 }
 
 pointer_constants = {
@@ -39,6 +40,7 @@ pointer_constants = {
         #'ST5S2.EXE': 0x2360,
         'ST5S3.EXE': 0x3ce0,
         'ENDING.EXE': 0x39a0,
+        '46.EXE': 0x92c0,
 }
 
 old_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
@@ -59,6 +61,6 @@ def pack(h):
     return (s, t)
     
 def location_from_pointer(pointer, constant):
-    print "pointer:" + str(pointer)
-    print "constant: " + str(constant)
+    #print "pointer:" + str(pointer)
+    #print "constant: " + str(constant)
     return hex(unpack(pointer[0], pointer[1]) + constant)
