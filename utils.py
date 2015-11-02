@@ -61,6 +61,8 @@ def pack(h):
     return (s, t)
     
 def location_from_pointer(pointer, constant):
-    #print "pointer:" + str(pointer)
-    #print "constant: " + str(constant)
-    return hex(unpack(pointer[0], pointer[1]) + constant)
+    print "pointer:" + str(pointer)
+    print "constant: " + hex(constant)
+    value = hex(unpack(pointer[0], pointer[1]) + constant)
+    print value
+    return value

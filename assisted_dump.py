@@ -107,7 +107,7 @@ for (file, blocks) in file_blocks:
             for c in bytes:
                 only_hex += "\\x%02x" % ord(c)
                 
-            snippets = only_hex.split(r'\\x00')
+            snippets = only_hex.split('\\x00')
         #if dat_dump:
             #snippets = only_hex.split(r'\\x0d\\x0a')  # these don't have any x00s in them
             #print snippets
@@ -118,6 +118,7 @@ for (file, blocks) in file_blocks:
                     offset = hex(block_start + (snippet_start / 4))
                     if len(snippet) / 4 > 0x100:
                         print str(len(snippet)/4) + " check " + offset + " for garbage"
+                        print snippet
                     snippet_filename = "snippet_" + offset + "_" + file
                     snippet_file = open(snippet_filename, 'wb')
                     snippet_bytes = snippet.replace('\\x', '').decode('hex')
