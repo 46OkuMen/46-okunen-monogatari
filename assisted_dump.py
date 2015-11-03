@@ -1,16 +1,22 @@
-# Makes use of a tool called SJIS_Dump which deals with the encoding better.
+# Assisted Text Dumper for 46 Okunen Monogatari: The Shinka Ron. Use in a directory with the contents of
+# Disk A (User).FDI, extracted with EditDisk.
 
-# Use SJIS-Dump to dump all the SJIS from the game's source files.
-# Parse the dump into (source, offset, dump).
-# Insert the text into the excel spreadsheet. Columns: File, Offset, Pointer, Japanese, English.
+# For each file, dump all the discovered pointer tables into a dict "pointers".
+# For each text block in the file (locations found previously), split it into smaller snippets,
+# then write each snippet to its own temp file.
+# Use SJIS-Dump to dump all the SJIS from these temp files, which puts it in other temp files.
+# Read all the SJIS strings from these temp files, then determine their original offset and the location
+# of their pointer, if they have one.
+# Parse each string into a tuple (source file, offset, pointer location, text).
+# Write all these values to an excel spreadsheet for use by the translator.
+# Cleanup all the temp files.
 
 # SJIS_Dump on its own messes up any file larger than 0x100 bytes, since its internal buffer is
 # that size. It splits two-byte characters across multiple buffers, and as a result, it mis-encodes them.
 # Trying to alter the C++ program to have a larger buffer had some odd results, so my solution:
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
-# game text lines themselves, which are never longer than the game window.
+# game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: These pointer values are straight up wrong, where are they coming from?
 # TODO: Add control codes?
 
 import os
@@ -64,11 +70,11 @@ for (file, blocks) in file_blocks:
         for p in pointers:
             # pointer_locations[(file, text_location)] = pointer_location
             # Since we want to take a piece of text from the file and find its pointer.
-            pointer_location = hex(only_hex.index(p.group(0)))  # Where is this pointer found?
-            #print pointer_location
+            pointer_location = hex(only_hex.index(p.group(0))/4)  # Where is this pointer found?
+            print "Pointer Location: " + pointer_location
             # Take the value of the pointer, 
             text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
-            #print text_location
+            print "Text Locaiton: " + text_location
             pointer_locations[(file, text_location)] = pointer_location
             
     
@@ -165,6 +171,7 @@ for file in dump_files:
         
         try:
             pointer = pointer_locations[(source, total_offset)]
+            print source, pointer
         except KeyError:
             pointer = ''
     
@@ -187,6 +194,6 @@ workbook.close()
 
 for file in dump_files:
     try:
-        os.remove(file)       #Wonder why it's not finding these?
-    except WindowsError:
+        os.remove(file)
+    except WindowsError: # Sometimes it doesn't find the file... strange.
         pass
