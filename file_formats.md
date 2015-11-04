@@ -25,3 +25,8 @@
 **08-07: Image width (640 for titles, 416 for sad ends, 160 for maps
 **10-9: Image height, scanlines subtracted (200 for titles, 143-144 for sad ends, 64 for map)
 **12-11: End of header??
+
+*Experiments with GAMEOVER.GDT
+**at 0x119, there's 9 00s in a row - is this the divide between the two words, or a division between color planes?
+**lots of instances of "00-41" or "00-47" or "00-46" throughout. 0xa0 (160) is like twice 0x46 (70), with a difference of 10, which is the (scanlined) maximum height of the letters...
+***So those words are probably something like color-runlength.
