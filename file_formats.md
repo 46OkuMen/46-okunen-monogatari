@@ -30,3 +30,35 @@
 **at 0x119, there's 9 00s in a row - is this the divide between the two words, or a division between color planes?
 **lots of instances of "00-41" or "00-47" or "00-46" throughout. 0xa0 (160) is like twice 0x46 (70), with a difference of 10, which is the (scanlined) maximum height of the letters...
 ***So those words are probably something like color-runlength.
+**There are 22 instances of "10," which is the height of letters. How many maximal vertical lines exist in the image?
+***1 (G), 6 (M), 5 (E), 5 (E), 5 (R) = 22 lines.
+***It probably writes 10 blue, then fills in the interior with smaller colors later to make it white.
+***What codes are doing this? 10-04, 10-06, ...
+**The series of nine 00s (0x119-121) in the  middle is the separation between "GAME" and "OVER".
+***Could 00 just be the end-of-column marker?
+**Game seems to handle graphics in 8-pixel-wide columns, starting at the top and working downward.
+***Cleanest thing I've gotten so far is shaving off the right 3 columns of the "R". Now it ends in a 10. What happens if I cut up to the next 10?
+***Next cut takes away 8 pixels (middle of the "R")
+***Next cut takes away 8 pixels (middle of the "E")
+**Most of the above is wrong. The height of the images is 0x90 (144), or 0x48 with scanlines so that rules out the theory about black... Plus, it seems to work by rows??
+
+**Just in the G. Final 0x10:
+***0x00: Everything white turns pink.
+***0x01: Everything white turns pink.
+***0x20: Everything white turns pink.
+***0x08: Blue borders turn turqouise.
+***0x09: Blue borders turn turqouise.
+***0x0C: Blue borders turn turquoise. (Green glitches at top.)
+***0x07: 8column turns black.
+***0x0F: 8column turns black.
+***0x10: Normal. (Baseline)
+***0x11: Normal.
+***0x12: Normal.
+***0x06, breaks everything (green bullets)
+***0x0E: breaks everything (green bullets)
+***0x05, REALLY breaks everything. (G ghosting, weird white background at bottom)
+***0x15, REALLY breaks everything.
+**80 at 0x58:
+***0x89, adds 00000101 pixels in the 4th row.
+***0x8F, adds 00001111 pixels in the 4th row.
+***0xFF, breaks everything/adds lots of blue pixels and overflows a lot.
