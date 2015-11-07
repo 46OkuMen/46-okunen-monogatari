@@ -58,7 +58,29 @@
 ***0x0E: breaks everything (green bullets)
 ***0x05, REALLY breaks everything. (G ghosting, weird white background at bottom)
 ***0x15, REALLY breaks everything.
+**41 at 0x54:
+***0x31, breaks everything, ghosts everything into 3 parts.
+**0x43, pushes the blue stuff down a little bit.
+**0x4C,
+**7F at 0x55: 
+***0x70, 1st row becomes 01110000. 
+**FF at 0x56:
+***0x0F, 3rd row becomes 00000010. (leftmost white becomes pink-ish. 2nd row half becomes pink-ish.)
+**02 at 0x57:
+***0x03, stretches out all the 2-tall blue lines into 3-tall blue lines.
+***0x04, stretches out all the 2-tall blue lines into 4-tall blue lines.
 **80 at 0x58:
-***0x89, adds 00000101 pixels in the 4th row.
-***0x8F, adds 00001111 pixels in the 4th row.
+***0x10: adds 00010000 pixels in the 4th row.
+***0x20, adds 00100000 pixels in the 4th row.
+***0x41, adds 10000001 pixels in the 4th row.
+***0x89, adds 10000101 pixels in the 4th row.
+***0x8F, adds 10001111 pixels in the 4th row.
+***0xA0, adds 10100000 pixels in the 4th row.
 ***0xFF, breaks everything/adds lots of blue pixels and overflows a lot.
+***Ok, so it looks like this byte is the bitmap of a particular row.
+**To summarize 53-5F:
+***The image begins 66 lines down (not including scanlines), or 0x42. 
+***00-41 at the beginning prints 0x41 lines with no blue pixels.
+***7f: 01111111. Each line, in binary, is a bitmap of an eight-pixel row.
+***ff-02: When a line is followed by a small integer (how small?), that's the run-length of the last row.
+***00-45 at the end... 0x45 more black rows before the end?
