@@ -35,7 +35,6 @@
 ***It probably writes 10 blue, then fills in the interior with smaller colors later to make it white.
 ***What codes are doing this? 10-04, 10-06, ...
 **The series of nine 00s (0x119-121) in the  middle is the separation between "GAME" and "OVER".
-***Could 00 just be the end-of-column marker?
 **Game seems to handle graphics in 8-pixel-wide columns, starting at the top and working downward.
 ***Cleanest thing I've gotten so far is shaving off the right 3 columns of the "R". Now it ends in a 10. What happens if I cut up to the next 10?
 ***Next cut takes away 8 pixels (middle of the "R")
@@ -78,9 +77,70 @@
 ***0xA0, adds 10100000 pixels in the 4th row.
 ***0xFF, breaks everything/adds lots of blue pixels and overflows a lot.
 ***Ok, so it looks like this byte is the bitmap of a particular row.
+***81 at 0x60:
+***0x71, weird orange dome at right side (instead of white anywhere)
 **To summarize 53-5F:
 ***The image begins 66 lines down (not including scanlines), or 0x42. 
 ***00-41 at the beginning prints 0x41 lines with no blue pixels.
 ***7f: 01111111. Each line, in binary, is a bitmap of an eight-pixel row.
 ***ff-02: When a line is followed by a small integer (how small?), that's the run-length of the last row.
 ***00-45 at the end... 0x45 more black rows before the end?
+
+0x3b-0x46
+04: 00000011 (?? - possibly the start of the new color?)
+00-42, black at top (up to 1st line)
+07: 00000111 (2nd row blue)
+0f: 00001111 (3rd row, BWWW)
+ff: 11111111 (??)
+84: 10000100 (??)
+1f: 00011111 (4-7th rows, BWWWW)
+0f: 00001111 (8th row, BWWW)
+07: 00000111 (9th row, blue)
+00-46, black at bottom
+
+0x47-0x50
+04 (start of next color?)
+00-43, black at top (up to 2nd line)
+07: 00000111 (the white part of the 3rd line)
+ff-84: ?? (same as above)
+0f: 00001111 (white part of rows 4-7)
+07: 00000111 (white part of 8th row)
+00-47: black at bottom
+
+10: end-of-block?
+
+0x52-5f:
+04: start of new color? (or maybe a code telling it to use positional encoding?)
+00-41: black at top
+7f: 01111111 (top row)
+ff: 11111111 (2nd row)
+02: run length of previous line
+80: 10000000 (4th row)
+8f: 10001111 (5th row)
+9f: 10011111 (6th row)
+8f: 10001111 (7th row)
+ff: 11111111 (8th row)
+03: run length of previous line
+00-45: black at bottom
+
+0x60-0x6d:
+81: 10000001 (??) - maybe it's telling it to use the positional encoding?
+42: position of next line
+ff: 11111111 (2nd row, all white)
+43: position of next line
+80: 10000000 (white part of 3rd row)
+46: position of next line
+0f: 00001111 (white part of the 6th row)
+48: position of next line
+80: 10000000 (white part of 8th row)
+49: position of next line
+ff: 11111111 (white part of 9th row)
+ff: ??
+ff: ?????
+10: end-of-block
+
+
+
+So there are 38 00's at the very beginning. How many columns are black before the G? How many full 8-column blocks are black?
+*157 - 25 = 132 black pixels. 132 / 8 = 16 r4.
+*One of those 00s defines the top line.
