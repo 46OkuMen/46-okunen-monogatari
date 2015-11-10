@@ -19,12 +19,12 @@
 **MAP500.GDT: 88-E4-C8-01-08-00-A0-00-40-00-11-04-FF-0B-FE-F6 (??, 0x879) (160x128)
 
 *Legend:
-**02-01: Begin header?
-**04-03: ?
-**06-05: ?
-**08-07: Image width (640 for titles, 416 for sad ends, 160 for maps
-**10-9: Image height, scanlines subtracted (200 for titles, 143-144 for sad ends, 64 for map)
-**12-11: End of header??
+**01-00: Begin header
+**03-02: ?
+**05-04: ?
+**07-06: Image width (640 for titles, 416 for sad ends, 160 for maps
+**09-08: Image height, scanlines subtracted (200 for titles, 143-144 for sad ends, 64 for map)
+**11-10: End of header (11=length of header)
 
 *Experiments with GAMEOVER.GDT
 **at 0x119, there's 9 00s in a row - is this the divide between the two words, or a division between color planes?
@@ -141,6 +141,6 @@ ff: ?????
 
 
 
-So there are 38 00's at the very beginning. How many columns are black before the G? How many full 8-column blocks are black?
-*157 - 25 = 132 black pixels. 132 / 8 = 16 r4.
-*One of those 00s defines the top line.
+So there are 48 00's at the very beginning. How many columns are black before the G? How many full 8-column blocks are black?
+*132 black columns at the start. 132 / 8 = 16 r4. (the G begins halfway into the 17th block)
+*Hypothesis: 00-00-00 = a totally black block. Check this against the other black section: 9 00's. 3 blocks in between? Looks like 30 pixels, so yes.
