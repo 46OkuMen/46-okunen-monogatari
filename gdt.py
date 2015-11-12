@@ -1,10 +1,52 @@
+# Command-line encoder/deocder for the .GDT graphics format used in 46 Okunen Monogatari: The Shinka Ron.
+# GDT graphics are split into eight-column blocks, then into color planes, then one line at a time.
+# The lines themselves are represented by the binary form of each byte.
+# Blocks are ended with the byte 10.
+# Each color plane of a block has a one-byte prefix describing which encoding method is used:
+# 04 (run-length encoding) or 81 (positional encoding).
+# Since some lines are repeated 4 times, the bytes ff-84 within a run-length plane mean "run-length of
+# the next line is 4."
+# 00-00-00 between blocks means an empty block.
+
 from PIL import Image
 from utils import unpack
 
-def pixels_from_run_length(file, offset):
-    pass
+def pixels_from_byte(color="white", byte):
+    bits = bin(int(byte, 16))[2:].zfill(8)
+    line = []
+    # TODO: Figure out the correct RGB pixel format. Also, figoure out how GDT color planes are determined.
     
-def pixels_from_position(file, offset):
+
+def pixels_from_run_length(block_bytes):
+    # Takes a list of hex strings representing bytes when run-length encoding is specified.
+    # Returns a pixel array of the block.
+    block = []
+    
+    # Can't just use a for loop - sometimes we need to consider multiple bytes at once, sometimes not
+    block_length = len(block_bytes)
+    p = 0
+    while p < block_length:
+        print block_bytes[p]
+        # now, how should I tell the difference between a line and a run-length?
+        if block_bytes[p] == '00':
+            run_length = int(block_bytes[p+1], 16)
+            # append that many black lines; they usually occur with run-lengths
+            block.append([0*8 for i in range(run_length)])
+            p += 2
+        elif block_bytes[p] == 'ff' and block_bytes[p+1] == '84':
+            run_length = 4            # hard-coded this way
+            line = pixels_from_byte(block_bytes[p+2])
+            block.append(line)
+            p += 3
+        else:
+            line = pixels_from_byte(block_bytes[p])
+            block.append(line)
+            p += 1
+    print block
+            
+        
+    
+def pixels_from_position(block_bytes):
     pass
     
 def gdt_to_bmp(source):
@@ -14,7 +56,7 @@ def gdt_to_bmp(source):
     fhex = []
     for byte in bytes:
         fhex.append("%02x" % ord(byte))
-    print fhex
+    #print fhex
     if fhex[0] != '88'  or fhex[1] != 'e4':
         print "Not a valid .GDT file"
     
@@ -27,15 +69,41 @@ def gdt_to_bmp(source):
     blocks = []
     
     blank_block = [[0]*8 for i in range(imgy)]
-    print blank_block
     
     # i is the position. start right after the header ends (at 11).
-    i = 12
+    i = 11
     
     while i <= len(fhex):
+        print hex(i), fhex[i]
+        # 00-00-00: a blank block.
         if fhex[i] == fhex[i+1] == fhex[i+2] == '00':
-            pass
+            blocks.append(blank_block)
+            i += 3
+            #print blocks
+        elif fhex[i] == '04':
+            print "run length encoding"
+            # find the next 04, 81, or 10 to determine the length of the block
+            next_04 = fhex[i+1:].index('04')
+            next_81 = fhex[i+1:].index('81')
+            next_10 = fhex[i+1:].index('10')
+            block_length = min(next_04, next_81, next_10)
+            print block_length, "block length"
+            
+            block_bytes = fhex[i:i+block_length+1]
+            pixels_from_run_length(block_bytes)
+            
+            i += block_length # TODO: look for off-by-one errors
+        elif fhex[i] == '81':
+            print "positional encoding"
+            i += 1
+            next_04 = fhex[i:].index('04')
+            next_81 = fhex[i:].index('81')
+            next_10 = fhex[1:].index('10')
+            block_length = min(next_04, next_81, next_10)
+            block_range = (i, i+block_length)
+            pixels_from_position(fhex, block_range)
+            i += block_length
     
     
     
-gdt_to_bmp('TITLE1.GDT')
+gdt_to_bmp('GAMEOVER.GDT')

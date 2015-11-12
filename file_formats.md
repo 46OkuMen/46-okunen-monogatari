@@ -91,9 +91,8 @@
 00-42, black at top (up to 1st line)
 07: 00000111 (2nd row blue)
 0f: 00001111 (3rd row, BWWW)
-ff: 11111111 (??) (change to f0, everything breaks)
-84: 10000100 (??) (change to 94, whole block gets stretched downward; change to 64, crashes)
-1f: 00011111 (4-7th rows, BWWWW)
+ff-84: repeat next line 4 times
+1f: 00011111 (rows 4, 5, 6, 7, BWWWW)
 0f: 00001111 (8th row, BWWW)
 07: 00000111 (9th row, blue)
 00-46, black at bottom
@@ -102,8 +101,8 @@ ff: 11111111 (??) (change to f0, everything breaks)
 04 (start of next color?)
 00-43, black at top (up to 2nd line)
 07: 00000111 (the white part of the 3rd line)
-ff-84: ?? (same as above)
-0f: 00001111 (white part of rows 4-7)
+ff-84: repeat next line 4 times
+0f: 00001111 (white part of rows 4, 5, 6, 7)
 07: 00000111 (white part of 8th row)
 00-47: black at bottom
 
@@ -124,7 +123,7 @@ ff: 11111111 (8th row)
 00-45: black at bottom
 
 0x60-0x6d:
-81: 10000001 (??) - maybe it's telling it to use the positional encoding?
+81: positional encoding?
 42: position of next line
 ff: 11111111 (2nd row, all white)
 43: position of next line
@@ -136,10 +135,38 @@ ff: 11111111 (2nd row, all white)
 49: position of next line
 ff: 11111111 (white part of 9th row)
 ff: ??
-ff: ?????
+ff: ????? (does this have something to do with the color? it is white, after all)
+
+10: end-of-block
+
+0x6e-0x7b
+04: run-length
+00-41: 41 black lines
+c0: 11000000 (1st row, blue)
+e1: 11100001 (2nd row, WWB   B)
+c3: 11000011 (3rd row, blue)
+07: 00000111 (4th row, BWW)
+cf: 11001111 (5th row, BB BWWW)
+ff-84: (???) same weird thing as above
+ef: 11101111 (rows 6, 7, 8, 9)
+cf: 11001111 (10th row)
+00-45: end black lines
+
+0x7c-
+04: run-length
+00-42: 42 black lines (including 1st row)
+c0: 11000000 (white part of 2nd row)
+01: 00000001 (white part of 3rd row)
+03: 00000011 (white part of 4th row)
+07: 00000111 (white part of 5th row)
+ff-84: repeat next line 4 times
+c7: 11000111 (white part of rows 6, 8, 8, 9)
+00-46: end black lines
+
 10: end-of-block
 
 
+*Hypothesis: ff-84 means "repeat next line 4 times." Seems consistent for 3 cases so far.
 
 So there are 48 00's at the very beginning. How many columns are black before the G? How many full 8-column blocks are black?
 *132 black columns at the start. 132 / 8 = 16 r4. (the G begins halfway into the 17th block)
