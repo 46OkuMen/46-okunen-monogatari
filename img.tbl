@@ -12,6 +12,7 @@
 01=<01>
 03=<03>
 04=<Enc:Run>
+06=<Enc:Pattern>
 81=<Enc:Pos>
 10=<BlockEnd>
 C7=<C7>
