@@ -9,13 +9,22 @@
 # 00-00-00 between blocks means an empty block.
 
 from PIL import Image
-from utils import unpack
+from utils import unpack, gdt_patterns
 
 def pixels_from_byte(color="white", byte):
     bits = bin(int(byte, 16))[2:].zfill(8)
     line = []
     # TODO: Figure out the correct RGB pixel format. Also, figoure out how GDT color planes are determined.
     
+    
+def get_block_length(remaining_bytes):
+    next_04 = remaining_bytes.index('04')
+    next_06 = remaining_bytes.index('06')
+    next_0c = remaining_bytes.index('0c')
+    next_81 = remaining_bytes.index('81')
+    next_10 = remaining_bytes.index('10')
+    block_length = min(next_04, next_06, next_0c, next_81, next_10)
+    return block_length
 
 def pixels_from_run_length(block_bytes):
     # Takes a list of hex strings representing bytes when run-length encoding is specified.
@@ -47,6 +56,9 @@ def pixels_from_run_length(block_bytes):
         
     
 def pixels_from_position(block_bytes):
+    pass
+    
+def pixels_from_pattern(block_bytes):
     pass
     
 def gdt_to_bmp(source):
@@ -83,10 +95,7 @@ def gdt_to_bmp(source):
         elif fhex[i] == '04':
             print "run length encoding"
             # find the next 04, 81, or 10 to determine the length of the block
-            next_04 = fhex[i+1:].index('04')
-            next_81 = fhex[i+1:].index('81')
-            next_10 = fhex[i+1:].index('10')
-            block_length = min(next_04, next_81, next_10)
+            block_length = get_block_length(fhex[i+1:])
             print block_length, "block length"
             
             block_bytes = fhex[i:i+block_length+1]
@@ -95,13 +104,11 @@ def gdt_to_bmp(source):
             i += block_length # TODO: look for off-by-one errors
         elif fhex[i] == '81':
             print "positional encoding"
-            i += 1
-            next_04 = fhex[i:].index('04')
-            next_81 = fhex[i:].index('81')
-            next_10 = fhex[1:].index('10')
-            block_length = min(next_04, next_81, next_10)
+            block_length = get_block_length(fhex[i+1:])
             block_range = (i, i+block_length)
-            pixels_from_position(fhex, block_range)
+            
+            blocok_bytes = fhex[i:i+block_length+1]
+            pixels_from_position(block_bytes)
             i += block_length
     
     

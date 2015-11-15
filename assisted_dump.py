@@ -17,7 +17,13 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: Add control codes?
+# TODO: What's happening with the repetitions in sinka.dat?
+# TODO: Why are some random lines out of order?
+# Think this is a non-issue. They are not out-of-order - some lines show up a couple things,
+# like "they ate meat" or "they lived in the Cretateous period". This may be a small issue
+# when it comes time for reinsertion, but not a big one, especially if it's just in the .DATs.
+
+# TODO: Add control codes? (Very low priority)
 
 import os
 import subprocess
@@ -164,7 +170,8 @@ for file in dump_files:
             
         total_offset += int(offset_within_snippet, 16)
             
-        total_offset = hex(total_offset)
+        #total_offset = hex(total_offset)
+        total_offset = '0x%05x' % total_offset
         #print total_offset
         
         text = lines[n+1]
@@ -179,6 +186,8 @@ for file in dump_files:
         
     fo.close()
 
+#sorted_dump = sorted(dump, key = lambda x: (x[0], x[1]))
+    
 # Access this in a separate for loop, since there might be multiple texts in a snippet
 for snippet in dump:
     # excel cols: File, Offset, Pointer, Japanese, English
