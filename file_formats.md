@@ -171,3 +171,42 @@ c7: 11000111 (white part of rows 6, 8, 8, 9)
 So there are 48 00's at the very beginning. How many columns are black before the G? How many full 8-column blocks are black?
 *132 black columns at the start. 132 / 8 = 16 r4. (the G begins halfway into the 17th block)
 *Hypothesis: 00-00-00 = a totally black block. Check this against the other black section: 9 00's. 3 blocks in between? Looks like 30 pixels, so yes.
+
+TITLE2.GDT
+
+0x0b-0x40: first 18 blocks are empty
+
+0x41-
+04: plane uses run-length encoding
+00-1f: initial black
+03: 0000 0011 (1)
+07: 0000 0111 (2)
+0f: 0000 1111 (3)
+3f: 0011 1111 (4)
+7e: 0111 1110 (5)
+3f: 0011 1111 (6)
+1f: 0001 1111 (7)
+0f: 0000 1111 (8)
+03: 0000 0011 (9)
+07: 0000 0111 (10)
+0f: 0000 1111 (11)
+1f: 0001 1111 (12)
+1f: 0001 1111 (13)
+0e: 0000 1110 (14)
+03: 0000 0011 (15)
+3f: 0011 1111 (16)
+7f: 0111 1111 (17)
+3e: 0011 1110 (18)
+00-7e: 252 pixels of black (not quite the rest of the 400px image)
+97: 1001 0111 (no difference when a7 or fd. crashes when 07 or 35.)
+06: 0000 0110
+e2: 1110 0010
+00:
+27:
+03:
+
+04:
+0e:
+38:
+00:
+0f:
