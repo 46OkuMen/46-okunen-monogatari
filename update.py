@@ -18,4 +18,9 @@
 # Press enter.
 # Press Ctrl-D (view data as unicode).
 
-from pywinauto import api
+from pywinauto import application
+import os
+
+app = application.Application()
+app.Start_("WindHex32\WindHex32.exe")
+app.WindHex.DrawOutline() # Could not find WindHex in []
