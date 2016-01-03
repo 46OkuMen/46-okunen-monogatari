@@ -8,6 +8,11 @@
 # the next line is 4."
 # 00-00-00 between blocks means an empty block.
 
+# TODO: I think my focus should switch from converting GDT->BMP to converting BMP->GDT.
+# GDT->BMP just proves I know how GDTs work. Creating a simple GDT would be a lot more useful for my ends,
+# plus easier to develop iteratively since I know how some states work but not others.
+# First step might be to convert a red square or something to a GDT.
+
 from PIL import Image
 from utils import unpack, gdt_patterns
 
