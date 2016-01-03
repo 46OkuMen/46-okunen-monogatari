@@ -23,4 +23,4 @@ import os
 
 app = application.Application()
 app.Start_("WindHex32\WindHex32.exe")
-app.WindHex.DrawOutline() # Could not find WindHex in []
+app.DrawOutline() # Could not find WindHex in []

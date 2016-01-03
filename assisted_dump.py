@@ -25,6 +25,8 @@
 
 # TODO: Add control codes? (Very low priority)
 
+# TODO: Why aren't any pointers being identified in ST6.EXE? The constant & separator seem correct...
+
 import os
 import subprocess
 import codecs
@@ -179,6 +181,7 @@ for file in dump_files:
         try:
             pointer = pointer_locations[(source, total_offset)]
             print source, pointer
+            # This prints all the successfully matched pointers. Not a lot...
         except KeyError:
             pointer = ''
     

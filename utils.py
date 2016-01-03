@@ -37,7 +37,7 @@ pointer_constants = {
         'ST5.EXE': 0xcb60,
         'ST6.EXE': 0xa460,
         'ST5S1.EXE': 0x2440,
-        #'ST5S2.EXE': 0x2360,
+        #'ST5S2.EXE': 0x2360,   # no pointers in this file??? Yet I calculated this value
         'ST5S3.EXE': 0x3ce0,
         'ENDING.EXE': 0x39a0,
         '46.EXE': 0x92c0,
