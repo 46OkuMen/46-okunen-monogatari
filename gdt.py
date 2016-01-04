@@ -12,6 +12,7 @@
 # GDT->BMP just proves I know how GDTs work. Creating a simple GDT would be a lot more useful for my ends,
 # plus easier to develop iteratively since I know how some states work but not others.
 # First step might be to convert a red square or something to a GDT.
+# It would be like <header> 04-ff-04-10. (run-length begins, pattern, length, end)?
 
 from PIL import Image
 from utils import unpack, gdt_patterns

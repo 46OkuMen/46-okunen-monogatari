@@ -26,13 +26,31 @@ for sheet in sheets:
     ws = wb.get_sheet_by_name(sheet)
     text = {} # offset: (jp, eng)
     for row in ws.rows[1:]:  # Skip the first row, it's just labels
+        offset = int(row[0].value, 16)
         if row[2].value:
             jp_len = len(row[2].value)
-            # TODO: Check if the English is too long (longer than twice the jp_len). If so, replace it with AAAAs.
-            if not row[4].value:
+            # Check if the English is too long (longer than twice the jp_len). If so, replace it with AAAAs.
+            english = row[4].value
+            if not english:
                 english = 'A'*jp_len*2
-                print english
-            text[row[0].value] = (row[2], row[4])
+            else:
+                en_len = len(english)
+                if en_len > (jp_len*2):
+                    #print "English too long at" + offset
+                    #print english
+                    #print "JP: " + str(jp_len)
+                    #print "EN: " + str(en_len)
+                    english = 'A'*jp_len*2
+                    #print english
+                  
+            text[offset] = (row[2], row[4])
             # NEXT: Make sure this is right. Can't print it though.
             # TODO: Then open the file, go to the offsets, write the English.
-        
+    print len(text)
+    
+    in_file = open(sheet, 'rb+')
+    for offset in text:
+        in_file.seek(offset, 0)
+        in_file.write(english)
+    print in_file.read()
+    wait = raw_input("waiting")
