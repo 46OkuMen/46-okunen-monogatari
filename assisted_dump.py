@@ -17,11 +17,8 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: What's happening with the repetitions in sinka.dat?
-# TODO: Why are some random lines out of order?
-# Think this is a non-issue. They are not out-of-order - some lines show up a couple things,
-# like "they ate meat" or "they lived in the Cretateous period". This may be a small issue
-# when it comes time for reinsertion, but not a big one, especially if it's just in the .DATs.
+# TODO: When a string is repeated multiple times in a file, they are all assigned the offset of the earliest instance.
+# Think this may not be worth fixing - it only happens in the .DATs with common lines like "they ate meat". Good to know for reinsertion though.
 
 # TODO: Add control codes? (Very low priority)
 
@@ -44,6 +41,10 @@ from utils import pack, unpack, location_from_pointer
 # Files contain blocks.
 # Blocks contain snippets, separated by \x00. (<END> tags)
 # Snippets contain strings, separated by \x0a or \x0d. (line beaks)
+
+script_dir = os.path.dirname(__file__)
+rel_path = 'original_roms'
+abs_file_path = os.path.join(script_dir, rel_path)
         
 workbook = xlsxwriter.Workbook('shinkaron_dump.xlsx')
 worksheet = workbook.add_worksheet()
@@ -61,7 +62,8 @@ pointer_locations = {}
 
 for (file, blocks) in file_blocks:
     print "Dumping file %s..." % file
-    in_file = open(file, 'rb')
+    file_path = os.path.join(abs_file_path, file)
+    in_file = open(file_path, 'rb')
     
     if file in pointer_constants:
         first, second = pointer_separators[file]
@@ -90,7 +92,7 @@ for (file, blocks) in file_blocks:
         dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
         if dat_dump:
             #print "dat dumping"
-            in_file = codecs.open(file, 'r', 'shift_jis')
+            in_file = codecs.open(file_path, 'r', 'shift_jis')
             whole_file = in_file.read()
             in_file.seek(0)
             snippets = in_file.readlines()
