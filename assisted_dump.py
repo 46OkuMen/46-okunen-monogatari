@@ -13,7 +13,7 @@
 
 # SJIS_Dump on its own messes up any file larger than 0x100 bytes, since its internal buffer is
 # that size. It splits two-byte characters across multiple buffers, and as a result, it mis-encodes them.
-# Trying to alter the C++ program to have a larger buffer had some odd results, so my solution:
+# I didn't know enough C++ to alter the program without causing memory leaks. Messy solution:
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
@@ -31,7 +31,7 @@ import xlsxwriter
 import re
 
 from utils import file_blocks
-from utils import specific_pointer_regex
+from utils import specific_pointer_regex, dialogue_pointer_regex
 from utils import pointer_constants, pointer_separators
 from utils import pack, unpack, location_from_pointer
 
@@ -69,6 +69,7 @@ for (file, blocks) in file_blocks:
         first, second = pointer_separators[file]
         #print specific_pointer_regex(first, second)
         pattern = re.compile(specific_pointer_regex(first, second))
+        dialogue_pattern = re.compile(dialogue_pointer_regex(first, second))
         
         bytes = in_file.read()
         only_hex = ""
@@ -76,6 +77,7 @@ for (file, blocks) in file_blocks:
             only_hex += "\\x%02x" % ord(c)
         #print only_hex
         pointers = pattern.finditer(only_hex)
+        # TODO: Dialogue pointers too!
         
         for p in pointers:
             # pointer_locations[(file, text_location)] = pointer_location

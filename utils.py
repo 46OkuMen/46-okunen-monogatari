@@ -45,6 +45,7 @@ pointer_constants = {
 
 old_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
 pointer_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f])(\\x[0-f][0-f]))((\\x[0-f][0-f])\\x[0-f][0-f]\2\3(?!\3\5)){7,}"
+dialogue_pointer_regex = r"\\x1e\\xb8" # Starts with \\x1e\\xb8 , then the thing to be captured, then 
 
 
 # Binary patterns used in binary encoding 
@@ -54,6 +55,9 @@ gdt_patterns = [0b00000000, 0b00100010, 0b01010101, 0b01110111, 0b11111111, 0b11
 
 def specific_pointer_regex(first, second):
     return r'(\\x([0-f][0-f])\\x([0-f][0-f])\\x%s\\x%s)' % (first, second)
+
+def dialogue_pointer_regex(first, second):
+    return r"\\x1e\\xb8\\x%s\\x%s" % (first, second)
     
 def unpack(s, t):
     s = int(s, 16)

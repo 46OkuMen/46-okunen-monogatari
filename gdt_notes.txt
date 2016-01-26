@@ -268,7 +268,7 @@ aa: 1010 1010 (last line of sky)
 ff-30: white line, then the rest?
 
 Third Plane
-02: 0000 0010 (??)
+02: 0000 0010 (?? - new kind of encoding?)
 c0: 1100 0000
 fe: 1111 1010
 e2: 1110 0010
@@ -307,20 +307,19 @@ c0:
 
 So if a block begins with 06, the following bytes each represent a group of lines with a certain pattern. The first digit is the number of lines, the second digit represents a certain pattern.
 
-a0: BBBB BBBB, (00 pattern twice)
-a1: BBWB BBWB, (02 pattern twice)
-a2: BWBW BWBW, (05 pattern twice)
-a3: BWWW BWWW, (07 pattern twice)
-a4: WWWW WWWW, (0f pattern twice)
-a5: WWBW WWBW, (0d pattern twice)
-a6: WBWB WBWB, (0a pattern twice)
-a7 breaks everything. Seems analogous to the a4 thing in the next plane below... 
-a8: BBBB BBBB
-
-a9: checkerboard BBWB BBWB / WBBB WBBB
-aa: checkerboard BWBW BWBW / WBWB WBWB
-ab: checkerboard BWWW BWWW / WWBW WWBW
-ac: WWWW WWWW
-ad: rev. checkerboard WWBW WWBW / BWWW BWWW 
-ae: rev. checkerboard WBWB WBWB / BWBW BWBW)
-af: breaks everything
+x0: 0000 0000
+x1: 0010 0010
+x2: 0101 0101
+x3: 0111 0111
+x4: 1111 1111
+x5: 1101 1101
+x6: 1010 1010
+x7: ? (breaks everything)
+x8: 1111 1111
+x9: checkerboard 0010 0010 / 1000 1000
+xa: checkerboard 0101 0101 / 1010 1010
+xb: checkerboard 0111 0111 / 1101 1101
+xc: 1111 1111
+xd: rev. checkerboard 1101 1101/ 0111 0111
+xe: rev. checkerboard 1010 1010 / 0101 0101
+xf: ? (breaks everything)

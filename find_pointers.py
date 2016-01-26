@@ -2,13 +2,18 @@
 # Is there any way to perform the regex search from right-to-left?
 # TODO: Define a function to identify pointers that point to other pointer tables - identify whether some segment of the tables' unpacked values are increasing or decreasing by 0x4 the whole time.
 
+import os
 import re
 from utils import file_blocks
 from utils import pointer_regex
 from utils import pack, unpack
 
 
-files = ['ST1.EXE', 'OPENING.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
+files = ['ST1.EXE', 'OPENING.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE", 'ST6.EXE']
+
+script_dir = os.path.dirname(__file__)
+rel_path = 'original_roms'
+abs_file_path = os.path.join(script_dir, rel_path)
 
 pointers = {}
 # hex loc: (hex a, hex b)
@@ -16,7 +21,8 @@ pointers = {}
 def find_pointers():
     p = re.compile(pointer_regex)
     for file in files:
-        in_file = open(file, 'rb')
+        file_path = os.path.join(abs_file_path, file)
+        in_file = open(file_path, 'rb')
         print file
         bytes = in_file.read()
         #text.decode('shift_jis', errors='ignore').encode('utf-8')
@@ -87,7 +93,8 @@ def find_string_offsets():
             block_stop = block[1]
             block_length = block_stop - block_start
             
-            in_file = open(file, 'rb')
+            file_path = os.path.join(abs_file_path, file)
+            in_file = open(file_path, 'rb')
             in_file.seek(block_start)
             bytes = in_file.read(block_length)
             only_hex = ""

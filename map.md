@@ -92,9 +92,9 @@
 ** eca7: stats
 
 * Pointer Tables:
-** 53-0d: Add 0xd7e0.
-** 00-00: (?)
-
+** Separators:
+*** 53-0d: Add 0xd7e0.
+*** 00-00: (?)
 ** 00022-00031: (?) 4 pointers, 00-00.
 ** 00032-00081: 20 pointers, 5e-0d. Points to pointers in the menu options region, in reverse order.
 ** 00082-000a2: (?) 8 pointers, 00-00.
@@ -125,6 +125,13 @@
 ** 0d934-0d983: Menu options, some battle skills. Add 0xd7e0. 5e-0d.
 ** 10f96-10fc9: 13 pointers, 5e-od. Yes/No/Cancel, ascii numbers 1-6...
 ** 11cae-11d41: Pointers for error messages. Sep: 5e-0d.
+
+* Dialogue Pointers:
+** Starting around offset 2000, there are dialogue pointers hard-coded into functions.
+** They begin with 1E-B8 and end with a long string 50-FF-76-FE...
+** First piece of dialogue calls the pointer 1206 (612) which is at 0x2232.
+** 0xd7e0 + 612 = ddf2, which is where the text points.
+** So, same constant as in the normal pointer tables.
 
 ### ST2.EXE
 * (0xc23b, 0xdd4f), (0xde35, 0xfaa0), (0xfae4, 0xfe50), (0x10004, 0x101df), (0x10570, 0x1087b)
