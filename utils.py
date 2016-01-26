@@ -1,3 +1,5 @@
+import re
+
 file_blocks = [ ('OPENING.EXE', ((0x4dda, 0x5868),),),
           ('46.EXE', ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a))),
           ('ST1.EXE', ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11595), (0x117c7, 0x119a3), (0x11d42, 0x1204e))),
@@ -45,7 +47,7 @@ pointer_constants = {
 
 old_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
 pointer_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f])(\\x[0-f][0-f]))((\\x[0-f][0-f])\\x[0-f][0-f]\2\3(?!\3\5)){7,}"
-dialogue_pointer_regex = r"\\x1e\\xb8" # Starts with \\x1e\\xb8 , then the thing to be captured, then 
+dialogue_pointer_regex = r"\\x1e\\xb8\\x[0-f][0-f]\\x[0-f][0-f]\\x50" # Starts with \\x1e\\xb8 , then the thing to be captured, then 
 
 
 # Binary patterns used in binary encoding 
@@ -53,11 +55,11 @@ gdt_patterns = [0b00000000, 0b00100010, 0b01010101, 0b01110111, 0b11111111, 0b11
                (0b11011101, 0b10001000), (0b01010101, 0b10101010), (0b01110111, 0b11011101), 0b11111111,
                (0b11011101, 0b01110111), (0b10101010, 0b01010101), None]
 
-def specific_pointer_regex(first, second):
-    return r'(\\x([0-f][0-f])\\x([0-f][0-f])\\x%s\\x%s)' % (first, second)
+def capture_pointers_from_table(first, second, hx):
+    return re.compile(r'(\\x([0-f][0-f])\\x([0-f][0-f])\\x%s\\x%s)' % (first, second)).finditer(hx)
 
-def dialogue_pointer_regex(first, second):
-    return r"\\x1e\\xb8\\x%s\\x%s" % (first, second)
+def capture_pointers_from_function(first, second, hx):
+    return re.compile(r"\\x1e\\xb8\\x%s\\x%s\\x50" % (first, second)).finditer(hx)
     
 def unpack(s, t):
     s = int(s, 16)

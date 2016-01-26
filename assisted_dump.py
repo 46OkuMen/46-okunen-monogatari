@@ -31,7 +31,7 @@ import xlsxwriter
 import re
 
 from utils import file_blocks
-from utils import specific_pointer_regex, dialogue_pointer_regex
+from utils import capture_pointers_from_table, capture_pointers_from_function
 from utils import pointer_constants, pointer_separators
 from utils import pack, unpack, location_from_pointer
 
@@ -67,16 +67,19 @@ for (file, blocks) in file_blocks:
     
     if file in pointer_constants:
         first, second = pointer_separators[file]
-        #print specific_pointer_regex(first, second)
-        pattern = re.compile(specific_pointer_regex(first, second))
-        dialogue_pattern = re.compile(dialogue_pointer_regex(first, second))
+        #print capture_pointer_from_table(first, second)
+        #pattern = capture_pointer_from_table(first, second)
+        #dialogue_pattern = capture_pointer_from_function(first, second)
         
         bytes = in_file.read()
         only_hex = ""
         for c in bytes:
             only_hex += "\\x%02x" % ord(c)
         #print only_hex
-        pointers = pattern.finditer(only_hex)
+
+        #pointers = pattern.finditer(only_hex)
+        pointers = capture_pointers_from_table(first, second, only_hex)
+        #dialogue_pointers = capture_pointers_from_function(first, second, only_hex)
         # TODO: Dialogue pointers too!
         
         for p in pointers:
