@@ -25,6 +25,7 @@ pointer_separators = {
         'ST5.EXE': ("96", "0c"),
         'ST6.EXE': ("26", "0a"),
         'ST5S1.EXE': ("24", "02"),
+        'ST5S2.EXE': ('00', '00'), # Wrong; no pointer tables
         'ST5S3.EXE': ("ae", "03"),
         'ENDING.EXE': ("5a", "03"),
         '46.EXE': ('0a', '0c')
@@ -39,7 +40,7 @@ pointer_constants = {
         'ST5.EXE': 0xcb60,
         'ST6.EXE': 0xa460,
         'ST5S1.EXE': 0x2440,
-        #'ST5S2.EXE': 0x2360,   # no pointers in this file??? Yet I calculated this value
+        'ST5S2.EXE': 0x2360,   # no pointer tables in this file. but value is useful for dialogue pointers later
         'ST5S3.EXE': 0x3ce0,
         'ENDING.EXE': 0x39a0,
         '46.EXE': 0x92c0,
@@ -73,8 +74,9 @@ def pack(h):
     return (s, t)
     
 def location_from_pointer(pointer, constant):
-    print "pointer:" + str(pointer)
-    print "constant: " + hex(constant)
-    value = hex(unpack(pointer[0], pointer[1]) + constant)
-    print value
+    #print "pointer:" + str(pointer)
+    #print "constant: " + hex(constant)
+    #value = hex(unpack(pointer[0], pointer[1]) + constant)
+    value = '0x' + str(format((unpack(pointer[0], pointer[1]) + constant), '05x'))
+    #print value
     return value

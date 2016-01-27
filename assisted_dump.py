@@ -18,11 +18,10 @@
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
 # TODO: When a string is repeated multiple times in a file, they are all assigned the offset of the earliest instance.
-# Think this may not be worth fixing - it only happens in the .DATs with common lines like "they ate meat". Good to know for reinsertion though.
 
 # TODO: Add control codes? (Very low priority)
 
-# TODO: Why aren't any pointers being identified in ST6.EXE? The constant & separator seem correct...
+# TODO: Why aren't any pointers being identified in OPENING, ST3, ST6, ENDING? The constant & separator seem correct...
 
 import os
 import subprocess
@@ -36,6 +35,7 @@ from utils import pointer_constants, pointer_separators
 from utils import pack, unpack, location_from_pointer
 
 
+# Nomenclature for different parts of things:
 # Game contains disks.
 # Disks contain files.
 # Files contain blocks.
@@ -86,10 +86,11 @@ for (file, blocks) in file_blocks:
             # pointer_locations[(file, text_location)] = pointer_location
             # Since we want to take a piece of text from the file and find its pointer.
             pointer_location = hex(only_hex.index(p.group(0))/4)  # Where is this pointer found?
-            print "Pointer Location: " + pointer_location
+            #print file 
+            #print "Where the pointer is: " + pointer_location
             # Take the value of the pointer, 
             text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
-            print "Text Locaiton: " + text_location
+            #print "What it points to: " + text_location
             pointer_locations[(file, text_location)] = pointer_location
             
     
@@ -105,7 +106,6 @@ for (file, blocks) in file_blocks:
                 if snippet and len(snippet) > 4:
                     snippet_start = whole_file.index(snippet)
                     offset = hex(snippet_start)
-                    #print offset
                     
                     snippet_filename = "snippet_" + offset + "_" + file
                     snippet_file = open(snippet_filename, 'w')
@@ -137,9 +137,9 @@ for (file, blocks) in file_blocks:
                 if snippet and len(snippet) > 4:       # at least one byte representation
                     snippet_start = only_hex.index(snippet)
                     offset = hex(block_start + (snippet_start / 4))
-                    if len(snippet) / 4 > 0x100:
-                        print str(len(snippet)/4) + " check " + offset + " for garbage"
-                        print snippet
+                    #if len(snippet) / 4 > 0x100:
+                        #print str(len(snippet)/4) + " check " + offset + " for garbage"
+                        #print snippet
                     snippet_filename = "snippet_" + offset + "_" + file
                     snippet_file = open(snippet_filename, 'wb')
                     snippet_bytes = snippet.replace('\\x', '').decode('hex')
@@ -155,9 +155,10 @@ for (file, blocks) in file_blocks:
     in_file.close()
         
 dump = []
-#print dump_files
-#print len(dump_files)
-#print pointer_locations
+
+#for p in pointer_locations.iteritems():
+#    print p
+# There are plenty of pointer locations at this point... maybe they don't match?
         
 for file in dump_files:
     # file.split('_') is ('dump', 'snippet', sourcefile, offset)
@@ -186,8 +187,9 @@ for file in dump_files:
         text = lines[n+1]
         
         try:
+            #print source, total_offset
             pointer = pointer_locations[(source, total_offset)]
-            print source, pointer
+            #print source, pointer
             # This prints all the successfully matched pointers. Not a lot...
         except KeyError:
             pointer = ''
