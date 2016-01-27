@@ -48,10 +48,10 @@ pointer_constants = {
 
 old_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
 pointer_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f])(\\x[0-f][0-f]))((\\x[0-f][0-f])\\x[0-f][0-f]\2\3(?!\3\5)){7,}"
-dialogue_pointer_regex = r"\\x1e\\xb8\\x[0-f][0-f]\\x[0-f][0-f]\\x50" # Starts with \\x1e\\xb8 , then the thing to be captured, then 
+dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])\\x50" # Starts with \\x1e\\xb8 , then the thing to be captured, then \\x50.
 
 
-# Binary patterns used in binary encoding 
+# Binary patterns used in GDT pattern encoding
 gdt_patterns = [0b00000000, 0b00100010, 0b01010101, 0b01110111, 0b11111111, 0b11011101, 0b10101010, None, 0b00000000, 
                (0b11011101, 0b10001000), (0b01010101, 0b10101010), (0b01110111, 0b11011101), 0b11111111,
                (0b11011101, 0b01110111), (0b10101010, 0b01010101), None]
@@ -59,8 +59,9 @@ gdt_patterns = [0b00000000, 0b00100010, 0b01010101, 0b01110111, 0b11111111, 0b11
 def capture_pointers_from_table(first, second, hx):
     return re.compile(r'(\\x([0-f][0-f])\\x([0-f][0-f])\\x%s\\x%s)' % (first, second)).finditer(hx)
 
-def capture_pointers_from_function(first, second, hx):
-    return re.compile(r"\\x1e\\xb8\\x%s\\x%s\\x50" % (first, second)).finditer(hx)
+def capture_pointers_from_function(hx):
+    # No first and second; always preceded by 1E-B8 which is in the regex
+    return re.compile(r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])\\x50").finditer(hx)
     
 def unpack(s, t):
     s = int(s, 16)

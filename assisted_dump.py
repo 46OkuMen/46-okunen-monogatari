@@ -21,7 +21,7 @@
 
 # TODO: Add control codes? (Very low priority)
 
-# TODO: Why aren't any pointers being identified in OPENING, ST3, ST6, ENDING? The constant & separator seem correct...
+# TODO: The pointer constant for OPENING.EXE is probably wrong - only one pointer is getting matched up.
 
 import os
 import subprocess
@@ -59,6 +59,7 @@ excel_row = 0
 dump_files = []
 
 pointer_locations = {}
+pointer_count = 0
 
 for (file, blocks) in file_blocks:
     print "Dumping file %s..." % file
@@ -66,21 +67,17 @@ for (file, blocks) in file_blocks:
     in_file = open(file_path, 'rb')
     
     if file in pointer_constants:
-        first, second = pointer_separators[file]
-        #print capture_pointer_from_table(first, second)
-        #pattern = capture_pointer_from_table(first, second)
-        #dialogue_pattern = capture_pointer_from_function(first, second)
-        
         bytes = in_file.read()
         only_hex = ""
         for c in bytes:
             only_hex += "\\x%02x" % ord(c)
-        #print only_hex
 
-        #pointers = pattern.finditer(only_hex)
+        first, second = pointer_separators[file]
+
         pointers = capture_pointers_from_table(first, second, only_hex)
-        #dialogue_pointers = capture_pointers_from_function(first, second, only_hex)
-        # TODO: Dialogue pointers too!
+        dialogue_pointers = capture_pointers_from_function(only_hex)
+
+        #print pointers
         
         for p in pointers:
             # pointer_locations[(file, text_location)] = pointer_location
@@ -92,6 +89,16 @@ for (file, blocks) in file_blocks:
             text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
             #print "What it points to: " + text_location
             pointer_locations[(file, text_location)] = pointer_location
+        for p in dialogue_pointers:
+            pointer_location = hex(only_hex.index(p.group(0))/4)
+            #print p.group(1), p.group(2)
+            text_location = location_from_pointer((p.group(1), p.group(2)), pointer_constants[file])
+            pointer_locations[(file, text_location)] = pointer_location
+
+
+        #for p in dialogue_pointers:
+        #    pointer_location = hex(only_hex.index(p.group(0))/4)
+        #    text_location
             
     
     for (block_start, block_end) in blocks:
@@ -187,9 +194,8 @@ for file in dump_files:
         text = lines[n+1]
         
         try:
-            #print source, total_offset
             pointer = pointer_locations[(source, total_offset)]
-            #print source, pointer
+            pointer_count += 1
             # This prints all the successfully matched pointers. Not a lot...
         except KeyError:
             pointer = ''
@@ -200,6 +206,7 @@ for file in dump_files:
 
 #sorted_dump = sorted(dump, key = lambda x: (x[0], x[1]))
     
+print "Writing to shinkaron_dump.xls..."
 # Access this in a separate for loop, since there might be multiple texts in a snippet
 for snippet in dump:
     # excel cols: File, Offset, Pointer, Japanese, English
@@ -209,7 +216,7 @@ for snippet in dump:
     worksheet.write(excel_row, 3, snippet[3])
     excel_row += 1
 
-    
+print "Cleaning up..."
 # Cleanup.
 workbook.close()
 
@@ -218,3 +225,4 @@ for file in dump_files:
         os.remove(file)
     except WindowsError: # Sometimes it doesn't find the file... strange.
         pass
+print "Dump successful. %i pointers matched." % pointer_count

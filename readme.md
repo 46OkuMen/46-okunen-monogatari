@@ -10,6 +10,7 @@ Git repo for the utilities and notes for a translation hack of 46 Okunen Monogat
 * Images: 0%
 
 ###Timeline:
+* 01/24/16: Project subforum created at [Heroes of Legend](http://www.heroesoflegend.org/forums/viewforum.php?f=51&sid=630ffe8fc7c7441f9d60b2905f3bc81d).
 * 12/01/15: Submitted text dump to translator.
 * 09/25/15: Began hacking. Found translator and artist on Romhacking.net.
 * 07/15/15: Began playing. Wondered "why hasn't this been translated?"
