@@ -23,6 +23,8 @@
 
 # TODO: The pointer constant for OPENING.EXE is probably wrong - only one pointer is getting matched up.
 
+# TODO: Find the pointers that don't point to text I have found.
+
 import os
 import subprocess
 import codecs
@@ -94,12 +96,6 @@ for (file, blocks) in file_blocks:
             #print p.group(1), p.group(2)
             text_location = location_from_pointer((p.group(1), p.group(2)), pointer_constants[file])
             pointer_locations[(file, text_location)] = pointer_location
-
-
-        #for p in dialogue_pointers:
-        #    pointer_location = hex(only_hex.index(p.group(0))/4)
-        #    text_location
-            
     
     for (block_start, block_end) in blocks:
         dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
@@ -136,9 +132,6 @@ for (file, blocks) in file_blocks:
                 only_hex += "\\x%02x" % ord(c)
                 
             snippets = only_hex.split('\\x00')
-        #if dat_dump:
-            #snippets = only_hex.split(r'\\x0d\\x0a')  # these don't have any x00s in them
-            #print snippets
             
             for snippet in snippets:
                 if snippet and len(snippet) > 4:       # at least one byte representation
@@ -155,7 +148,9 @@ for (file, blocks) in file_blocks:
                 
                     snippet_dump = "dump_" + snippet_filename
                     
-                    subprocess.call(".\SJIS_Dump %s %s 1 0" % (snippet_filename, snippet_dump))
+                    subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_filename, snippet_dump))
+                    # Last argument: whether to dump ASCII text as well.
+                    # Don't want them for the clean JP text dump, but do want them for dealing with pointers.
                 
                     dump_files.append(snippet_dump)
                     os.remove(snippet_filename)
@@ -187,34 +182,53 @@ for file in dump_files:
             
         total_offset += int(offset_within_snippet, 16)
             
-        #total_offset = hex(total_offset)
         total_offset = '0x%05x' % total_offset
-        #print total_offset
         
         text = lines[n+1]
         
         try:
             pointer = pointer_locations[(source, total_offset)]
             pointer_count += 1
-            # This prints all the successfully matched pointers. Not a lot...
         except KeyError:
             pointer = ''
     
-        dump.append((source, total_offset, pointer, text))
+        dump.append(((source, total_offset), (pointer, text)))
         
     fo.close()
 
 #sorted_dump = sorted(dump, key = lambda x: (x[0], x[1]))
     
-print "Writing to shinkaron_dump.xls..."
+print "Writing text dump to shinkaron_dump.xls..."
 # Access this in a separate for loop, since there might be multiple texts in a snippet
 for snippet in dump:
-    # excel cols: File, Offset, Pointer, Japanese, English
-    worksheet.write(excel_row, 0, snippet[0])
-    worksheet.write(excel_row, 1, snippet[1])
-    worksheet.write(excel_row, 2, snippet[2])
-    worksheet.write(excel_row, 3, snippet[3])
+    worksheet.write(excel_row, 0, snippet[0][0]) # Source File
+    worksheet.write(excel_row, 1, snippet[0][1]) # Text Location
+    worksheet.write(excel_row, 2, snippet[1][0]) # Pointer Location
+    worksheet.write(excel_row, 3, snippet[1][1]) # JP Text
     excel_row += 1
+
+# Second sheet: all the pointers, regardless of whether they get matched up with any particular text.
+# (So they don't get missed during reinsertion.)
+print "Writing pointer sheet..."
+pointer_sheet = workbook.add_worksheet()
+excel_row = 0
+pointer_strings = {}
+# pointer_locations[(source, text_location)] = pointer_location
+# dump = ((source, text_location), (pointer_location, text))
+for (source, text_location) in pointer_locations.iterkeys():
+    try:
+        # TODO: There's probably some kind of syntax problem here.
+        (pointer_location, text) = dump[dump.index((source, text_location))][1]
+    except ValueError:
+        (pointer_location, text) = (pointer_locations[(source, text_location)], '')
+
+    pointer_sheet.write(excel_row, 0, source)           # Source File
+    pointer_sheet.write(excel_row, 1, text_location)    # Text Location
+    pointer_sheet.write(excel_row, 2, pointer_location) # Pointer
+    pointer_sheet.write(excel_row, 3, text)             # JP Text
+    excel_row += 1
+
+
 
 print "Cleaning up..."
 # Cleanup.
