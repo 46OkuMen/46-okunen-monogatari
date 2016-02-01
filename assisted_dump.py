@@ -17,13 +17,11 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: When a string is repeated multiple times in a file, they are all assigned the offset of the earliest instance.
-
-# TODO: Add control codes? (Very low priority)
-
 # TODO: The pointer constant for OPENING.EXE is probably wrong - only one pointer is getting matched up.
-
 # TODO: Find the pointers that don't point to text I have found.
+# TODO: Calculate original length of each string.
+# TODO: When a string is repeated multiple times in a file, they are all assigned the offset of the earliest instance.
+# TODO: Add control codes? (Not really necessary)
 
 import os
 import subprocess
