@@ -17,7 +17,6 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: The pointer constant for OPENING.EXE is probably wrong - only one pointer is getting matched up.
 # TODO: Find the pointers that don't point to text I have found.
 # TODO: Calculate original length of each string.
 # TODO: When a string is repeated multiple times in a file, they are all assigned the offset of the earliest instance.
@@ -146,7 +145,7 @@ for (file, blocks) in file_blocks:
                 
                     snippet_dump = "dump_" + snippet_filename
                     
-                    subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_filename, snippet_dump))
+                    subprocess.call(".\SJIS_Dump %s %s 1 0" % (snippet_filename, snippet_dump))
                     # Last argument: whether to dump ASCII text as well.
                     # Don't want them for the clean JP text dump, but do want them for dealing with pointers.
                 
