@@ -17,9 +17,12 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: Find the pointers that don't point to text I have found.
 # TODO: Calculate original length of each string.
 # TODO: When a string is repeated multiple times in a file, they are all assigned the offset of the earliest instance.
+# TODO: Find the pointer-pointers and mark them in the pointer sheet.
+
+# TODO: Sort the pointer sheet.
+
 # TODO: Add control codes? (Not really necessary)
 
 import os
@@ -145,7 +148,7 @@ for (file, blocks) in file_blocks:
                 
                     snippet_dump = "dump_" + snippet_filename
                     
-                    subprocess.call(".\SJIS_Dump %s %s 1 0" % (snippet_filename, snippet_dump))
+                    subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_filename, snippet_dump))
                     # Last argument: whether to dump ASCII text as well.
                     # Don't want them for the clean JP text dump, but do want them for dealing with pointers.
                 
@@ -194,6 +197,8 @@ for file in dump_files:
     fo.close()
 
 #sorted_dump = sorted(dump, key = lambda x: (x[0], x[1]))
+
+#print dump
     
 print "Writing text dump to shinkaron_dump.xls..."
 # Access this in a separate for loop, since there might be multiple texts in a snippet
@@ -214,9 +219,16 @@ pointer_strings = {}
 # dump = ((source, text_location), (pointer_location, text))
 for (source, text_location) in pointer_locations.iterkeys():
     try:
+        #print source, text_location
         # TODO: There's probably some kind of syntax problem here.
-        (pointer_location, text) = dump[dump.index((source, text_location))][1]
-    except ValueError:
+        #text_location = str(text_location)
+        #(pointer_location, text) = dump[dump.index((source, text_location))][1]
+
+        # This isn't taking well to tuple unpacking... Ugly solution it is!
+        pointer_location= [d[1] for d in dump if d[0] == (source, text_location)][0][0]
+        text = [d[1] for d in dump if d[0] == (source, text_location)][0][1]
+        #print pointer_location
+    except IndexError:
         (pointer_location, text) = (pointer_locations[(source, text_location)], '')
 
     pointer_sheet.write(excel_row, 0, source)           # Source File
