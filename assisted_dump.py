@@ -18,7 +18,7 @@
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
 # TODO: Calculate original length of each string.
-# TODO: When a string is repeated multiple times in a file, they are all assigned the offset of the earliest instance.
+# TODO: When a string is repeated multiple times in a .DAT file, they are all assigned the offset of the earliest instance.
 # TODO: Find the pointer-pointers and mark them in the pointer sheet.
 
 # TODO: Sort the pointer sheet.
@@ -35,6 +35,8 @@ from utils import file_blocks
 from utils import capture_pointers_from_table, capture_pointers_from_function
 from utils import pointer_constants, pointer_separators
 from utils import pack, unpack, location_from_pointer
+
+DUMP_ASCII = False
 
 
 # Nomenclature for different parts of things:
@@ -53,8 +55,8 @@ worksheet = workbook.add_worksheet()
 
 # Set column sizes to something reasonable where necessary.
 worksheet.set_column('A:A', 20)
-worksheet.set_column('D:D', 80)
-worksheet.set_column('E:E', 90)
+worksheet.set_column('E:E', 80)
+worksheet.set_column('F:F', 90)
 
 excel_row = 0
 
@@ -100,22 +102,29 @@ for (file, blocks) in file_blocks:
     for (block_start, block_end) in blocks:
         dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
         if dat_dump:
-            #print "dat dumping"
             in_file = codecs.open(file_path, 'r', 'shift_jis')
             whole_file = in_file.read()
             in_file.seek(0)
             snippets = in_file.readlines()
             for snippet in snippets:
                 if snippet and len(snippet) > 4:
+                    #print snippet
                     snippet_start = whole_file.index(snippet)
+                    # ^ Here's where the offset calculation mistake is happening.
                     offset = hex(snippet_start)
-                    
+                    # TODO: If there's already a snippet file with the same source and offset, recalculate the offset.
                     snippet_filename = "snippet_" + offset + "_" + file
+                    snippet_dump = "dump_" + snippet_filename
+                    #while snippet_dump in dump_files:
+                    #    truncated_file = whole_file[snippet_start+4:]
+                    #    snippet_start += (whole_file.index(snippet)+4)
+                    #    offset = hex(snippet_start)
+                    #    snippet_filename = "snippet_" + offset + "_" + file
+                    #    snippet_dump = "dump_" + snippet_filename
+
                     snippet_file = open(snippet_filename, 'w')
                     snippet_file.write(snippet.encode('shift_jis'))
                     snippet_file.close()
-                    
-                    snippet_dump = "dump_" + snippet_filename
                     
                     subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_filename, snippet_dump))
                     
@@ -147,8 +156,11 @@ for (file, blocks) in file_blocks:
                     snippet_file.close()
                 
                     snippet_dump = "dump_" + snippet_filename
-                    
-                    subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_filename, snippet_dump))
+
+                    if DUMP_ASCII: 
+                        subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_filename, snippet_dump))
+                    else:
+                        subprocess.call(".\SJIS_Dump %s %s 1 0" % (snippet_filename, snippet_dump))
                     # Last argument: whether to dump ASCII text as well.
                     # Don't want them for the clean JP text dump, but do want them for dealing with pointers.
                 
@@ -181,10 +193,9 @@ for file in dump_files:
             total_offset = offset
             
         total_offset += int(offset_within_snippet, 16)
-            
         total_offset = '0x%05x' % total_offset
         
-        text = lines[n+1]
+        text = lines[n+1].rstrip() # Enough of these \n's
         
         try:
             pointer = pointer_locations[(source, total_offset)]
@@ -197,16 +208,15 @@ for file in dump_files:
     fo.close()
 
 #sorted_dump = sorted(dump, key = lambda x: (x[0], x[1]))
-
-#print dump
     
 print "Writing text dump to shinkaron_dump.xls..."
 # Access this in a separate for loop, since there might be multiple texts in a snippet
 for snippet in dump:
-    worksheet.write(excel_row, 0, snippet[0][0]) # Source File
-    worksheet.write(excel_row, 1, snippet[0][1]) # Text Location
-    worksheet.write(excel_row, 2, snippet[1][0]) # Pointer Location
-    worksheet.write(excel_row, 3, snippet[1][1]) # JP Text
+    worksheet.write(excel_row, 0, snippet[0][0])     # Source File
+    worksheet.write(excel_row, 1, snippet[0][1])     # Text Location
+    worksheet.write(excel_row, 2, snippet[1][0])     # Pointer Location
+    worksheet.write(excel_row, 3, len(snippet[1][1])) # JP_Char
+    worksheet.write(excel_row, 4, snippet[1][1])     # JP Text
     excel_row += 1
 
 # Second sheet: all the pointers, regardless of whether they get matched up with any particular text.
@@ -234,7 +244,8 @@ for (source, text_location) in pointer_locations.iterkeys():
     pointer_sheet.write(excel_row, 0, source)           # Source File
     pointer_sheet.write(excel_row, 1, text_location)    # Text Location
     pointer_sheet.write(excel_row, 2, pointer_location) # Pointer
-    pointer_sheet.write(excel_row, 3, text)             # JP Text
+    pointer_sheet.write(excel_row, 3, len(text))        # JP_Char
+    pointer_sheet.write(excel_row, 4, text)             # JP Text
     excel_row += 1
 
 
