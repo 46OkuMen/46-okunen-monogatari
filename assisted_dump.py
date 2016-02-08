@@ -17,7 +17,7 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: Calculate original length of each string.
+# TODO: Calculate original length (in bytes) of each string.
 # TODO: When a string is repeated multiple times in a .DAT file, they are all assigned the offset of the earliest instance.
 # TODO: Find the pointer-pointers and mark them in the pointer sheet.
 
@@ -115,12 +115,12 @@ for (file, blocks) in file_blocks:
                     # TODO: If there's already a snippet file with the same source and offset, recalculate the offset.
                     snippet_filename = "snippet_" + offset + "_" + file
                     snippet_dump = "dump_" + snippet_filename
-                    #while snippet_dump in dump_files:
-                    #    truncated_file = whole_file[snippet_start+4:]
-                    #    snippet_start += (whole_file.index(snippet)+4)
-                    #    offset = hex(snippet_start)
-                    #    snippet_filename = "snippet_" + offset + "_" + file
-                    #    snippet_dump = "dump_" + snippet_filename
+                    while snippet_dump in dump_files:
+                        truncated_file = whole_file[snippet_start+4:]
+                        snippet_start += (whole_file.index(snippet)+4)
+                        offset = hex(snippet_start)
+                        snippet_filename = "snippet_" + offset + "_" + file
+                        snippet_dump = "dump_" + snippet_filename
 
                     snippet_file = open(snippet_filename, 'w')
                     snippet_file.write(snippet.encode('shift_jis'))
