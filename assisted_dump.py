@@ -152,6 +152,8 @@ for (file, blocks) in file_blocks:
                     snippet_filename = "snippet_" + offset + "_" + file
                     snippet_file = open(snippet_filename, 'wb')
                     snippet_bytes = snippet.replace('\\x', '').decode('hex')
+                    snippet_length = len(snippet_bytes)
+                    print snippet_length
                     snippet_file.write(snippet_bytes)
                     snippet_file.close()
                 
