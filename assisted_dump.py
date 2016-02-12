@@ -18,7 +18,7 @@
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
 # TODO: Calculate original length (in bytes) of each string.
-# TODO: When a string is repeated multiple times in a .DAT file, they are all assigned the offset of the earliest instance.
+# TODO: Assign correct offsets to strings repeated in the .DAT files.
 # TODO: Find the pointer-pointers and mark them in the pointer sheet.
 
 # TODO: Sort the pointer sheet.
@@ -38,7 +38,6 @@ from utils import pack, unpack, location_from_pointer
 
 DUMP_ASCII = False
 
-
 # Nomenclature for different parts of things:
 # Game contains disks.
 # Disks contain files.
@@ -48,7 +47,10 @@ DUMP_ASCII = False
 
 script_dir = os.path.dirname(__file__)
 rel_path = 'original_roms'
-abs_file_path = os.path.join(script_dir, rel_path)
+rom_file_path = os.path.join(script_dir, rel_path)
+
+snippet_folder_path = os.path.join(script_dir, "snippets")
+#print snippet_folder_path
         
 workbook = xlsxwriter.Workbook('shinkaron_dump.xlsx')
 worksheet = workbook.add_worksheet()
@@ -65,9 +67,10 @@ dump_files = []
 pointer_locations = {}
 pointer_count = 0
 
+
 for (file, blocks) in file_blocks:
     print "Dumping file %s..." % file
-    file_path = os.path.join(abs_file_path, file)
+    file_path = os.path.join(rom_file_path, file)
     in_file = open(file_path, 'rb')
     
     if file in pointer_constants:
@@ -80,8 +83,6 @@ for (file, blocks) in file_blocks:
 
         pointers = capture_pointers_from_table(first, second, only_hex)
         dialogue_pointers = capture_pointers_from_function(only_hex)
-
-        #print pointers
         
         for p in pointers:
             # pointer_locations[(file, text_location)] = pointer_location
@@ -100,7 +101,11 @@ for (file, blocks) in file_blocks:
             pointer_locations[(file, text_location)] = pointer_location
     
     for (block_start, block_end) in blocks:
+        # TODO: If the dump has already been done, abort this loop.
+        #if os.path.exists(os.path.join(snippet_folder_path, ""))
+
         dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
+
         if dat_dump:
             in_file = codecs.open(file_path, 'r', 'shift_jis')
             whole_file = in_file.read()
@@ -108,28 +113,35 @@ for (file, blocks) in file_blocks:
             snippets = in_file.readlines()
             for snippet in snippets:
                 if snippet and len(snippet) > 4:
-                    #print snippet
                     snippet_start = whole_file.index(snippet)
                     # ^ Here's where the offset calculation mistake is happening.
+                    # Plus a whole lot of inefficiency... any way to trim the file whenever I find an index?
                     offset = hex(snippet_start)
                     # TODO: If there's already a snippet file with the same source and offset, recalculate the offset.
-                    snippet_filename = "snippet_" + offset + "_" + file
+                    snippet_filename = "snippet_" + offset + "_" + "60" + "_" + file
                     snippet_dump = "dump_" + snippet_filename
+                    snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
+                    dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
+
+                    # TODO: Could probably make this recalculation a function.
                     while snippet_dump in dump_files:
                         truncated_file = whole_file[snippet_start+4:]
                         snippet_start += (whole_file.index(snippet)+4)
                         offset = hex(snippet_start)
-                        snippet_filename = "snippet_" + offset + "_" + file
+                        # TODO: Should I really calculate the length of these strings? They don't need ptr adjustments. Here's 60 in the meantime.
+                        snippet_filename = "snippet_" + offset + "_" + "60" + "_" + file
+                        snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
                         snippet_dump = "dump_" + snippet_filename
+                        dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
 
                     snippet_file = open(snippet_filename, 'w')
                     snippet_file.write(snippet.encode('shift_jis'))
                     snippet_file.close()
                     
-                    subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_filename, snippet_dump))
+                    subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
                     
-                    dump_files.append(snippet_dump)
-                    os.remove(snippet_filename)
+                    dump_files.append(dump_file_path)
+                    #os.remove(snippet_filename)
             
         else:
             block_length = block_end - block_start
@@ -143,43 +155,40 @@ for (file, blocks) in file_blocks:
             snippets = only_hex.split('\\x00')
             
             for snippet in snippets:
-                if snippet and len(snippet) > 4:       # at least one byte representation
+                if snippet and len(snippet) > 4:       # at least one byte
                     snippet_start = only_hex.index(snippet)
                     offset = hex(block_start + (snippet_start / 4))
-                    #if len(snippet) / 4 > 0x100:
-                        #print str(len(snippet)/4) + " check " + offset + " for garbage"
-                        #print snippet
-                    snippet_filename = "snippet_" + offset + "_" + file
-                    snippet_file = open(snippet_filename, 'wb')
+
                     snippet_bytes = snippet.replace('\\x', '').decode('hex')
-                    snippet_length = len(snippet_bytes)
-                    print snippet_length
+
+                    snippet_filename = "snippet_" + offset + "_" + str(len(snippet_bytes)) + "_" + file
+                    snippet_file = open(snippet_filename, 'wb')
+                    snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
                     snippet_file.write(snippet_bytes)
                     snippet_file.close()
                 
                     snippet_dump = "dump_" + snippet_filename
+                    dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
 
                     if DUMP_ASCII: 
-                        subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_filename, snippet_dump))
+                        subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
                     else:
-                        subprocess.call(".\SJIS_Dump %s %s 1 0" % (snippet_filename, snippet_dump))
+                        subprocess.call(".\SJIS_Dump %s %s 1 0" % (snippet_file_path, dump_file_path))
                     # Last argument: whether to dump ASCII text as well.
                     # Don't want them for the clean JP text dump, but do want them for dealing with pointers.
                 
-                    dump_files.append(snippet_dump)
-                    os.remove(snippet_filename)
+                    dump_files.append(dump_file_path)
+                    #os.remove(snippet_filename)
     in_file.close()
         
 dump = []
-
-#for p in pointer_locations.iteritems():
-#    print p
-# There are plenty of pointer locations at this point... maybe they don't match?
         
 for file in dump_files:
-    # file.split('_') is ('dump', 'snippet', sourcefile, offset)
-    source = file.split('_')[3]
+    # file.split('_') is ('dump', 'snippet', offset, length, source)
+    #offset, length, source = tuple(file.split('_')[2:5])
+    source = file.split('_')[4]
     offset = file.split('_')[2]
+    length = file.split('_')[3]
 
     fo = codecs.open(file, "r", encoding='shift_jis', errors='ignore') 
 
@@ -197,7 +206,7 @@ for file in dump_files:
         total_offset += int(offset_within_snippet, 16)
         total_offset = '0x%05x' % total_offset
         
-        text = lines[n+1].rstrip() # Enough of these \n's
+        text = lines[n+1].rstrip() # No more newline chars
         
         try:
             pointer = pointer_locations[(source, total_offset)]
@@ -205,7 +214,7 @@ for file in dump_files:
         except KeyError:
             pointer = ''
     
-        dump.append(((source, total_offset), (pointer, text)))
+        dump.append(((source, total_offset), (pointer, text, length)))
         
     fo.close()
 
@@ -217,7 +226,7 @@ for snippet in dump:
     worksheet.write(excel_row, 0, snippet[0][0])     # Source File
     worksheet.write(excel_row, 1, snippet[0][1])     # Text Location
     worksheet.write(excel_row, 2, snippet[1][0])     # Pointer Location
-    worksheet.write(excel_row, 3, len(snippet[1][1])) # JP_Char
+    worksheet.write(excel_row, 3, snippet[1][2])     # JP_Char
     worksheet.write(excel_row, 4, snippet[1][1])     # JP Text
     excel_row += 1
 
@@ -231,15 +240,10 @@ pointer_strings = {}
 # dump = ((source, text_location), (pointer_location, text))
 for (source, text_location) in pointer_locations.iterkeys():
     try:
-        #print source, text_location
-        # TODO: There's probably some kind of syntax problem here.
-        #text_location = str(text_location)
-        #(pointer_location, text) = dump[dump.index((source, text_location))][1]
-
         # This isn't taking well to tuple unpacking... Ugly solution it is!
         pointer_location= [d[1] for d in dump if d[0] == (source, text_location)][0][0]
         text = [d[1] for d in dump if d[0] == (source, text_location)][0][1]
-        #print pointer_location
+        # TODO: Add JP_Char.
     except IndexError:
         (pointer_location, text) = (pointer_locations[(source, text_location)], '')
 
@@ -256,9 +260,9 @@ print "Cleaning up..."
 # Cleanup.
 workbook.close()
 
-for file in dump_files:
-    try:
-        os.remove(file)
-    except WindowsError: # Sometimes it doesn't find the file... strange.
-        pass
+#for file in dump_files:
+#    try:
+#        os.remove(file)
+#    except WindowsError: # Sometimes it doesn't find the file... strange.
+#        pass
 print "Dump successful. %i pointers matched." % pointer_count
