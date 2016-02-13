@@ -2,11 +2,13 @@
 Git repo for the utilities and notes for a translation hack of 46 Okunen Monogatari: The Shinka Ron for the PC-98. E.V.O: Search for Eden for the SNES was a spiritual sequel/remake of this game, translating its turn-based combat into a side-scrolling platformer while enhancing the amount of time spent grinding and removing the present-day and future scenarios.
 
 ###Reinsertion Status:
-* Menus: 0%
-* Battle: 0%
-* Dialogue: 0%
 * Cinematics: 0%
-* System: 0%
+* Chapter 1: 0%
+* Chapter 2: 0%
+* Chapter 3: 0%
+* Chapter 4: 0%
+* Chapter 5: 0%
+* Chapter 6: 0%
 * Images: 0%
 
 ###Timeline:

@@ -17,13 +17,10 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: Calculate original length (in bytes) of each string.
 # TODO: Assign correct offsets to strings repeated in the .DAT files.
 # TODO: Find the pointer-pointers and mark them in the pointer sheet.
 
 # TODO: Sort the pointer sheet.
-
-# TODO: Add control codes? (Not really necessary)
 
 import os
 import subprocess
@@ -102,7 +99,8 @@ for (file, blocks) in file_blocks:
     
     for (block_start, block_end) in blocks:
         # TODO: If the dump has already been done, abort this loop.
-        #if os.path.exists(os.path.join(snippet_folder_path, ""))
+        if os.path.exists(os.path.join(snippet_folder_path, "dump_snippet_0x13c3f_4_ST4.EXE")):
+            break
 
         dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
 
@@ -134,7 +132,7 @@ for (file, blocks) in file_blocks:
                         snippet_dump = "dump_" + snippet_filename
                         dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
 
-                    snippet_file = open(snippet_filename, 'w')
+                    snippet_file = open(snippet_file_path, 'w')
                     snippet_file.write(snippet.encode('shift_jis'))
                     snippet_file.close()
                     
@@ -162,13 +160,16 @@ for (file, blocks) in file_blocks:
                     snippet_bytes = snippet.replace('\\x', '').decode('hex')
 
                     snippet_filename = "snippet_" + offset + "_" + str(len(snippet_bytes)) + "_" + file
-                    snippet_file = open(snippet_filename, 'wb')
                     snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
+                    snippet_file = open(snippet_file_path, 'wb')
                     snippet_file.write(snippet_bytes)
                     snippet_file.close()
                 
                     snippet_dump = "dump_" + snippet_filename
                     dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
+
+                    #print snippet_file_path
+                    #print dump_file_path
 
                     if DUMP_ASCII: 
                         subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
