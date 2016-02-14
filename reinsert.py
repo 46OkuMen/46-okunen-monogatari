@@ -1,5 +1,8 @@
+from __future__ import division
+
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
-# Plan right now: Take the strings identified as part of the dump, replace them with "AAA" of equal length.
+
+# TODO: See what's going on with the JP closing quotes. Are they not included? in the xls? Is jp_len*2 not long enough - should it be +2?
 
 dump_xls = "shinkaron_dump_split.xlsx"
 
@@ -28,11 +31,15 @@ sheets.remove(u'ORIGINAL')
 sheets.remove(u'MISC TITLES')
 for sheet in sheets:
     # Just ST1.EXE for now:
-    if sheet != "ST1.EXE":
+    #print sheet
+    if sheet != "ST1.EXE" and sheet != "46.EXE":
         continue
     ws = wb.get_sheet_by_name(sheet)
     text = {} # offset: (jp, eng)
+    total_rows = 0
+    total_replacements = 0
     for row in ws.rows[1:]:  # Skip the first row, it's just labels
+        total_rows += 1
         offset = int(row[0].value, 16)
         if row[2].value:
             jp_len = len(row[2].value)
@@ -44,10 +51,9 @@ for sheet in sheets:
                 len_diff = (jp_len*2) - en_len
                 if len_diff < 0: # Negative result: english too long (requires pointer adjustment)
                     #print "English too long at" + offset
-                    print english
-                    print "JP: " + str(jp_len)
-                    print "EN: " + str(en_len)
                     #print english
+                    #print "JP: " + str(jp_len)
+                    #print "EN: " + str(en_len)
                     continue
                 elif len_diff > 0: # Positive result: english requires padding (later, adjust ptrs)
                     english += " "*len_diff
@@ -63,5 +69,9 @@ for sheet in sheets:
 
     in_file = open(dest_file_path, 'rb+')
     for offset in text:
+        total_replacements += 1
         in_file.seek(offset, 0)
         in_file.write(text[offset][1])
+
+    translation_percent = (total_replacements / total_rows) * 100
+    print sheet + " " + str(translation_percent) + "% complete"
