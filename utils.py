@@ -75,9 +75,9 @@ def pack(h):
     return (s, t)
     
 def location_from_pointer(pointer, constant):
-    #print "pointer:" + str(pointer)
-    #print "constant: " + hex(constant)
-    #value = hex(unpack(pointer[0], pointer[1]) + constant)
-    value = '0x' + str(format((unpack(pointer[0], pointer[1]) + constant), '05x'))
-    #print value
-    return value
+    return '0x' + str(format((unpack(pointer[0], pointer[1]) + constant), '05x'))
+
+def pointer_value_from_location(offset, constant):
+    # Subtract the constant, pack it. Then that's the value to look for among the pointers already mapped out in excel.
+    # TODO: Get examples to make sure it's formatted properly.
+    return offset - constant
