@@ -18,22 +18,20 @@
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
 # TODO: Assign correct offsets to strings repeated in the .DAT files.
-# TODO: Find the pointer-pointers and mark them in the pointer sheet.
-
-# TODO: Sort the pointer sheet.
 
 import os
 import subprocess
 import codecs
 import xlsxwriter
 import re
+from collections import OrderedDict
 
 from utils import file_blocks
 from utils import capture_pointers_from_table, capture_pointers_from_function
 from utils import pointer_constants, pointer_separators
 from utils import pack, unpack, location_from_pointer
 
-DUMP_ASCII = False
+DUMP_ASCII = True
 
 # Nomenclature for different parts of things:
 # Game contains disks.
@@ -61,9 +59,8 @@ excel_row = 0
 
 dump_files = []
 
-pointer_locations = {}
+pointer_locations = OrderedDict()
 pointer_count = 0
-
 
 for (file, blocks) in file_blocks:
     print "Dumping file %s..." % file
@@ -84,23 +81,23 @@ for (file, blocks) in file_blocks:
         for p in pointers:
             # pointer_locations[(file, text_location)] = pointer_location
             # Since we want to take a piece of text from the file and find its pointer.
-            pointer_location = hex(only_hex.index(p.group(0))/4)  # Where is this pointer found?
-            #print file 
-            #print "Where the pointer is: " + pointer_location
+            pointer_location = only_hex.index(p.group(0))/4  # Where is this pointer found?
+            pointer_location = '0x%05x' % pointer_location
             # Take the value of the pointer, 
             text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
-            #print "What it points to: " + text_location
             pointer_locations[(file, text_location)] = pointer_location
         for p in dialogue_pointers:
-            pointer_location = hex(only_hex.index(p.group(0))/4)
+            pointer_location = only_hex.index(p.group(0))/4
+            pointer_location = '0x%05x' % pointer_location
             #print p.group(1), p.group(2)
             text_location = location_from_pointer((p.group(1), p.group(2)), pointer_constants[file])
             pointer_locations[(file, text_location)] = pointer_location
     
     for (block_start, block_end) in blocks:
         # TODO: If the dump has already been done, abort this loop.
-        if os.path.exists(os.path.join(snippet_folder_path, "dump_snippet_0x13c3f_4_ST4.EXE")):
-            break
+        # (Still need a way to get hte list of files to dump.)
+        #if os.path.exists(os.path.join(snippet_folder_path, "dump_snippet_0x13c3f_ST4.EXE")):
+        #    break
 
         dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
 
@@ -126,8 +123,7 @@ for (file, blocks) in file_blocks:
                         truncated_file = whole_file[snippet_start+4:]
                         snippet_start += (whole_file.index(snippet)+4)
                         offset = hex(snippet_start)
-                        # TODO: Should I really calculate the length of these strings? They don't need ptr adjustments. Here's 60 in the meantime.
-                        snippet_filename = "snippet_" + offset + "_" + "60" + "_" + file
+                        snippet_filename = "snippet_" + offset + "_" + file
                         snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
                         snippet_dump = "dump_" + snippet_filename
                         dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
@@ -159,7 +155,7 @@ for (file, blocks) in file_blocks:
 
                     snippet_bytes = snippet.replace('\\x', '').decode('hex')
 
-                    snippet_filename = "snippet_" + offset + "_" + str(len(snippet_bytes)) + "_" + file
+                    snippet_filename = "snippet_" + offset + "_" + file
                     snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
                     snippet_file = open(snippet_file_path, 'wb')
                     snippet_file.write(snippet_bytes)
@@ -187,9 +183,8 @@ dump = []
 for file in dump_files:
     # file.split('_') is ('dump', 'snippet', offset, length, source)
     #offset, length, source = tuple(file.split('_')[2:5])
-    source = file.split('_')[4]
+    source = file.split('_')[3]
     offset = file.split('_')[2]
-    length = file.split('_')[3]
 
     fo = codecs.open(file, "r", encoding='shift_jis', errors='ignore') 
 
@@ -215,7 +210,7 @@ for file in dump_files:
         except KeyError:
             pointer = ''
     
-        dump.append(((source, total_offset), (pointer, text, length)))
+        dump.append(((source, total_offset), (pointer, text)))
         
     fo.close()
 
@@ -227,8 +222,7 @@ for snippet in dump:
     worksheet.write(excel_row, 0, snippet[0][0])     # Source File
     worksheet.write(excel_row, 1, snippet[0][1])     # Text Location
     worksheet.write(excel_row, 2, snippet[1][0])     # Pointer Location
-    worksheet.write(excel_row, 3, snippet[1][2])     # JP_Char
-    worksheet.write(excel_row, 4, snippet[1][1])     # JP Text
+    worksheet.write(excel_row, 3, snippet[1][1])     # JP Text
     excel_row += 1
 
 # Second sheet: all the pointers, regardless of whether they get matched up with any particular text.
@@ -236,34 +230,45 @@ for snippet in dump:
 print "Writing pointer sheet..."
 pointer_sheet = workbook.add_worksheet()
 excel_row = 0
-pointer_strings = {}
+
+# Deal with pointer-pointers separately.
+for (source, text_location), pointer_location in pointer_locations.iteritems():
+    try:
+        # a pointer-pointer is a pointer whose text_location equals another pointer's pointer_location.
+        # Looks like the pointer-pointers are pointing to locations 2 lower than I've calculated?? TODO investigate this.
+        # 565 pointer-pointers matched with -2.
+        # 606 pointer-pointers matched with +2. (Must be right.)
+        lesser_pointer_location = '0x%05x' % (int(pointer_location, 16) + 2)
+        pointer_pointer_location = pointer_locations[(source, lesser_pointer_location)]
+        text = "[PTR]"
+
+        pointer_sheet.write(excel_row, 0, source)
+        pointer_sheet.write(excel_row, 1, pointer_location) # TODO: Is this the right thing I want displayed?
+        pointer_sheet.write(excel_row, 2, pointer_pointer_location)
+        pointer_sheet.write(excel_row, 3, text)
+        excel_row += 1
+        del pointer_locations[(source, text_location)]
+    except KeyError:
+        continue
+
 # pointer_locations[(source, text_location)] = pointer_location
 # dump = ((source, text_location), (pointer_location, text))
 for (source, text_location) in pointer_locations.iterkeys():
     try:
         # This isn't taking well to tuple unpacking... Ugly solution it is!
-        pointer_location= [d[1] for d in dump if d[0] == (source, text_location)][0][0]
+        pointer_location = [d[1] for d in dump if d[0] == (source, text_location)][0][0]
         text = [d[1] for d in dump if d[0] == (source, text_location)][0][1]
-        # TODO: Add JP_Char.
     except IndexError:
         (pointer_location, text) = (pointer_locations[(source, text_location)], '')
 
     pointer_sheet.write(excel_row, 0, source)           # Source File
     pointer_sheet.write(excel_row, 1, text_location)    # Text Location
     pointer_sheet.write(excel_row, 2, pointer_location) # Pointer
-    pointer_sheet.write(excel_row, 3, len(text))        # JP_Char
-    pointer_sheet.write(excel_row, 4, text)             # JP Text
+    pointer_sheet.write(excel_row, 3, text)             # JP Text
     excel_row += 1
-
-
 
 print "Cleaning up..."
 # Cleanup.
 workbook.close()
 
-#for file in dump_files:
-#    try:
-#        os.remove(file)
-#    except WindowsError: # Sometimes it doesn't find the file... strange.
-#        pass
 print "Dump successful. %i pointers matched." % pointer_count

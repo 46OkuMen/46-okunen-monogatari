@@ -53,6 +53,8 @@ for sheet in sheets:
             english = row[4].value
             if not english:
                 # If no translation, leave the JP text untouched & skip to next row.
+                # ...but I still want to adjust the pointer even if there's no translated text here.
+                ptr_diffs[offset] = prev_len_diff
                 continue
             en_len = len(english)
             len_diff = en_len - (jp_len*2)

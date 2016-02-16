@@ -32,7 +32,7 @@ pointer_separators = {
 }
 
 pointer_constants = {
-        'OPENING.EXE': 0x4a80,  # trying a new one
+        'OPENING.EXE': 0x4a80,
         'ST1.EXE': 0xd7e0,
         'ST2.EXE': 0xc170,
         'ST3.EXE': 0xb400,
@@ -40,7 +40,7 @@ pointer_constants = {
         'ST5.EXE': 0xcb60,
         'ST6.EXE': 0xa460,
         'ST5S1.EXE': 0x2440,
-        'ST5S2.EXE': 0x2360,   # no pointer tables in this file. but value is useful for dialogue pointers later
+        'ST5S2.EXE': 0x2360,
         'ST5S3.EXE': 0x3ce0,
         'ENDING.EXE': 0x39a0,
         '46.EXE': 0x92c0,
