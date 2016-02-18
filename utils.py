@@ -1,5 +1,8 @@
 import re
 
+files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE',
+         'ST6.EXE', 'ENDING.EXE', 'SINKA.DAT', 'SEND.DAT']
+
 file_blocks = [ ('OPENING.EXE', ((0x4dda, 0x5868),),),
           ('46.EXE', ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a))),
           ('ST1.EXE', ((0xd873, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11595), (0x117c7, 0x119a3), (0x11d42, 0x1204e))),

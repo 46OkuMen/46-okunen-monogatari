@@ -4,7 +4,7 @@ from __future__ import division
 
 # TODO: See what's going on with the JP closing quotes. Are they not included? in the xls? Is jp_len*2 not long enough - should it be +2?
 
-dump_xls = "shinkaron_dump_split.xlsx"
+dump_xls = "shinkaron_just_one_change.xlsx"
 
 import os
 import subprocess
@@ -33,7 +33,7 @@ sheets.remove(u'ORIGINAL')
 sheets.remove(u'MISC TITLES')
 for sheet in sheets:
     # TODO: Remvoe this when more text is translated in other files.
-    if sheet != "ST1.EXE" and sheet != "46.EXE":
+    if sheet != "ST1.EXE":
         continue
 
     translations = OrderedDict() # translations[offset] = (jp, eng)

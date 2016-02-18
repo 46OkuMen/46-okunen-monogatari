@@ -26,7 +26,7 @@ import xlsxwriter
 import re
 from collections import OrderedDict
 
-from utils import file_blocks
+from utils import files, file_blocks
 from utils import capture_pointers_from_table, capture_pointers_from_function
 from utils import pointer_constants, pointer_separators
 from utils import pack, unpack, location_from_pointer
@@ -113,20 +113,20 @@ for (file, blocks) in file_blocks:
                     # Plus a whole lot of inefficiency... any way to trim the file whenever I find an index?
                     offset = hex(snippet_start)
                     # TODO: If there's already a snippet file with the same source and offset, recalculate the offset.
-                    snippet_filename = "snippet_" + offset + "_" + "60" + "_" + file
+                    snippet_filename = "snippet_" + offset  + "_" + file
                     snippet_dump = "dump_" + snippet_filename
                     snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
                     dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
 
                     # TODO: Could probably make this recalculation a function.
-                    while snippet_dump in dump_files:
-                        truncated_file = whole_file[snippet_start+4:]
-                        snippet_start += (whole_file.index(snippet)+4)
-                        offset = hex(snippet_start)
-                        snippet_filename = "snippet_" + offset + "_" + file
-                        snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
-                        snippet_dump = "dump_" + snippet_filename
-                        dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
+                    #while snippet_dump in dump_files:
+                    #    truncated_file = whole_file[snippet_start+4:]
+                    #    snippet_start += (whole_file.index(snippet)+4)
+                    #    offset = hex(snippet_start)
+                    #    snippet_filename = "snippet_" + offset + "_" + file
+                    #    snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
+                    #    snippet_dump = "dump_" + snippet_filename
+                    #    dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
 
                     snippet_file = open(snippet_file_path, 'w')
                     snippet_file.write(snippet.encode('shift_jis'))
@@ -216,7 +216,7 @@ for file in dump_files:
 
 #sorted_dump = sorted(dump, key = lambda x: (x[0], x[1]))
     
-print "Writing text dump to shinkaron_dump.xls..."
+print "Writing text dump to shinkaron_dump.xlsx..."
 # Access this in a separate for loop, since there might be multiple texts in a snippet
 for snippet in dump:
     worksheet.write(excel_row, 0, snippet[0][0])     # Source File
@@ -227,28 +227,35 @@ for snippet in dump:
 
 # Second sheet: all the pointers, regardless of whether they get matched up with any particular text.
 # (So they don't get missed during reinsertion.)
-print "Writing pointer sheet..."
-pointer_sheet = workbook.add_worksheet()
+print "Writing pointer list to shinkaron_pointer_dump.xlsx..."
+pointer_workbook = xlsxwriter.Workbook('shinkaron_pointer_dump.xlsx')
+pointer_sheet = pointer_workbook.add_worksheet()
 excel_row = 0
 
 # Deal with pointer-pointers separately.
+# A pointer-pointer is a pointer whose text_location (the thing it points to) equals another pointer's pointer_location (where it is)
+# Hence, pointer-pointer. It points to a pointer.
+# There's usually a table of pointer-pointers at the top, pointing to a pointer table closer to the text block.
+# Looks like all the pointer-pointers are for menu options and error messages.
 for (source, text_location), pointer_location in pointer_locations.iteritems():
     try:
         # a pointer-pointer is a pointer whose text_location equals another pointer's pointer_location.
-        # Looks like the pointer-pointers are pointing to locations 2 lower than I've calculated?? TODO investigate this.
+        # They point to the first byte of the (preceding) separator rather than the first byte of the pointer value, unlike the text... weird.
         # 565 pointer-pointers matched with -2.
         # 606 pointer-pointers matched with +2. (Must be right.)
-        lesser_pointer_location = '0x%05x' % (int(pointer_location, 16) + 2)
-        pointer_pointer_location = pointer_locations[(source, lesser_pointer_location)]
-        text = "[PTR]"
+        alternate_pointer_location = '0x%05x' % (int(pointer_location, 16) + 2)
+        pointer_pointer_location = pointer_locations[(source, alternate_pointer_location)]
+        text = "[PTR] " + [d[1] for d in dump if d[0] == (source, text_location)][0][1]
 
         pointer_sheet.write(excel_row, 0, source)
-        pointer_sheet.write(excel_row, 1, pointer_location) # TODO: Is this the right thing I want displayed?
+        pointer_sheet.write(excel_row, 1, alternate_pointer_location)
         pointer_sheet.write(excel_row, 2, pointer_pointer_location)
         pointer_sheet.write(excel_row, 3, text)
         excel_row += 1
-        del pointer_locations[(source, text_location)]
+        del pointer_locations[(source, alternate_pointer_location)]
     except KeyError:
+        continue
+    except IndexError:
         continue
 
 # pointer_locations[(source, text_location)] = pointer_location
@@ -270,5 +277,6 @@ for (source, text_location) in pointer_locations.iterkeys():
 print "Cleaning up..."
 # Cleanup.
 workbook.close()
+pointer_workbook.close()
 
 print "Dump successful. %i pointers matched." % pointer_count
