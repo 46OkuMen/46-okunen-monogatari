@@ -1,10 +1,10 @@
 from __future__ import division
 
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
-
 # TODO: See what's going on with the JP closing quotes. Are they not included? in the xls? Is jp_len*2 not long enough - should it be +2?
 
 dump_xls = "shinkaron_just_one_change.xlsx"
+pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 import os
 import subprocess
@@ -31,54 +31,69 @@ sheets = wb.get_sheet_names()
 #print sheets
 sheets.remove(u'ORIGINAL')
 sheets.remove(u'MISC TITLES')
-for sheet in sheets:
+for file in sheets:
     # TODO: Remvoe this when more text is translated in other files.
-    if sheet != "ST1.EXE":
+    if file != "ST1.EXE":
         continue
 
-    translations = OrderedDict() # translations[offset] = (jp, eng)
-    ptr_diffs = OrderedDict() # ptr_diffs[ptr_offset] = n
+    # First, index all the translations by the offset of the japanese text.
+    translations = OrderedDict() # translations[offset] = (japanese, english)   TODO: Does it need to be ordered?
 
-    prev_len_diff = 0 # Ptr diffs affect the next pointer, not the current one
-
-    ws = wb.get_sheet_by_name(sheet)
+    ws = wb.get_sheet_by_name(file)
+    # These two variables count the replacements to track reinsertion progress.
     total_rows = 0
     total_replacements = 0
 
     for row in ws.rows[1:]:  # Skip the first row, it's just labels
         total_rows += 1
+
         offset = int(row[0].value, 16)
-        if row[2].value:
-            jp_len = len(row[2].value)
-            english = row[4].value
-            if not english:
-                # If no translation, leave the JP text untouched & skip to next row.
-                # ...but I still want to adjust the pointer even if there's no translated text here.
-                ptr_diffs[offset] = prev_len_diff
-                continue
-            en_len = len(english)
-            len_diff = en_len - (jp_len*2)
-            if len_diff > 0: # Positive result: english too long (requires pointer adjustment)
-                #print "English too long at" + offset
-                #print english
-                #print "JP: " + str(jp_len)
-                #print "EN: " + str(en_len)
-                #continue
-                pass
-            elif len_diff < 0: # Negative result: english too short, requires padding (later, adjust ptrs)
-                english += " "*len_diff
-                  
-            translations[offset] = (row[2], english)
-            pointer_offset = row[1].value # it's a string like '0x4fc9'
-            adjustment = prev_len_diff
+        japanese = row[2].value
+        english = row[4].value
 
-            ptr_diffs[offset] = adjustment
+        if not english:
+            # No translation is available; skip this row. (It still has a ptr, so its diff will be calculated later)
+            continue
+        translations[offset] = (japanese, english)
 
-            prev_len_diff += len_diff # The effect is cumulative
+    for _,e in translations.iteritems():
+        print e
 
+    # Next, load all the pointers from the excel sheet.
+    pointers = {}              # text_offset: pointer_offset
+    pointer_diffs = {}         # text_offset: diff
+
+    last_pointer_diff = 0
+
+    pointer_wb = load_workbook(pointer_xls)
+    pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
+
+    for row in pointer_sheet.rows:
+        if row[0].value == file:                          # Access ptrs for the current file only.
+            text_offset = int(row[1].value, 16)
+            pointer_offset = int(row[2].value, 16)
+            pointers[text_offset] = pointer_offset
+
+            # If the pointer corresponds to something that gets translated, recalculate the ptr diff.
+            try:
+                # TODO: This is failing because the first text pointer in the game is to something before the text! It points to "move the Thelodus" code...
+                # Should I just update the next pointer after it?
+                jp, eng = translations[text_offset]
+                len_diff = len(eng) - (len(jp)*2)                 # Shift_JIS has two-byte characters
+                #print len(eng), len(jp)*2
+                pointer_diffs[text_offset] = last_pointer_diff    # Tricky part: an adjustment takes effect first in the next pointer!!!
+                last_pointer_diff += len_diff                     # So let it get assigned the next time. (Also it's cumulative.)
+
+            except KeyError:
+                pointer_diffs[text_offset] = last_pointer_diff
+
+    print pointer_diffs
+
+
+"""
     # Each file is on a separate sheet.
-    src_file_path = os.path.join(src_path, sheet)
-    dest_file_path = os.path.join(dest_path, sheet)
+    src_file_path = os.path.join(src_path, file)
+    dest_file_path = os.path.join(dest_path, file)
 
     copyfile(src_file_path, dest_file_path)
 
@@ -88,7 +103,7 @@ for sheet in sheets:
         in_file.seek(offset, 0)
         in_file.write(translations[offset][1])
 
-    pointer_constant = pointer_constants[sheet]
+    pointer_constant = pointer_constants[file]
 
     for ptr in ptr_diffs:
         original_pointer = ptr - pointer_constant
@@ -102,3 +117,5 @@ for sheet in sheets:
     translation_percent = (total_replacements / total_rows) * 100
     print sheet + " " + str(translation_percent) + "% complete"
     print ptr_diffs
+
+"""
