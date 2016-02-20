@@ -56,14 +56,15 @@ for file in sheets:
             continue
         translations[offset] = (japanese, english)
 
-    for _,e in translations.iteritems():
-        print e
+    #for _,e in translations.iteritems():
+    #    print e
 
     # Next, load all the pointers from the excel sheet.
     pointers = {}              # text_offset: pointer_offset
     pointer_diffs = {}         # text_offset: diff
 
     last_pointer_diff = 0
+    last_text_offset = 0
 
     pointer_wb = load_workbook(pointer_xls)
     pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
@@ -74,18 +75,26 @@ for file in sheets:
             pointer_offset = int(row[2].value, 16)
             pointers[text_offset] = pointer_offset
 
-            # If the pointer corresponds to something that gets translated, recalculate the ptr diff.
-            try:
-                # TODO: This is failing because the first text pointer in the game is to something before the text! It points to "move the Thelodus" code...
-                # Should I just update the next pointer after it?
-                jp, eng = translations[text_offset]
-                len_diff = len(eng) - (len(jp)*2)                 # Shift_JIS has two-byte characters
-                #print len(eng), len(jp)*2
-                pointer_diffs[text_offset] = last_pointer_diff    # Tricky part: an adjustment takes effect first in the next pointer!!!
-                last_pointer_diff += len_diff                     # So let it get assigned the next time. (Also it's cumulative.)
+            pointer_diffs[text_offset] = last_pointer_diff
 
-            except KeyError:
-                pointer_diffs[text_offset] = last_pointer_diff
+            # When the text_offset is 60871 (0xedc7), where the text is changed, it is between two ptrs.
+            # ...
+            # Rather than look for something with the exact pointer, look for any translated text with a value between last_pointer_offset (excl) and text_offset (incl)
+            # Calculate the diff, then add it to last_pointer_diff.
+            lo = last_text_offset
+            hi = text_offset
+            for n in range((lo+1), (hi+1)):
+                try:
+                    jp, eng = translations[n]
+                    len_diff = len(eng) - (len(jp)*2)                 # Shift_JIS has two-byte characters
+                    #print len(eng), len(jp)*2
+                    pointer_diffs[text_offset] = last_pointer_diff    # Tricky part: an adjustment takes effect first in the next pointer!!!
+                    last_pointer_diff += len_diff                     # So let it get assigned the next time. (Also it's cumulative.)
+                    print "Here's the line! ", len_diff, last_pointer_diff
+                except KeyError:
+                    pass
+
+            last_text_offset = text_offset
 
     print pointer_diffs
 
