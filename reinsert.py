@@ -1,17 +1,13 @@
 from __future__ import division
 
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
-# TODO: See what's going on with the JP closing quotes. Are they not included? in the xls? Is jp_len*2 not long enough - should it be +2?
 
 dump_xls = "shinkaron_just_one_change.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 import os
-import subprocess
-import codecs
-import xlsxwriter
 import openpyxl
-import re
+from binascii import unhexlify
 
 from utils import file_blocks
 from utils import pointer_constants, pointer_separators
@@ -28,7 +24,6 @@ dest_path = os.path.join(script_dir, 'patched_roms')
 
 wb = load_workbook(dump_xls)
 sheets = wb.get_sheet_names()
-#print sheets
 sheets.remove(u'ORIGINAL')
 sheets.remove(u'MISC TITLES')
 for file in sheets:
@@ -96,35 +91,67 @@ for file in sheets:
 
             last_text_offset = text_offset
 
-    print pointer_diffs
+    #print pointer_diffs
 
-
-"""
-    # Each file is on a separate sheet.
+    # Now, to begin the ROM edits.
     src_file_path = os.path.join(src_path, file)
     dest_file_path = os.path.join(dest_path, file)
-
     copyfile(src_file_path, dest_file_path)
 
-    in_file = open(dest_file_path, 'rb+')
-    for offset in translations:
-        total_replacements += 1
-        in_file.seek(offset, 0)
-        in_file.write(translations[offset][1])
+    patched_file = open(dest_file_path, 'rb+')
 
+    # First, rewrite the pointers - that doesn't change the length of anything.
     pointer_constant = pointer_constants[file]
 
-    for ptr in ptr_diffs:
-        original_pointer = ptr - pointer_constant
-        print original_pointer
-        new_pointer = original_pointer + ptr_diffs[ptr]
-        new_pointer_bytes = pack(new_pointer)
-        print new_pointer, new_pointer_bytes
-        # TODO: Actually write these values.
-        # BUT FIRST: Dump the pointer-pointers so they can be adjusted as well; otherwise it'll crash.
+    for text_location, diff in pointer_diffs.iteritems():
+        pointer_location = pointers[text_location]
+        print hex(pointer_location)
+        original_pointer_value = text_location - pointer_constant
+        old_byte_1, old_byte_2 = pack(original_pointer_value)
+        print "Old: ", hex(old_byte_1), hex(old_byte_2)
+        new_pointer_value = original_pointer_value + diff
+        byte_1, byte_2 = pack(new_pointer_value)
+        print "New: ", hex(byte_1), hex(byte_2)
+        byte_1, byte_2 = chr(byte_1), chr(byte_2)
+        patched_file.seek(pointer_location)
+        patched_file.write(byte_1)
+        patched_file.write(byte_2)
+
+    # Then, rewrite the actual text.
+    # Thought about just using replace but that involves converting the file to a string, searching bytes, etc.
+    # Ideally I could just write the english string where the pointer is pointing, but I need to delete the jp text first.
+    # Replace it is! Really slow... Is there a way to slice it up and know for sure?
+    min_pointer_diff = min(pointer_diffs.itervalues())
+    patched_file.seek(0)
+    file_string = ""
+    for c in patched_file.read():
+        file_string += "%02x" % ord(c)
+
+    patched_file.close()
+
+    for original_location, (jp, eng) in translations.iteritems():
+        jp_bytestring = ""
+        sjis = jp.encode('shift-jis')
+        for c in sjis:
+            jp_bytestring += "%02x" % ord(c)
+        print jp_bytestring
+
+        eng_bytestring = ""
+        for c in eng:
+            eng_bytestring += "%02x" % ord(c)
+        print eng_bytestring
+
+        print hex(file_string.index(jp_bytestring)//2)
+
+        file_string = file_string.replace(jp_bytestring, eng_bytestring)
+
+        total_replacements += 1
+
+    with open(dest_file_path, "wb") as output_file:
+        # omg I tried to call "unhexify" a million times. ugh
+        data = unhexlify(file_string)
+        output_file.write(data)
+
 
     translation_percent = (total_replacements / total_rows) * 100
-    print sheet + " " + str(translation_percent) + "% complete"
-    print ptr_diffs
-
-"""
+    print file + " " + "%02f" % translation_percent + "% complete"
