@@ -2,6 +2,11 @@ from __future__ import division
 
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
+# TODO: Needs function pointers. Changing the length of the last bit of dialogue breaks some function at the end of the file.
+# Find the addresses of those functions in other parts of the file during dumping, add them to pointer table?
+# If that's a wrong-headed approach, I should dive into the disassembly with reko or just two instances of np2debug,
+# one window with the original rom and one with the patched version, see where it crashes.
+
 dump_xls = "shinkaron_just_one_change.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
@@ -71,6 +76,7 @@ for file in sheets:
             pointers[text_offset] = pointer_offset
 
             pointer_diffs[text_offset] = last_pointer_diff
+            print last_pointer_diff
 
             # When the text_offset is 60871 (0xedc7), where the text is changed, it is between two ptrs.
             # ...
@@ -105,13 +111,13 @@ for file in sheets:
 
     for text_location, diff in pointer_diffs.iteritems():
         pointer_location = pointers[text_location]
-        print hex(pointer_location)
+        #print hex(pointer_location)
         original_pointer_value = text_location - pointer_constant
-        old_byte_1, old_byte_2 = pack(original_pointer_value)
-        print "Old: ", hex(old_byte_1), hex(old_byte_2)
+        #old_byte_1, old_byte_2 = pack(original_pointer_value)
+        #print "Old: ", hex(old_byte_1), hex(old_byte_2)
         new_pointer_value = original_pointer_value + diff
         byte_1, byte_2 = pack(new_pointer_value)
-        print "New: ", hex(byte_1), hex(byte_2)
+        #print "New: ", hex(byte_1), hex(byte_2)
         byte_1, byte_2 = chr(byte_1), chr(byte_2)
         patched_file.seek(pointer_location)
         patched_file.write(byte_1)
