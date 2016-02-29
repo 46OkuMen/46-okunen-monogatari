@@ -7,7 +7,17 @@ from __future__ import division
 # If that's a wrong-headed approach, I should dive into the disassembly with reko or just two instances of np2debug,
 # one window with the original rom and one with the patched version, see where it crashes.
 
-dump_xls = "shinkaron_just_one_change.xlsx"
+# Alternate idea: keep the total file length an identical size for every text block. That way, the function pointers won't break.
+# If a block's total length is too short, add spaces where they won't hurt. (At the end, after the control codes?)
+# If a block's total length is too long... hmm. I can sacrifice the error codes block at the end...
+# Looks like the blocks will in general be too long. But I have 0x0030c space left in error codes.
+# If the total pointer diff is less than 30c, I can figure out a way to store it all in there.
+
+# TODO: Gotta come up with a way to replace the first after a given offset. Can't just repalce the first one.
+# If the text blocks are going to remain the same length, I might go and extract the original, block by block, and
+# do the replacements that way. Then, I won't have to worry about code being replaced.
+
+dump_xls = "shinkaron_dump_no_errors.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 import os
@@ -66,6 +76,8 @@ for file in sheets:
     last_pointer_diff = 0
     last_text_offset = 0
 
+    current_text_block = 0
+
     pointer_wb = load_workbook(pointer_xls)
     pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
 
@@ -77,6 +89,19 @@ for file in sheets:
 
             pointer_diffs[text_offset] = last_pointer_diff
             print last_pointer_diff
+
+            for game_file in file_blocks:
+                if game_file[0] == file:
+                    for block_index, block in enumerate(game_file[1]):
+                        lo, hi = block
+                        #print text_offset, lo, hi
+                        if (text_offset >= lo) and (text_offset <= hi):
+                            if current_text_block != block_index:
+                                current_text_block = block_index
+                                print "block ", block_index
+                                last_pointer_diff = 0
+                                break
+
 
             # When the text_offset is 60871 (0xedc7), where the text is changed, it is between two ptrs.
             # ...
@@ -91,7 +116,7 @@ for file in sheets:
                     #print len(eng), len(jp)*2
                     pointer_diffs[text_offset] = last_pointer_diff    # Tricky part: an adjustment takes effect first in the next pointer!!!
                     last_pointer_diff += len_diff                     # So let it get assigned the next time. (Also it's cumulative.)
-                    print "Here's the line! ", len_diff, last_pointer_diff
+                    #print "Here's the line! ", len_diff, last_pointer_diff
                 except KeyError:
                     pass
 
@@ -140,16 +165,18 @@ for file in sheets:
         sjis = jp.encode('shift-jis')
         for c in sjis:
             jp_bytestring += "%02x" % ord(c)
-        print jp_bytestring
+        #print jp_bytestring
 
         eng_bytestring = ""
         for c in eng:
             eng_bytestring += "%02x" % ord(c)
-        print eng_bytestring
+        #print eng_bytestring
 
-        print hex(file_string.index(jp_bytestring)//2)
+        #print hex(file_string.index(jp_bytestring)//2)
 
-        file_string = file_string.replace(jp_bytestring, eng_bytestring)
+        file_string = file_string.replace(jp_bytestring, eng_bytestring, 1) # Only the first occurrence.
+        # TODO: Def need to try a "replace after a certain index" code here. The "voice" kanji occurs in the function code,
+        # so it breaks the code instead of rewriting the JP text.
 
         total_replacements += 1
 
