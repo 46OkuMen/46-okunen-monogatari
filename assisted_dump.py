@@ -88,7 +88,7 @@ for file, blocks in file_blocks.iteritems():
             # Take the value of the pointer, 
             text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
             if int(text_location, 16) > file_length:     # Clearly something is wrong.
-                print "Weird pointer at ", pointer_location
+                print "Weird pointer at", pointer_location
                 continue
             pointer_locations[(file, text_location)] = pointer_location
         for p in dialogue_pointers:
@@ -97,7 +97,7 @@ for file, blocks in file_blocks.iteritems():
             #print p.group(1), p.group(2)
             text_location = location_from_pointer((p.group(1), p.group(2)), pointer_constants[file])
             if int(text_location, 16) > file_length:
-                print "Weird pointer at ", pointer_location
+                print "Weird pointer at", pointer_location
                 continue
             pointer_locations[(file, text_location)] = pointer_location
     
