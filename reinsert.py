@@ -29,7 +29,7 @@ from __future__ import division
 
 # TODO: What about control codes???
 
-dump_xls = "shinkaron_dump_no_errors.xlsx"
+dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 import os
@@ -75,8 +75,7 @@ for file in sheets:
         english = row[4].value
 
         if not english:
-            # No translation is available; skip this row. (It still has a ptr, so its diff will be calculated later)
-            continue
+           english = ""
 
         translations[offset] = (japanese, english)
 
@@ -90,54 +89,69 @@ for file in sheets:
     current_text_block = 0
     current_block_end = 0
 
-
     pointer_wb = load_workbook(pointer_xls)
     pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
 
     for row in pointer_sheet.rows:
-        if row[0].value == file:                          # Access ptrs for the current file only.
-            text_offset = int(row[1].value, 16)
-            pointer_offset = int(row[2].value, 16)
-            pointers[text_offset] = pointer_offset
+        if row[0].value != file:
+            continue                          # Access ptrs for the current file only.
+            
+        text_offset = int(row[1].value, 16)
+        pointer_offset = int(row[2].value, 16)
+        pointers[text_offset] = pointer_offset
 
-            pointer_diffs[text_offset] = last_pointer_diff
-            #print hex(text_offset), last_pointer_diff
+        pointer_diffs[text_offset] = last_pointer_diff
+        #print hex(text_offset), last_pointer_diff
 
-            current_text_block = get_current_block(text_offset, file)
-            #print "block", current_text_block
+        current_text_block = get_current_block(text_offset, file)
+        #print "block", current_text_block
+        try:
+            current_block_end = file_blocks[file][current_text_block][1] # the hi value.
+        except TypeError:
+            pass
+
+        # When the text_offset is 60871 (0xedc7), where the text is changed, it is between two ptrs.
+        # Rather than look for something with the exact pointer, look for any translated text with a value between last_pointer_offset (excl) and text_offset (incl)
+        # Calculate the diff, then add it to last_pointer_diff. There might be three or more bits of text betweeen the pointers (ex. dialogue)
+
+        # This is being calculated incorrectly. Consecutive pointers, which should be picking up multiple bits of text, are picking them up one at a time...
+
+        # I need to look at the space between the pointers, not text offsets.
+        # lo should be the location of the text_offset of the previous pointer.
+        # hi should be the location of the text_offset of the current pointer.
+
+        lo = last_text_offset+1
+        hi = text_offset+1
+        for n in range((lo), (hi)):
             try:
-                current_block_end = file_blocks[file][current_text_block][1] # the hi value.
-            except TypeError:
-                pass
+                jp, eng = translations[n]
 
-            # When the text_offset is 60871 (0xedc7), where the text is changed, it is between two ptrs.
-            # Rather than look for something with the exact pointer, look for any translated text with a value between last_pointer_offset (excl) and text_offset (incl)
-            # Calculate the diff, then add it to last_pointer_diff.
-            lo = last_text_offset
-            hi = text_offset
-            for n in range((lo+1), (hi+1)):
-                try:
-                    jp, eng = translations[n]
+                end_of_string = n + len(eng) + last_pointer_diff
+                if end_of_string > current_block_end:
+                    print hex(n), "overflows past", hex(current_block_end), "with diff", last_pointer_diff
+                    overflow_text.append(n)
+                    # For items in overflow_text:
+                    # 1) In the rom, replace the jp text with equivalent number of spaces
+                    # 2) Replace all of the error block with equivalent number of spaces
+                    # 3) Place all the text in the error block (what control codes???)
+                    # 4) Rewrite all the pointer values to point to new locations
+                
+                # If the eng part of the translation is blank, don't calculate a pointer diff.
+                # But we still want it to be put in the overflow_text list.
+                if not eng:
+                    continue
 
-                    end_of_string = n + len(eng) + last_pointer_diff
-                    if end_of_string > current_block_end:
-                        print hex(n), "overflows past", hex(current_block_end), "with diff", last_pointer_diff
-                        overflow_text.append(n)
-                        # For items in overflow_text:
-                        # 1) In the rom, replace the jp text with equivalent number of spaces
-                        # 2) Replace all of the error block with equivalent number of spaces
-                        # 3) Place all the text in the error block (what control codes???)
-                        # 4) Rewrite all the pointer values to point to new locations
+                len_diff = len(eng) - (len(jp)*2)
+                # The tricky part: adjusting text length adjusts the NEXT pointer's value!
+                # So save the adjustment for next time here.
+                # Plus, there can be a bunch of text between pointers. Save it up for next time.
+                last_pointer_diff += len_diff
+                if len_diff != 0:
+                    print "last_pointer_diff adjusted at", hex(n), "lo hi =", hex(lo+1), hex(hi+1)
+            except KeyError:
+                continue
 
-                    len_diff = len(eng) - (len(jp)*2)
-                    # The tricky part: adjusting text length adjusts the NEXT pointer's value!
-                    # So save the adjustment for next time here.
-                    # Plus, there can be a bunch of text between pointers. Save it up for next time.
-                    last_pointer_diff += len_diff
-                except KeyError:
-                    pass
-
-            last_text_offset = text_offset
+        last_text_offset = text_offset
 
     #print pointer_diffs
     print overflow_text
@@ -199,9 +213,14 @@ for file in sheets:
 
     # Replace each jp bytestring with eng bytestrings in the text blocks.
     for original_location, (jp, eng) in translations.iteritems():
+
         if original_location in overflow_text:
-            eng = " "*(len(jp)*2)
-            print "Replacing text with blanks at", hex(original_location)
+            eng = ""
+            # Hmm. This keeps it the same lengths, which means overflow still occurs.
+            # It's better to delete it.
+            #eng = " "*(len(jp)*2)
+            #print "Replacing text with blanks at", hex(original_location)
+
         jp_bytestring = ""
         sjis = jp.encode('shift-jis')
         for c in sjis:
@@ -218,7 +237,9 @@ for file in sheets:
             i = hex(block_string.index(jp_bytestring)//2)
         except ValueError:
             print "Could not find the text with the original location", hex(original_location)
-            print jp_bytestring 
+            # Most of the missing ones start with the left quote...
+            # Is there some kind of overlap? Are the beginning/end being replaced in other replacements?
+            # Some of the jp_bytestrings can be found if you slice it like [4:20] or something.
             continue
 
         new_block_string = block_string.replace(jp_bytestring, eng_bytestring, 1)  # Only the first occurrence.
@@ -228,6 +249,14 @@ for file in sheets:
 
     # Finally, replace the old text blocks with the translated ones.
     for i, blk in enumerate(block_strings):
+        block_diff = len(blk) - len(original_block_strings[i])   # if block is too short, negative; too long, positive
+        print block_diff
+
+        if block_diff < 0:
+            blk += "20"*block_diff  # 0x20 is ascii for the space.
+        elif block_diff > 0:
+            print "Something went wrong, it's too long"
+
         print len(blk), len(original_block_strings[i])
         #print compare_strings(blk, original_block_strings[i])
         #print hex(file_string.index(original_block_strings[i])//2)
