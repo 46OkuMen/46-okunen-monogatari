@@ -16,6 +16,7 @@ from __future__ import division
 # TODO: Figure out what's going on with the dialogue which can't be found.
 
 # TODO: Figure out why some Thelodus nametags have .. in front of them.
+# TODO: Weird replacement of nametags with 16-1E...
 
 # TODO: Why duplicates? Some duplicates also have different pointer diffs, which is very bad.
 # One cause is the interstitial text-finding loop in the pointer diff loop incorrectly assigning
@@ -31,7 +32,9 @@ from __future__ import division
 
 # TODO: Pretty big gap between 0x10fc8 and 0x117c7... are there any pointers to the creature names in that block? Do the interstitial numbers mean anything?
 
-dump_xls = "shinkaron_dump_test.xlsx"
+
+
+dump_xls = "shinkaron_dump_split.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 import os
@@ -125,12 +128,8 @@ for file in sheets:
         lo = last_text_offset
         hi = text_offset
         for n in range((lo), (hi)):
-            #print hex(lo), hex(hi)
             try:
-                #print hex(n)
                 jp, eng = translations[n]
-
-                #print hex(lo), hex(hi)
 
                 end_of_string = n + len(eng) + last_pointer_diff
                 if end_of_string > current_block_end:
@@ -156,7 +155,7 @@ for file in sheets:
                 continue
 
         last_text_offset = text_offset
-        print hex(text_offset), last_pointer_diff
+        #print hex(text_offset), last_pointer_diff
 
     #print pointer_diffs
     print overflow_text
@@ -220,6 +219,7 @@ for file in sheets:
     for original_location, (jp, eng) in translations.iteritems():
 
         if original_location in overflow_text:
+            print hex(original_location), "being treated for overflow"
             eng = ""
             # Hmm. This keeps it the same lengths, which means overflow still occurs.
             # It's better to delete it.
@@ -257,10 +257,15 @@ for file in sheets:
         block_diff = len(blk) - len(original_block_strings[i])   # if block is too short, negative; too long, positive
         print block_diff
 
+        #print blk
+
         if block_diff < 0:
-            blk += "20"*block_diff  # 0x20 is ascii for the space.
+            more_spaces = '20' * (((-1)*block_diff)//2)
+            blk += more_spaces # 0x20 is ascii for space. ( Oh yeah! gotta make it not negative)
         elif block_diff > 0:
             print "Something went wrong, it's too long"
+
+        print blk
 
         print len(blk), len(original_block_strings[i])
         #print compare_strings(blk, original_block_strings[i])
