@@ -13,14 +13,10 @@ from __future__ import division
 # Looks like the blocks will in general be too long. But I have 0x0030c space left in error codes.
 # If the total pointer diff is less than 0x30c (708 dec), I can figure out a way to store it all in there.
 
-# TODO: Figure out what's going on with the dialogue which can't be found.
-
 # TODO: Figure out why some Thelodus nametags have .. in front of them.
 # TODO: Weird replacement of nametags with 16-1E...
 
-# TODO: Why duplicates? Some duplicates also have different pointer diffs, which is very bad.
-# One cause is the interstitial text-finding loop in the pointer diff loop incorrectly assigning
-# to the text offset instead of n. That's fixed now, but now it looks like some pointers are missing...
+# TODO: Make sure no duplicates in pointer_diffs keys.
 
 # TODO: Hmm. The non-text pointers are complicating this. Pointer tables and pointers to various
 # weird things are in the spaces between text blocks. They are counted among the overflow text.
@@ -31,8 +27,6 @@ from __future__ import division
 # TODO: What about control codes??? If I move text from one block to another, I'll need to move hte control code as well.
 
 # TODO: Pretty big gap between 0x10fc8 and 0x117c7... are there any pointers to the creature names in that block? Do the interstitial numbers mean anything?
-
-
 
 dump_xls = "shinkaron_dump_split.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
@@ -217,6 +211,10 @@ for file in sheets:
 
     # Replace each jp bytestring with eng bytestrings in the text blocks.
     for original_location, (jp, eng) in translations.iteritems():
+        #Why am I still replacing untranslated text?
+        if eng == "":
+            # If there treally is no english translation, skip the replacement.
+            continue
 
         if original_location in overflow_text:
             print hex(original_location), "being treated for overflow"
@@ -229,7 +227,12 @@ for file in sheets:
         jp_bytestring = ""
         sjis = jp.encode('shift-jis')
         for c in sjis:
-            jp_bytestring += "%02x" % ord(c)
+            hx = "%02x" % ord(c)
+            if hx == '20': # Spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
+                #print "encoding a space as 20. Fixing to 81-40"
+                hx = '8140'
+
+            jp_bytestring += hx
 
         eng_bytestring = ""
         for c in eng:
@@ -238,14 +241,7 @@ for file in sheets:
         current_block = get_current_block(original_location, file)
         block_string = block_strings[current_block]
 
-        try:
-            i = hex(block_string.index(jp_bytestring)//2)
-        except ValueError:
-            print "Could not find the text with the original location", hex(original_location)
-            # Most of the missing ones start with the left quote...
-            # Is there some kind of overlap? Are the beginning/end being replaced in other replacements?
-            # Some of the jp_bytestrings can be found if you slice it like [4:20] or something.
-            continue
+        i = hex(block_string.index(jp_bytestring)//2)
 
         new_block_string = block_string.replace(jp_bytestring, eng_bytestring, 1)  # Only the first occurrence.
         block_strings[current_block] = new_block_string
@@ -260,12 +256,13 @@ for file in sheets:
         #print blk
 
         if block_diff < 0:
-            more_spaces = '20' * (((-1)*block_diff)//2)
-            blk += more_spaces # 0x20 is ascii for space. ( Oh yeah! gotta make it not negative)
+            # TODO: Check all the block ends and see how many spaces have been attached to them. 
+            #It's more than just the stuff in the overflow list...
+            blk += '20' * (((-1)*block_diff)//2)   # Fill it up with ascii 20 (space)
         elif block_diff > 0:
             print "Something went wrong, it's too long"
 
-        print blk
+        #print blk
 
         print len(blk), len(original_block_strings[i])
         #print compare_strings(blk, original_block_strings[i])
