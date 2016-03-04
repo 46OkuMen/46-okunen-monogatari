@@ -13,7 +13,7 @@ from __future__ import division
 # Looks like the blocks will in general be too long. But I have 0x0030c space left in error codes.
 # If the total pointer diff is less than 0x30c (708 dec), I can figure out a way to store it all in there.
 
-# TODO: Figure out what's going on with the first bits of dialogue which can't be found.
+# TODO: Figure out what's going on with the dialogue which can't be found.
 
 # TODO: Figure out why some Thelodus nametags have .. in front of them.
 
@@ -27,7 +27,9 @@ from __future__ import division
 # The issue with identifying overflow text in the translation loop is that there are no pointer diffs
 # yet, so you can't really tell what's overflowing.
 
-# TODO: What about control codes???
+# TODO: What about control codes??? If I move text from one block to another, I'll need to move hte control code as well.
+
+# TODO: Pretty big gap between 0x10fc8 and 0x117c7... are there any pointers to the creature names in that block? Do the interstitial numbers mean anything?
 
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
@@ -84,7 +86,7 @@ for file in sheets:
     pointer_diffs = {}         # text_offset: diff
 
     last_pointer_diff = 0
-    last_text_offset = 0
+    last_text_offset = file_blocks[file][0][0]
 
     current_text_block = 0
     current_block_end = 0
@@ -120,11 +122,15 @@ for file in sheets:
         # lo should be the location of the text_offset of the previous pointer.
         # hi should be the location of the text_offset of the current pointer.
 
-        lo = last_text_offset+1
-        hi = text_offset+1
+        lo = last_text_offset
+        hi = text_offset
         for n in range((lo), (hi)):
+            #print hex(lo), hex(hi)
             try:
+                #print hex(n)
                 jp, eng = translations[n]
+
+                #print hex(lo), hex(hi)
 
                 end_of_string = n + len(eng) + last_pointer_diff
                 if end_of_string > current_block_end:
@@ -146,12 +152,11 @@ for file in sheets:
                 # So save the adjustment for next time here.
                 # Plus, there can be a bunch of text between pointers. Save it up for next time.
                 last_pointer_diff += len_diff
-                if len_diff != 0:
-                    print "last_pointer_diff adjusted at", hex(n), "lo hi =", hex(lo+1), hex(hi+1)
             except KeyError:
                 continue
 
         last_text_offset = text_offset
+        print hex(text_offset), last_pointer_diff
 
     #print pointer_diffs
     print overflow_text
