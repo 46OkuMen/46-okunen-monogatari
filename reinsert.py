@@ -258,7 +258,12 @@ for file in sheets:
         if block_diff < 0:
             # TODO: Check all the block ends and see how many spaces have been attached to them. 
             #It's more than just the stuff in the overflow list...
-            blk += '20' * (((-1)*block_diff)//2)   # Fill it up with ascii 20 (space)
+            number_of_spaces = ((-1)*block_diff)//2
+            inserted_spaces_index = file_blocks[file][i][0] + (len(blk)//2)
+            blk += '20' * number_of_spaces  # Fill it up with ascii 20 (space)
+
+
+            print number_of_spaces, "added at", hex(inserted_spaces_index)
         elif block_diff > 0:
             print "Something went wrong, it's too long"
 
