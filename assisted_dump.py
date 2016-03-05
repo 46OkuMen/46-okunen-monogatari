@@ -67,7 +67,6 @@ for file, blocks in file_blocks.iteritems():
     file_path = os.path.join(rom_file_path, file)
     in_file = open(file_path, 'rb')
     file_length = os.stat(file_path).st_size
-    print hex(file_length)
     
     if file in pointer_constants:
         bytes = in_file.read()
@@ -91,8 +90,9 @@ for file, blocks in file_blocks.iteritems():
                 print "Weird pointer at", pointer_location
                 continue
             pointer_locations[(file, text_location)] = pointer_location
+
         for p in dialogue_pointers:
-            pointer_location = only_hex.index(p.group(0))/4
+            pointer_location = (only_hex.index(p.group(0))/4) + 2 # Don't include the identifier! Go 2 bytes after it.
             pointer_location = '0x%05x' % pointer_location
             #print p.group(1), p.group(2)
             text_location = location_from_pointer((p.group(1), p.group(2)), pointer_constants[file])

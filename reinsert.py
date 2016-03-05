@@ -15,6 +15,10 @@ from __future__ import division
 
 # TODO: Figure out why some Thelodus nametags have .. in front of them.
 # TODO: Weird replacement of nametags with 16-1E...
+# Looks like 16-1E is getting replaced with 0F-92?
+# Dialogue pointers have a location that is two bytes too early in the pointer dump!
+# Even with diff 0, the reinserter tries to "edit" the old two-byte value but instead it writes the same value in the two previous bytes.
+# Look at the regex for dialogue pointers, tune up the capture group a little bit to point to the pointer and not the identifier.
 
 # TODO: Make sure no duplicates in pointer_diffs keys.
 
@@ -28,14 +32,19 @@ from __future__ import division
 
 # TODO: Pretty big gap between 0x10fc8 and 0x117c7... are there any pointers to the creature names in that block? Do the interstitial numbers mean anything?
 
-dump_xls = "shinkaron_dump_split.xlsx"
+# TODO: Make sure the blocks are really exact!!
+
+# TODO: Maybe do pointer replacements one block at a time? Might want to see where it's breaking.
+# Plus the blocks are the same size this time, so changes should be isolated with in each one.
+
+dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 import os
 import openpyxl
 from binascii import unhexlify
 
-from utils import file_blocks
+from utils import file_blocks, spare_block
 from utils import pointer_constants, pointer_separators
 from utils import pack, unpack, location_from_pointer, pointer_value_from_location, get_current_block, compare_strings
 
@@ -100,7 +109,7 @@ for file in sheets:
         pointers[text_offset] = pointer_offset
 
         pointer_diffs[text_offset] = last_pointer_diff
-        #print hex(text_offset), last_pointer_diff
+        print hex(text_offset), last_pointer_diff
 
         current_text_block = get_current_block(text_offset, file)
         #print "block", current_text_block
@@ -124,17 +133,6 @@ for file in sheets:
         for n in range((lo), (hi)):
             try:
                 jp, eng = translations[n]
-
-                end_of_string = n + len(eng) + last_pointer_diff
-                if end_of_string > current_block_end:
-                    print hex(n), "overflows past", hex(current_block_end), "with diff", last_pointer_diff
-                    overflow_text.append(n)
-                    # For items in overflow_text:
-                    # 1) In the rom, replace the jp text with equivalent number of spaces
-                    # 2) Replace all of the error block with equivalent number of spaces
-                    # 3) Place all the text in the error block (what control codes???)
-                    # 4) Rewrite all the pointer values to point to new locations
-                
                 # If the eng part of the translation is blank, don't calculate a pointer diff.
                 # But we still want it to be put in the overflow_text list.
                 if not eng:
@@ -145,6 +143,20 @@ for file in sheets:
                 # So save the adjustment for next time here.
                 # Plus, there can be a bunch of text between pointers. Save it up for next time.
                 last_pointer_diff += len_diff
+                print hex(text_offset), last_pointer_diff
+
+                end_of_string = n + len(eng) + last_pointer_diff
+                if end_of_string > current_block_end:
+                    print hex(n), "overflows past", hex(current_block_end), "with diff", last_pointer_diff
+                    overflow_text.append(n)
+                    # When you first hit overflow, they have totally different pointer diffs anyway
+                    # So reset last_pointer_diff to have a fresh start when the new block begins.
+                    #last_pointer_diff = 0
+                    # For items in overflow_text:
+                    # 1) In the rom, replace the jp text with equivalent number of spaces
+                    # 2) Replace all of the error block with equivalent number of spaces
+                    # 3) Place all the text in the error block (what control codes???)
+                    # 4) Rewrite all the pointer values to point to new locations
             except KeyError:
                 continue
 
@@ -165,24 +177,32 @@ for file in sheets:
     # First, rewrite the pointers - that doesn't change the length of anything.
     pointer_constant = pointer_constants[file]
 
-    error_block_lo, error_block_hi = file_blocks[file][-1]
+    overflow_block_lo, overflow_block_hi = spare_block[file]
 
     for text_location, diff in pointer_diffs.iteritems():
-        if (text_location >= error_block_lo) and (text_location <= error_block_hi):
-            #print "It's an error code ", text_location
-            text_location = error_block_lo
+        #if diff == 0:
+        #    continue
+        # TODO: Redirect the old error message strings. (Or just don't, since the patch is perfect and they'll never show up?)
+        #if (text_location >= overflow_block_lo) and (text_location <= overflow_block_hi):
+        #    #print "It's an error code ", text_location
+        #    text_location = overflow_block_lo
 
         pointer_location = pointers[text_location]
 
         original_pointer_value = text_location - pointer_constant
+        print "Original:", pack(original_pointer_value)
         new_pointer_value = original_pointer_value + diff
 
         byte_1, byte_2 = pack(new_pointer_value)
-        #print byte_1, byte_2
+        print "New:", byte_1, byte_2
         byte_1, byte_2 = chr(byte_1), chr(byte_2)
+
+        # TODO: temporarily suppressing pointer writes!
         patched_file.seek(pointer_location)
         patched_file.write(byte_1)
         patched_file.write(byte_2)
+
+        #print "Wrote new pointer value at", hex(pointer_location)
 
     # Then, rewrite the actual text.
     min_pointer_diff = min(pointer_diffs.itervalues())
