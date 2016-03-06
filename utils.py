@@ -4,7 +4,7 @@ files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'S
          'ST6.EXE', 'ENDING.EXE', 'SINKA.DAT', 'SEND.DAT']
 
 file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
-          '46.EXE': ((0x93e8, 0x946d), (0x94b9, 0x971b), (0x9cb8, 0xa07a)),
+          '46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
           'ST1.EXE': ((0xd872, 0xd933), (0xd984, 0x10f85), (0x10fca, 0x11595), (0x117c7, 0x119a3), (0x11d42, 0x1204e)),
           'ST2.EXE': ((0xc23b, 0xdd4f), (0xde35, 0xfaa0), (0xfae4, 0xfe50), (0x10004, 0x101df), (0x10570, 0x1087b)),
           'ST3.EXE': ((0xb49d, 0xb548), (0xb58a, 0xdb3a), (0xdb7e, 0xe2d5), (0xe617, 0xe7f3), (0xeb82, 0xee8e)),
@@ -23,7 +23,7 @@ spare_block = {'OPENING.EXE': None,
                '46.EXE': (0x9cb8, 0xa07a),
                'ST1.EXE': (0x11d42, 0x1204e),
                }
-               # TODO: In progress
+               # TODO: In progress. Also figure out what to do with the Nones.
 
 pointer_separators = {
         'OPENING.EXE': ("68", "04"), # Sep: 68-04

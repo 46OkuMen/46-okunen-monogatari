@@ -2,14 +2,9 @@ from __future__ import division
 
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
-# TODO: Needs function pointers. Changing the length of the last bit of dialogue breaks some function at the end of the file.
-# Find the addresses of those functions in other parts of the file during dumping, add them to pointer table?
-# If that's a wrong-headed approach, I should dive into the disassembly with reko or just two instances of np2debug,
-# one window with the original rom and one with the patched version, see where it crashes.
-
 # Alternate idea: keep the total file length an identical size for every text block. That way, the function pointers won't break.
 # If a block's total length is too short, add spaces where they won't hurt. (At the end, after the control codes?)
-# If a block's total length is too long... hmm. I can sacrifice the error codes block at the end...
+# If a block's total length is too long... I can store them in the error-codes block after deleting that text.
 # Looks like the blocks will in general be too long. But I have 0x0030c space left in error codes.
 # If the total pointer diff is less than 0x30c (708 dec), I can figure out a way to store it all in there.
 
@@ -30,23 +25,13 @@ from __future__ import division
 
 # TODO: What about control codes??? If I move text from one block to another, I'll need to move hte control code as well.
 
-# TODO: Pretty big gap between 0x10fc8 and 0x117c7... are there any pointers to the creature names in that block? Do the interstitial numbers mean anything?
-
-# TODO: Make sure the blocks are really exact!!
-
-# TODO: Maybe do pointer replacements one block at a time? Might want to see where it's breaking.
-# Plus the blocks are the same size this time, so changes should be isolated with in each one.
-
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 import os
-import openpyxl
 from binascii import unhexlify
 
-from utils import file_blocks, spare_block
-from utils import pointer_constants, pointer_separators
-from utils import pack, unpack, location_from_pointer, pointer_value_from_location, get_current_block, compare_strings
+from utils import *
 
 from openpyxl import load_workbook
 from shutil import copyfile
@@ -61,16 +46,17 @@ wb = load_workbook(dump_xls)
 sheets = wb.get_sheet_names()
 sheets.remove(u'ORIGINAL')
 sheets.remove(u'MISC TITLES')
+
 for file in sheets:
     if file != "ST1.EXE":
         continue
 
     # First, index all the translations by the offset of the japanese text.
+
     translations = OrderedDict() # translations[offset] = (japanese, english)
 
-    overflow_text = []
-
     ws = wb.get_sheet_by_name(file)
+
     # These two variables count the replacements to track reinsertion progress.
     total_rows = 0
     total_replacements = 0
@@ -91,14 +77,17 @@ for file in sheets:
     pointers = {}              # text_offset: pointer_offset
     pointer_diffs = {}         # text_offset: diff
 
-    last_pointer_diff = 0
-    last_text_offset = file_blocks[file][0][0]
+    pointer_diff = 0
+    previous_text_offset = file_blocks[file][0][0]
 
+    previous_text_block = 0
     current_text_block = 0
     current_block_end = 0
 
     pointer_wb = load_workbook(pointer_xls)
     pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
+
+    overflow_text = []
 
     for row in pointer_sheet.rows:
         if row[0].value != file:
@@ -107,61 +96,51 @@ for file in sheets:
         text_offset = int(row[1].value, 16)
         pointer_offset = int(row[2].value, 16)
         pointers[text_offset] = pointer_offset
-
-        pointer_diffs[text_offset] = last_pointer_diff
-        print hex(text_offset), last_pointer_diff
-
         current_text_block = get_current_block(text_offset, file)
-        #print "block", current_text_block
         try:
             current_block_end = file_blocks[file][current_text_block][1] # the hi value.
         except TypeError:
             pass
+        # Rather than look for something with the exact pointer, look for any translated text with a value between previous_pointer_offset (excl) and text_offset (incl)
+        # Calculate the diff, then add it to pointer_diff. There might be three or more bits of text betweeen the pointers (ex. dialogue)
 
-        # When the text_offset is 60871 (0xedc7), where the text is changed, it is between two ptrs.
-        # Rather than look for something with the exact pointer, look for any translated text with a value between last_pointer_offset (excl) and text_offset (incl)
-        # Calculate the diff, then add it to last_pointer_diff. There might be three or more bits of text betweeen the pointers (ex. dialogue)
-
-        # This is being calculated incorrectly. Consecutive pointers, which should be picking up multiple bits of text, are picking them up one at a time...
-
-        # I need to look at the space between the pointers, not text offsets.
-        # lo should be the location of the text_offset of the previous pointer.
-        # hi should be the location of the text_offset of the current pointer.
-
-        lo = last_text_offset
+        lo = previous_text_offset
         hi = text_offset
         for n in range((lo), (hi)):
             try:
                 jp, eng = translations[n]
+                len_diff = len(eng) - (len(jp)*2)
+
+                end_of_string = n + len(eng) + pointer_diff
+                if end_of_string > current_block_end:
+                    print hex(n), "overflows past", hex(current_block_end), "with diff", pointer_diff
+                    overflow_text.append(n)
+                    # When you first hit overflow, they have totally different pointer diffs anyway
+                    # So reset pointer_diff to have a fresh start when the new block begins.
+                    pointer_diff = 0
+                    # For items in overflow_text:
+                    # DONE - In the rom, replace the jp text with equivalent number of spaces
+                    # 2) Replace all of the error block with equivalent number of spaces
+                    # 3) Place all the text in the error block (what about control codes???)
+                    # 4) Rewrite all the pointer values to point to new locations
+
+                elif current_text_block != previous_text_block:
+                    # First text in a new block. Reset the pointer diff.
+                    pointer_diff = 0
+
                 # If the eng part of the translation is blank, don't calculate a pointer diff.
                 # But we still want it to be put in the overflow_text list.
                 if not eng:
                     continue
 
-                len_diff = len(eng) - (len(jp)*2)
-                # The tricky part: adjusting text length adjusts the NEXT pointer's value!
-                # So save the adjustment for next time here.
-                # Plus, there can be a bunch of text between pointers. Save it up for next time.
-                last_pointer_diff += len_diff
-                print hex(text_offset), last_pointer_diff
-
-                end_of_string = n + len(eng) + last_pointer_diff
-                if end_of_string > current_block_end:
-                    print hex(n), "overflows past", hex(current_block_end), "with diff", last_pointer_diff
-                    overflow_text.append(n)
-                    # When you first hit overflow, they have totally different pointer diffs anyway
-                    # So reset last_pointer_diff to have a fresh start when the new block begins.
-                    #last_pointer_diff = 0
-                    # For items in overflow_text:
-                    # 1) In the rom, replace the jp text with equivalent number of spaces
-                    # 2) Replace all of the error block with equivalent number of spaces
-                    # 3) Place all the text in the error block (what control codes???)
-                    # 4) Rewrite all the pointer values to point to new locations
+                pointer_diff += len_diff
             except KeyError:
                 continue
 
-        last_text_offset = text_offset
-        #print hex(text_offset), last_pointer_diff
+        previous_text_block = current_text_block
+        previous_text_offset = text_offset
+        pointer_diffs[text_offset] = pointer_diff
+        print hex(text_offset), pointer_diffs[text_offset]
 
     #print pointer_diffs
     print overflow_text
@@ -190,11 +169,11 @@ for file in sheets:
         pointer_location = pointers[text_location]
 
         original_pointer_value = text_location - pointer_constant
-        print "Original:", pack(original_pointer_value)
+        #print "Original:", pack(original_pointer_value)
         new_pointer_value = original_pointer_value + diff
 
         byte_1, byte_2 = pack(new_pointer_value)
-        print "New:", byte_1, byte_2
+        #print "New:", byte_1, byte_2
         byte_1, byte_2 = chr(byte_1), chr(byte_2)
 
         # TODO: temporarily suppressing pointer writes!
