@@ -61,10 +61,17 @@ for file in sheets:
     total_rows = 0
     total_replacements = 0
 
+    # The spare block doesn't need translations.
+    overflow_block_lo, overflow_block_hi = spare_block[file]
+
     for row in ws.rows[1:]:  # Skip the first row, it's just labels
         total_rows += 1
 
         offset = int(row[0].value, 16)
+
+        if (offset >= overflow_block_lo) and (offset <= overflow_block_hi):
+            continue
+
         japanese = row[2].value
         english = row[4].value
 
@@ -156,8 +163,6 @@ for file in sheets:
     # First, rewrite the pointers - that doesn't change the length of anything.
     pointer_constant = pointer_constants[file]
 
-    overflow_block_lo, overflow_block_hi = spare_block[file]
-
     for text_location, diff in pointer_diffs.iteritems():
         #if diff == 0:
         #    continue
@@ -218,10 +223,6 @@ for file in sheets:
         if original_location in overflow_text:
             print hex(original_location), "being treated for overflow"
             eng = ""
-            # Hmm. This keeps it the same lengths, which means overflow still occurs.
-            # It's better to delete it.
-            #eng = " "*(len(jp)*2)
-            #print "Replacing text with blanks at", hex(original_location)
 
         jp_bytestring = ""
         sjis = jp.encode('shift-jis')
