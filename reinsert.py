@@ -2,28 +2,12 @@ from __future__ import division
 
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
-# Alternate idea: keep the total file length an identical size for every text block. That way, the function pointers won't break.
-# If a block's total length is too short, add spaces where they won't hurt. (At the end, after the control codes?)
-# If a block's total length is too long... I can store them in the error-codes block after deleting that text.
-# Looks like the blocks will in general be too long. But I have 0x0030c space left in error codes.
-# If the total pointer diff is less than 0x30c (708 dec), I can figure out a way to store it all in there.
-
-# TODO: Figure out why some Thelodus nametags have .. in front of them.
-# TODO: Weird replacement of nametags with 16-1E...
-# Looks like 16-1E is getting replaced with 0F-92?
-# Dialogue pointers have a location that is two bytes too early in the pointer dump!
-# Even with diff 0, the reinserter tries to "edit" the old two-byte value but instead it writes the same value in the two previous bytes.
-# Look at the regex for dialogue pointers, tune up the capture group a little bit to point to the pointer and not the identifier.
-
-# TODO: Make sure no duplicates in pointer_diffs keys.
-
-# TODO: Hmm. The non-text pointers are complicating this. Pointer tables and pointers to various
-# weird things are in the spaces between text blocks. They are counted among the overflow text.
-# But do they need to be moved? Probably not... 
-# The issue with identifying overflow text in the translation loop is that there are no pointer diffs
-# yet, so you can't really tell what's overflowing.
-
 # TODO: What about control codes??? If I move text from one block to another, I'll need to move hte control code as well.
+
+# TODO: Looks like the creature name block might require some special treatment.
+# See if the number of spaces means something. Insert more if eng is shorter, delete some if eng is longer..
+
+# TODO: Why the extra menu item?? Look at the pointers for d9d4-ish.
 
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
@@ -48,7 +32,8 @@ sheets.remove(u'ORIGINAL')
 sheets.remove(u'MISC TITLES')
 
 for file in sheets:
-    if file != "ST1.EXE":
+    if file != "ST1.EXE" or file == "46.EXE":
+        # 46.EXE can be done manually.
         continue
 
     # First, index all the translations by the offset of the japanese text.
@@ -167,9 +152,11 @@ for file in sheets:
         #if diff == 0:
         #    continue
         # TODO: Redirect the old error message strings. (Or just don't, since the patch is perfect and they'll never show up?)
-        #if (text_location >= overflow_block_lo) and (text_location <= overflow_block_hi):
-        #    #print "It's an error code ", text_location
-        #    text_location = overflow_block_lo
+        if (text_location >= overflow_block_lo) and (text_location <= overflow_block_hi):
+            #print "It's an error code ", text_location
+            text_location = overflow_block_lo
+
+        # TODO: Do something different for the creature text?
 
         pointer_location = pointers[text_location]
 
@@ -215,7 +202,6 @@ for file in sheets:
 
     # Replace each jp bytestring with eng bytestrings in the text blocks.
     for original_location, (jp, eng) in translations.iteritems():
-        #Why am I still replacing untranslated text?
         if eng == "":
             # If there treally is no english translation, skip the replacement.
             continue
@@ -229,7 +215,6 @@ for file in sheets:
         for c in sjis:
             hx = "%02x" % ord(c)
             if hx == '20': # Spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
-                #print "encoding a space as 20. Fixing to 81-40"
                 hx = '8140'
 
             jp_bytestring += hx
@@ -250,14 +235,13 @@ for file in sheets:
 
     # Finally, replace the old text blocks with the translated ones.
     for i, blk in enumerate(block_strings):
+        if i == creature_block[file]:
+            # TODO: Do something wildly different.
+            pass
+            
         block_diff = len(blk) - len(original_block_strings[i])   # if block is too short, negative; too long, positive
-        print block_diff
-
-        #print blk
 
         if block_diff < 0:
-            # TODO: Check all the block ends and see how many spaces have been attached to them. 
-            #It's more than just the stuff in the overflow list...
             number_of_spaces = ((-1)*block_diff)//2
             inserted_spaces_index = file_blocks[file][i][0] + (len(blk)//2)
             blk += '20' * number_of_spaces  # Fill it up with ascii 20 (space)
@@ -267,11 +251,6 @@ for file in sheets:
         elif block_diff > 0:
             print "Something went wrong, it's too long"
 
-        #print blk
-
-        print len(blk), len(original_block_strings[i])
-        #print compare_strings(blk, original_block_strings[i])
-        #print hex(file_string.index(original_block_strings[i])//2)
         file_string = file_string.replace(original_block_strings[i], blk, 1)
 
     # Write the data to the patched file.
