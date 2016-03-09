@@ -25,6 +25,9 @@ spare_block = {'OPENING.EXE': None,
                }
                # TODO: In progress. Also figure out what to do with the Nones.
 
+creature_block = {'ST1.EXE': 2, }
+               # TODO: Even more in progress.
+
 pointer_separators = {
         'OPENING.EXE': ("68", "04"), # Sep: 68-04
         'ST1.EXE': ("5e", "0d"), # 5e-0d
