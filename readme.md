@@ -1,7 +1,7 @@
 ##shank-a-rom
 Git repo for romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatari: The Shinka Ron*, the Japanese-only prequel to E.V.O: Search for Eden. 
 
-[first map of the game, translated](https://raw.githubusercontent.com/hollowaytape/shank-a-rom/master/evidence.png)
+![first map of the game, translated](https://raw.githubusercontent.com/hollowaytape/shank-a-rom/master/evidence.png)
 
 ###Reinsertion Status:
 * Chapter 1: 42%
