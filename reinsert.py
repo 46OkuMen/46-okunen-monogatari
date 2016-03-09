@@ -200,7 +200,10 @@ for file in sheets:
     original_block_strings = list(block_strings)
     patched_file.close()
 
+    creature_block_lo, creature_block_hi = creature_block[file]
+
     # Replace each jp bytestring with eng bytestrings in the text blocks.
+
     for original_location, (jp, eng) in translations.iteritems():
         if eng == "":
             # If there treally is no english translation, skip the replacement.
@@ -223,6 +226,18 @@ for file in sheets:
         for c in eng:
             eng_bytestring += "%02x" % ord(c)
 
+        if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
+            #print eng_bytestring
+            this_string_diff = (len(jp)*2) - len(eng)
+            #print this_string_diff
+            if this_string_diff <= 0:          # Also fine if diff is 0.
+                eng_bytestring += "00"*((-1)*this_string_diff)
+            else:
+                # Append the 00s to the jp_bytestring so it gets replaced.
+                jp_bytestring += "00"*this_string_diff
+            #print eng_bytestring
+
+
         current_block = get_current_block(original_location, file)
         block_string = block_strings[current_block]
 
@@ -235,27 +250,23 @@ for file in sheets:
 
     # Finally, replace the old text blocks with the translated ones.
     for i, blk in enumerate(block_strings):
-        if i == creature_block[file]:
-            # TODO: Do something wildly different.
-            pass
-            
         block_diff = len(blk) - len(original_block_strings[i])   # if block is too short, negative; too long, positive
-
+        print len(original_block_strings[i])
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
             inserted_spaces_index = file_blocks[file][i][0] + (len(blk)//2)
             blk += '20' * number_of_spaces  # Fill it up with ascii 20 (space)
 
-
             print number_of_spaces, "added at", hex(inserted_spaces_index)
         elif block_diff > 0:
             print "Something went wrong, it's too long"
+
+        print len(blk)
 
         file_string = file_string.replace(original_block_strings[i], blk, 1)
 
     # Write the data to the patched file.
     with open(dest_file_path, "wb") as output_file:
-        # omg I tried to call "unhexify" a million times. ugh
         data = unhexlify(file_string)
         output_file.write(data)
 
