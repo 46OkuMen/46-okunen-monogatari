@@ -2,10 +2,13 @@ from __future__ import division
 
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
-# TODO: What about control codes??? If I move text from one block to another, I'll need to move hte control code as well.
+# TODO: Moving overflow to the error block/spare block.
+    # DONE - In the rom, replace the jp text with equivalent number of spaces
+    # 2) Replace all of the error block with equivalent number of spaces
+    # 3) Place all the text in the error block (what about control codes???)
+    # 4) Rewrite all the pointer values to point to new locations
+ # What about control codes??? If I move text from one block to another, I'll need to move hte control code as well.
 
-# TODO: Looks like the creature name block might require some special treatment.
-# See if the number of spaces means something. Insert more if eng is shorter, delete some if eng is longer..
 
 # TODO: Why the extra menu item?? Look at the pointers for d9d4-ish.
 
@@ -13,6 +16,7 @@ dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 import os
+import math
 from binascii import unhexlify
 
 from utils import *
@@ -110,11 +114,6 @@ for file in sheets:
                     # When you first hit overflow, they have totally different pointer diffs anyway
                     # So reset pointer_diff to have a fresh start when the new block begins.
                     pointer_diff = 0
-                    # For items in overflow_text:
-                    # DONE - In the rom, replace the jp text with equivalent number of spaces
-                    # 2) Replace all of the error block with equivalent number of spaces
-                    # 3) Place all the text in the error block (what about control codes???)
-                    # 4) Rewrite all the pointer values to point to new locations
 
                 elif current_text_block != previous_text_block:
                     # First text in a new block. Reset the pointer diff.
@@ -227,15 +226,19 @@ for file in sheets:
             eng_bytestring += "%02x" % ord(c)
 
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
-            #print eng_bytestring
             this_string_diff = (len(jp)*2) - len(eng)
-            #print this_string_diff
-            if this_string_diff <= 0:          # Also fine if diff is 0.
-                eng_bytestring += "00"*((-1)*this_string_diff)
+            print this_string_diff
+            if this_string_diff >= 0:
+                print eng_bytestring
+                print "Addition for", eng
+                eng_bytestring += "00"*this_string_diff
+                print eng_bytestring
             else:
                 # Append the 00s to the jp_bytestring so it gets replaced.
-                jp_bytestring += "00"*this_string_diff
-            #print eng_bytestring
+                print jp_bytestring
+                print "Subtraction for", eng
+                jp_bytestring += "00"*((-1)*this_string_diff)
+                print jp_bytestring
 
 
         current_block = get_current_block(original_location, file)
@@ -271,5 +274,5 @@ for file in sheets:
         output_file.write(data)
 
     # Print out stats. Pop open the champagne.
-    translation_percent = (total_replacements / total_rows) * 100
-    print file + " " + "%02f" % translation_percent + "% complete"
+    translation_percent = int(math.floor((total_replacements / total_rows) * 100))
+    print file , str(translation_percent) + "% complete"
