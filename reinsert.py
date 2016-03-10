@@ -8,7 +8,11 @@ from __future__ import division
 # One of the functions is probably breaking.
 
 # TODO: Game crashes after you leave the first map and you learn of the thelodus sea's fate.
-# FIgure out which map is being loaded, see if the pointers may have gotten messed up.
+# FIgure out which map is being loaded, see if the pointers may have gotten messed up
+
+# Backtracking. Just editing Yes/No/Canel. Evolution menu itmes:.crash. Loading next map: Works!
+# Hmm. So the evolution menu stuff might depend on pointers that are below 0x10fa2 (ptrs) or 0x11839 (text).
+# But the next map code must be located above that.
 
 # TOOD: Check for text overflow. Examples:
 # 0x10b70 - "It's all thanks to us looking after him con[LN]stantly!"
@@ -25,6 +29,10 @@ from __future__ import division
  # What about control codes??? If I move text from one block to another, I'll need to move hte control code as well.
 
 # TODO: Why the extra menu item?? Look at the pointers for d9d4-ish.
+
+# TODO: Apply changes to the disk rather than to the file; it'll save like 7 clicks per build cycle.
+# Find the offset of each file (or just ST1.EXE for now) then slice the blockstring of the whole file
+# at that point.
 
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
