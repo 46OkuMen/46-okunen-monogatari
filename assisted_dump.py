@@ -78,6 +78,7 @@ for file, blocks in file_blocks.iteritems():
 
         pointers = capture_pointers_from_table(first, second, only_hex)
         dialogue_pointers = capture_pointers_from_function(only_hex)
+        # TODO: Why are there duplicates in these lists?
         
         for p in pointers:
             # pointer_locations[(file, text_location)] = pointer_location
@@ -87,7 +88,7 @@ for file, blocks in file_blocks.iteritems():
             # Take the value of the pointer, 
             text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
             if int(text_location, 16) > file_length:     # Clearly something is wrong.
-                print "Weird pointer at", pointer_location
+                print "Weird pointer at", pointer_location, "points to", text_location
                 continue
             pointer_locations[(file, text_location)] = pointer_location
 
@@ -97,9 +98,12 @@ for file, blocks in file_blocks.iteritems():
             #print p.group(1), p.group(2)
             text_location = location_from_pointer((p.group(1), p.group(2)), pointer_constants[file])
             if int(text_location, 16) > file_length:
-                print "Weird pointer at", pointer_location
+                print "Weird pointer at", pointer_location, "points to", text_location
                 continue
             pointer_locations[(file, text_location)] = pointer_location
+
+        # So, it looks like some of the weird pointers are the table regex picking up lone 5e-0ds in the
+        # function code. Safe to ignore those.
     
     for (block_start, block_end) in blocks:
         # TODO: If the dump has already been done, abort this loop.

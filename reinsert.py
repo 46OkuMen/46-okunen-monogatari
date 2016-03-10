@@ -2,13 +2,27 @@ from __future__ import division
 
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
+# TODO: Game crashing when entering evolution related menu items??
+# I may have messed something up in the creature block. Maybe I should insert spaces at the end?
+# Doesn't appear to be creature block related... still crashes with no creature block changes.
+# One of the functions is probably breaking.
+
+# TODO: Game crashes after you leave the first map and you learn of the thelodus sea's fate.
+# FIgure out which map is being loaded, see if the pointers may have gotten messed up.
+
+# TOOD: Check for text overflow. Examples:
+# 0x10b70 - "It's all thanks to us looking after him con[LN]stantly!"
+# 0x10d16 "you're from but you certainly suprised us[LN]."
+# 0x10dc3 "I'm just glad you're okay[LN]!"
+# 0x1094f "Do I look like I've changed to you? Elder?[LN]"
+# 0x1055d "The fish are violent there after being affe[LN]cted by the light...""
+
 # TODO: Moving overflow to the error block/spare block.
     # DONE - In the rom, replace the jp text with equivalent number of spaces
     # 2) Replace all of the error block with equivalent number of spaces
     # 3) Place all the text in the error block (what about control codes???)
     # 4) Rewrite all the pointer values to point to new locations
  # What about control codes??? If I move text from one block to another, I'll need to move hte control code as well.
-
 
 # TODO: Why the extra menu item?? Look at the pointers for d9d4-ish.
 
@@ -97,6 +111,7 @@ for file in sheets:
             current_block_end = file_blocks[file][current_text_block][1] # the hi value.
         except TypeError:
             pass
+        print hex(current_block_end)
         # Rather than look for something with the exact pointer, look for any translated text with a value between previous_pointer_offset (excl) and text_offset (incl)
         # Calculate the diff, then add it to pointer_diff. There might be three or more bits of text betweeen the pointers (ex. dialogue)
 
@@ -113,7 +128,8 @@ for file in sheets:
                     overflow_text.append(n)
                     # When you first hit overflow, they have totally different pointer diffs anyway
                     # So reset pointer_diff to have a fresh start when the new block begins.
-                    pointer_diff = 0
+                    #pointer_diff = 0
+                    # TODO: Hmm... if you reset the first thing at the end of a block, it may not catch the rest...
 
                 elif current_text_block != previous_text_block:
                     # First text in a new block. Reset the pointer diff.
@@ -201,6 +217,9 @@ for file in sheets:
 
     creature_block_lo, creature_block_hi = creature_block[file]
 
+    previous_replacement_offset = 0
+    # previous replacement offset within the current block... 
+
     # Replace each jp bytestring with eng bytestrings in the text blocks.
 
     for original_location, (jp, eng) in translations.iteritems():
@@ -227,28 +246,34 @@ for file in sheets:
 
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
             this_string_diff = (len(jp)*2) - len(eng)
-            print this_string_diff
+            #print this_string_diff
             if this_string_diff >= 0:
-                print eng_bytestring
-                print "Addition for", eng
                 eng_bytestring += "00"*this_string_diff
-                print eng_bytestring
             else:
                 # Append the 00s to the jp_bytestring so it gets replaced.
-                print jp_bytestring
-                print "Subtraction for", eng
                 jp_bytestring += "00"*((-1)*this_string_diff)
-                print jp_bytestring
-
 
         current_block = get_current_block(original_location, file)
+        #print "current block:", current_block
         block_string = block_strings[current_block]
+        try:
+            old_slice = block_string[previous_replacement_offset:]
+            i = old_slice.index(jp_bytestring)//2
+        except ValueError:
+            previous_replacement_offset = 0
+            old_slice = block_string
+            i = old_slice.index(jp_bytestring)//2
 
-        i = hex(block_string.index(jp_bytestring)//2)
+        #print "original loc", hex(original_location)
+        
+        #print hex(original_location), hex(i)
+        #print len(old_slice)
 
-        new_block_string = block_string.replace(jp_bytestring, eng_bytestring, 1)  # Only the first occurrence.
+        new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
+        new_block_string = block_strings[current_block].replace(old_slice, new_slice, 1)
         block_strings[current_block] = new_block_string
 
+        previous_replacement_offset += i
         total_replacements += 1
 
     # Finally, replace the old text blocks with the translated ones.
