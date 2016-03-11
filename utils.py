@@ -28,6 +28,10 @@ spare_block = {'OPENING.EXE': None,
 creature_block = {'ST1.EXE': (0x10fca, 0x11595), }
                # TODO: Even more in progress than the last one.
 
+file_start = {'ST1.EXE': 0x5e800,}
+
+file_length = {'ST1.EXE': 0x121a7,}
+
 pointer_separators = {
         'OPENING.EXE': ("68", "04"), # Sep: 68-04
         'ST1.EXE': ("5e", "0d"), # 5e-0d
@@ -61,7 +65,7 @@ pointer_constants = {
 old_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
 pointer_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f])(\\x[0-f][0-f]))((\\x[0-f][0-f])\\x[0-f][0-f]\2\3(?!\3\5)){7,}"
 dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])\\x50" # Starts with \\x1e\\xb8 , then the thing to be captured, then \\x50.
-new_dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])" # Minus the \\x50.
+new_dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])" # Minus the \\x50. Adds 50 more pointers.
 
 # Binary patterns used in GDT pattern encoding
 gdt_patterns = [0b00000000, 0b00100010, 0b01010101, 0b01110111, 0b11111111, 0b11011101, 0b10101010, None, 0b00000000, 
@@ -93,7 +97,6 @@ def location_from_pointer(pointer, constant):
 
 def pointer_value_from_location(offset, constant):
     # Subtract the constant, pack it. Then that's the value to look for among the pointers already mapped out in excel.
-    # TODO: Get examples to make sure it's formatted properly.
     return offset - constant
 
 def get_current_block(text_offset, file):

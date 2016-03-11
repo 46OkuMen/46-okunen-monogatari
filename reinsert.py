@@ -1,5 +1,3 @@
-from __future__ import division
-
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
 # TODO: Game crashing when entering evolution related menu items??
@@ -12,6 +10,9 @@ from __future__ import division
 
 # Backtracking. Just editing Yes/No/Canel. Evolution menu itmes:.crash. Loading next map: Works!
 # Hmm. So the evolution menu stuff might depend on pointers that are below 0x10fa2 (ptrs) or 0x11839 (text).
+# TODO: Try looking at the code near the very end with all the spaces? Maybe some overlap with
+# the creature block...
+# Or see if it's the 46.EXE edits that have broken it.
 # But the next map code must be located above that.
 
 # TOOD: Check for text overflow. Examples:
@@ -34,23 +35,29 @@ from __future__ import division
 # Find the offset of each file (or just ST1.EXE for now) then slice the blockstring of the whole file
 # at that point.
 
-dump_xls = "shinkaron_dump_test.xlsx"
-pointer_xls = "shinkaron_pointer_dump.xlsx"
-
+from __future__ import division
 import os
 import math
 from binascii import unhexlify
-
 from utils import *
-
 from openpyxl import load_workbook
 from shutil import copyfile
-
 from collections import OrderedDict
 
 script_dir = os.path.dirname(__file__)
 src_path = os.path.join(script_dir, 'original_roms')
 dest_path = os.path.join(script_dir, 'patched_roms')
+
+src_rom_path = os.path.join(src_path, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
+dest_rom_path = os.path.join(dest_path, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
+
+copyfile(src_rom_path, dest_rom_path)
+
+src_rom = open(src_rom_path, 'rb+')
+dest_rom = open(dest_rom_path, 'wb+')
+
+dump_xls = "shinkaron_dump_test.xlsx"
+pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 wb = load_workbook(dump_xls)
 sheets = wb.get_sheet_names()
@@ -119,7 +126,7 @@ for file in sheets:
             current_block_end = file_blocks[file][current_text_block][1] # the hi value.
         except TypeError:
             pass
-        print hex(current_block_end)
+        #print hex(current_block_end)
         # Rather than look for something with the exact pointer, look for any translated text with a value between previous_pointer_offset (excl) and text_offset (incl)
         # Calculate the diff, then add it to pointer_diff. There might be three or more bits of text betweeen the pointers (ex. dialogue)
 
@@ -160,13 +167,17 @@ for file in sheets:
     #print pointer_diffs
     print overflow_text
 
-
     # Now, to begin the ROM edits.
-    src_file_path = os.path.join(src_path, file)
-    dest_file_path = os.path.join(dest_path, file)
-    copyfile(src_file_path, dest_file_path)
+    #src_file_path = os.path.join(src_path, file)
+    #dest_file_path = os.path.join(dest_path, file)
 
-    patched_file = open(dest_file_path, 'rb+')
+    #src_rom_path = os.path.join(src_path, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
+    #dest_rom_path = os.path.join(dest_path, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
+
+    #copyfile(src_rom_path, dest_rom_path)
+
+    #src_rom = open(src_rom_path, 'rb+')
+    #dest_rom = open(dest_rom_path, 'wb+')
 
     # First, rewrite the pointers - that doesn't change the length of anything.
     pointer_constant = pointer_constants[file]
@@ -179,32 +190,33 @@ for file in sheets:
             #print "It's an error code ", text_location
             text_location = overflow_block_lo
 
-        # TODO: Do something different for the creature text?
-
         pointer_location = pointers[text_location]
 
         original_pointer_value = text_location - pointer_constant
-        #print "Original:", pack(original_pointer_value)
         new_pointer_value = original_pointer_value + diff
 
         byte_1, byte_2 = pack(new_pointer_value)
-        #print "New:", byte_1, byte_2
         byte_1, byte_2 = chr(byte_1), chr(byte_2)
 
-        # TODO: temporarily suppressing pointer writes!
-        patched_file.seek(pointer_location)
-        patched_file.write(byte_1)
-        patched_file.write(byte_2)
+        location_in_file = pointer_location + file_start[file]
+        dest_rom.seek(pointer_location)
+        dest_rom.write(byte_1)
+        dest_rom.write(byte_2)
 
-        #print "Wrote new pointer value at", hex(pointer_location)
+    # Update the full rom string to include the pointer edits. Probably a better way to do this...
+    # An even better way would be to simply edit the full_rom_string instead of dest_rom.
+    full_rom_string = ""
+    for c in dest_rom.read():
+        full_rom_string += "%02x" % ord(c)
 
     # Then, rewrite the actual text.
-    min_pointer_diff = min(pointer_diffs.itervalues())
-    patched_file.seek(0)
 
-    # First get a string of the whole file's bytes.
+    min_pointer_diff = min(pointer_diffs.itervalues())
+    dest_rom.seek(file_start[file])
+
+    # First get a string of the whole file's bytes from within the disk.
     file_string = ""
-    for c in patched_file.read():
+    for c in dest_rom.read(file_length[file]):
         file_string += "%02x" % ord(c)
 
     # Then get individual strings of each text block, and put them in a list.
@@ -212,16 +224,20 @@ for file in sheets:
     for index, block in enumerate(file_blocks[file]):
         lo, hi = block
         block_length = hi - lo
+        block_start_in_rom = file_start[file] + lo
         block_string = ""
-        patched_file.seek(lo)
+        dest_rom.seek(block_start_in_rom)
 
-        for c in patched_file.read(block_length):
+        print dest_rom.read(block_length)
+        for c in dest_rom.read(block_length):
             block_string += "%02x" % ord(c)
 
         block_strings.append(block_string)
+        print block_string
 
+    # Copy the block_strings list into another list. Simple assignment would pass the reference.
     original_block_strings = list(block_strings)
-    patched_file.close()
+    #dest_rom.close()
 
     creature_block_lo, creature_block_hi = creature_block[file]
 
@@ -243,7 +259,7 @@ for file in sheets:
         sjis = jp.encode('shift-jis')
         for c in sjis:
             hx = "%02x" % ord(c)
-            if hx == '20': # Spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
+            if hx == '20': # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
                 hx = '8140'
 
             jp_bytestring += hx
@@ -262,7 +278,6 @@ for file in sheets:
                 jp_bytestring += "00"*((-1)*this_string_diff)
 
         current_block = get_current_block(original_location, file)
-        #print "current block:", current_block
         block_string = block_strings[current_block]
         try:
             old_slice = block_string[previous_replacement_offset:]
@@ -299,11 +314,12 @@ for file in sheets:
 
         print len(blk)
 
-        file_string = file_string.replace(original_block_strings[i], blk, 1)
+        patched_file_string = file_string.replace(original_block_strings[i], blk, 1)
+        full_rom_string = full_rom_string.replace(file_string, full_rom_string)
 
     # Write the data to the patched file.
-    with open(dest_file_path, "wb") as output_file:
-        data = unhexlify(file_string)
+    with open(dest_rom_path, "wb") as output_file:
+        data = unhexlify(full_rom_string)
         output_file.write(data)
 
     # Print out stats. Pop open the champagne.
