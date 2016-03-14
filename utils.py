@@ -28,8 +28,10 @@ spare_block = {'OPENING.EXE': None,
 creature_block = {'ST1.EXE': (0x10fca, 0x11595), }
                # TODO: Even more in progress than the last one.
 
+# Starting position, in bytes, of each file within the Disk 1 rom.
 file_start = {'ST1.EXE': 0x5e800,}
 
+# Length in bytes.
 file_length = {'ST1.EXE': 0x121a7,}
 
 pointer_separators = {
@@ -112,3 +114,16 @@ def compare_strings(a, b):
         return [i for i in xrange(len(a)) if a[i] != b[i]]
     except IndexError:
         return "strings different lengths, so probably different"
+
+def file_to_hex_string(file_path, start=0, length=0):
+    # Defaults: read full file from start.
+    hex_string = ""
+    f = open(file_path, 'rb+')
+    f.seek(start)
+    if length:
+        for c in f.read(length):
+            hex_string += "%02x" % ord(c)
+    else:
+        for c in f.read():
+            hex_string += "%02x" % ord(c)
+    return hex_string

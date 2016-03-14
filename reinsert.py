@@ -59,32 +59,20 @@ dest_rom = open(dest_rom_path, 'rb+')
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
-wb = load_workbook(dump_xls)
-sheets = wb.get_sheet_names()
-sheets.remove(u'ORIGINAL')
-sheets.remove(u'MISC TITLES')
+files_to_translate = ['ST1.EXE',]
 
-for file in sheets:
-    if file != "ST1.EXE" or file == "46.EXE":
-        # 46.EXE can be done manually.
-        continue
-
-    # First, index all the translations by the offset of the japanese text.
-
+def get_translations(file, dump_xls):
+    # Parse the excel dump and return a dict full of translation tuples.
     translations = OrderedDict() # translations[offset] = (japanese, english)
-
+    
+    wb = load_workbook(dump_xls)
     ws = wb.get_sheet_by_name(file)
 
-    # These two variables count the replacements to track reinsertion progress.
-    total_rows = 0
-    total_replacements = 0
-
-    # The spare block doesn't need translations.
-    overflow_block_lo, overflow_block_hi = spare_block[file]
+    total_rows = total_replacements = 0
+    overflow_block_lo, overflow_block_hi = spare_block[file]  # Doesn't need translations.
 
     for row in ws.rows[1:]:  # Skip the first row, it's just labels
         total_rows += 1
-
         offset = int(row[0].value, 16)
 
         if (offset >= overflow_block_lo) and (offset <= overflow_block_hi):
@@ -93,16 +81,25 @@ for file in sheets:
         japanese = row[2].value
         english = row[4].value
 
-        if not english:
-           english = ""
+        if english:
+            total_replacements += 1
+        else:
+            english = ""
 
         translations[offset] = (japanese, english)
 
-    # Next, load all the pointers from the excel sheet.
+    translation_percent = int(math.floor((total_replacements / total_rows) * 100))
+    print file, str(translation_percent) + "% complete"
+
+    return translations
+
+def get_pointers(file, pointer_xls):
+    # Parse the pointer excel, calculate differences in pointer values,
+    # and return dictionaries of pointers and diffs.
     pointers = {}              # text_offset: pointer_offset
     pointer_diffs = {}         # text_offset: diff
 
-    pointer_diff = 0
+    pointer_diff = 0           # Cumulative diff.
     previous_text_offset = file_blocks[file][0][0]
 
     previous_text_block = 0
@@ -111,8 +108,6 @@ for file in sheets:
 
     pointer_wb = load_workbook(pointer_xls)
     pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
-
-    overflow_text = []
 
     for row in pointer_sheet.rows:
         if row[0].value != file:
@@ -164,11 +159,20 @@ for file in sheets:
         pointer_diffs[text_offset] = pointer_diff
         print hex(text_offset), pointer_diffs[text_offset]
 
-    #print pointer_diffs
-    print overflow_text
+    return pointers, pointer_diffs
 
-    # First, rewrite the pointers - that doesn't change the length of anything.
+def get_file_strings(rom_path):
+    file_strings = {}
+    for file in files_to_translate:
+        start = file_start[file] * 2    # 2 hex characters per byte.
+        length = file_length[file] * 2
+        file_strings[file] = file_to_hex_string(rom_path, start, length)
+    return file_strings
+
+
+def edit_pointers(file, pointer_diffs):
     pointer_constant = pointer_constants[file]
+    overflow_block_lo, overflow_block_hi = spare_block[file]
 
     for text_location, diff in pointer_diffs.iteritems():
         #if diff == 0:
@@ -191,15 +195,27 @@ for file in sheets:
         dest_rom.write(byte_1)
         dest_rom.write(byte_2)
 
-    # Update the full rom string to include the pointer edits. Probably a better way to do this...
-    # TODO: An even better way would be to simply edit the full_rom_string instead of dest_rom.
-    
-    full_rom_string = ""
-    for c in dest_rom.read():
-        full_rom_string += "%02x" % ord(c)
+
+full_rom_string = file_to_hex_string(dest_rom_path)
+file_strings = get_file_strings(dest_rom_path)
+
+for file in files_to_translate:
+    if file != "ST1.EXE" or file == "46.EXE":
+        # 46.EXE can be done manually.
+        continue
+
+    overflow_text = []
+
+    translations = get_translations(file, dump_xls)
+    pointers, pointer_diffs = get_pointers(file, pointer_xls)
+
+    #print pointer_diffs
+    #print overflow_text
+
+    # First, rewrite the pointers - that doesn't change the length of anything.
+    edit_pointers(file, pointer_diffs)
 
     # Then, rewrite the actual text.
-
     min_pointer_diff = min(pointer_diffs.itervalues())
     dest_rom.seek(file_start[file])
 
@@ -221,7 +237,6 @@ for file in sheets:
             block_string += "%02x" % ord(c)
 
         block_strings.append(block_string)
-        #print block_string
 
     # Copy the block_strings list into another list. Simple assignment would pass the reference.
     original_block_strings = list(block_strings)
@@ -239,7 +254,7 @@ for file in sheets:
             continue
 
         if original_location in overflow_text:
-            print hex(original_location), "being treated for overflow"
+            #print hex(original_location), "being treated for overflow"
             eng = ""
 
         jp_bytestring = ""
@@ -279,7 +294,7 @@ for file in sheets:
         block_strings[current_block] = new_block_string
 
         previous_replacement_offset += i
-        total_replacements += 1
+        #total_replacements += 1
 
     # Finally, replace the old text blocks with the translated ones.
     for i, blk in enumerate(block_strings):
@@ -303,7 +318,3 @@ for file in sheets:
     with open(dest_rom_path, "wb") as output_file:
         data = unhexlify(full_rom_string)
         output_file.write(data)
-
-    # Print out stats. Pop open the champagne.
-    translation_percent = int(math.floor((total_replacements / total_rows) * 100))
-    print file , str(translation_percent) + "% complete"
