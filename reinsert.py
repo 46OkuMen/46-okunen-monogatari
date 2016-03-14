@@ -31,10 +31,6 @@
 
 # TODO: Why the extra menu item?? Look at the pointers for d9d4-ish.
 
-# TODO: Apply changes to the disk rather than to the file; it'll save like 7 clicks per build cycle.
-# Find the offset of each file (or just ST1.EXE for now) then slice the blockstring of the whole file
-# at that point.
-
 from __future__ import division
 import os
 import math
@@ -54,7 +50,7 @@ dest_rom_path = os.path.join(dest_path, "46 Okunen Monogatari - The Sinkaron (J)
 copyfile(src_rom_path, dest_rom_path)
 
 src_rom = open(src_rom_path, 'rb+')
-dest_rom = open(dest_rom_path, 'wb+')
+dest_rom = open(dest_rom_path, 'rb+')
 
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
@@ -167,18 +163,6 @@ for file in sheets:
     #print pointer_diffs
     print overflow_text
 
-    # Now, to begin the ROM edits.
-    #src_file_path = os.path.join(src_path, file)
-    #dest_file_path = os.path.join(dest_path, file)
-
-    #src_rom_path = os.path.join(src_path, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
-    #dest_rom_path = os.path.join(dest_path, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
-
-    #copyfile(src_rom_path, dest_rom_path)
-
-    #src_rom = open(src_rom_path, 'rb+')
-    #dest_rom = open(dest_rom_path, 'wb+')
-
     # First, rewrite the pointers - that doesn't change the length of anything.
     pointer_constant = pointer_constants[file]
 
@@ -204,7 +188,8 @@ for file in sheets:
         dest_rom.write(byte_2)
 
     # Update the full rom string to include the pointer edits. Probably a better way to do this...
-    # An even better way would be to simply edit the full_rom_string instead of dest_rom.
+    # TODO: An even better way would be to simply edit the full_rom_string instead of dest_rom.
+    
     full_rom_string = ""
     for c in dest_rom.read():
         full_rom_string += "%02x" % ord(c)
@@ -228,16 +213,14 @@ for file in sheets:
         block_string = ""
         dest_rom.seek(block_start_in_rom)
 
-        print dest_rom.read(block_length)
         for c in dest_rom.read(block_length):
             block_string += "%02x" % ord(c)
 
         block_strings.append(block_string)
-        print block_string
+        #print block_string
 
     # Copy the block_strings list into another list. Simple assignment would pass the reference.
     original_block_strings = list(block_strings)
-    #dest_rom.close()
 
     creature_block_lo, creature_block_hi = creature_block[file]
 
@@ -286,11 +269,6 @@ for file in sheets:
             previous_replacement_offset = 0
             old_slice = block_string
             i = old_slice.index(jp_bytestring)//2
-
-        #print "original loc", hex(original_location)
-        
-        #print hex(original_location), hex(i)
-        #print len(old_slice)
 
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
         new_block_string = block_strings[current_block].replace(old_slice, new_slice, 1)
