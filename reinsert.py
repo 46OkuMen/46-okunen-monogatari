@@ -1,5 +1,9 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
+# TODO: Write directly to ROM rather than the individual files.
+# Something weird is getting replaced?? "NO SYSTEM FILES" + significantly different file size.
+# Also, might want to write the pointer edits to the full_rom_string rather than the file.
+
 # TODO: Game crashing when entering evolution related menu items??
 # I may have messed something up in the creature block. Maybe I should insert spaces at the end?
 # Doesn't appear to be creature block related... still crashes with no creature block changes.
@@ -293,7 +297,7 @@ for file in sheets:
         print len(blk)
 
         patched_file_string = file_string.replace(original_block_strings[i], blk, 1)
-        full_rom_string = full_rom_string.replace(file_string, full_rom_string)
+        full_rom_string = full_rom_string.replace(file_string, patched_file_string)
 
     # Write the data to the patched file.
     with open(dest_rom_path, "wb") as output_file:
