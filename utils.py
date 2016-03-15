@@ -22,6 +22,8 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
 spare_block = {'OPENING.EXE': None,
                '46.EXE': (0x9cb8, 0xa07a),
                'ST1.EXE': (0x11d42, 0x1204e),
+               'SINKA.DAT': None,
+               'SEND.DAT': None
                }
                # TODO: In progress. Also figure out what to do with the Nones.
 
