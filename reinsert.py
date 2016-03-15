@@ -103,7 +103,7 @@ def get_pointers(file, pointer_xls):
 
     previous_text_block = 0
     current_text_block = 0
-    current_block_end = 0
+    current_block_end = file_blocks[file][0][1]
 
     pointer_wb = load_workbook(pointer_xls)
     pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
@@ -115,11 +115,25 @@ def get_pointers(file, pointer_xls):
         text_offset = int(row[1].value, 16)
         pointer_offset = int(row[2].value, 16)
         pointers[text_offset] = pointer_offset
-        current_text_block = get_current_block(text_offset, file)
-        try:
-            current_block_end = file_blocks[file][current_text_block][1] # the hi value.
-        except TypeError:
-            pass
+        if get_current_block(text_offset, file):
+            current_text_block = get_current_block(text_offset, file)
+        first_overflow = first_offset_in_block(file, current_text_block, overflow_text)
+
+        if (current_text_block > previous_text_block) and current_text_block:
+            current_block_end = file_blocks[file][current_text_block][1]
+
+        new_text_offset = text_offset + pointer_diff
+        if first_overflow:
+            if (new_text_offset > first_overflow) and (new_text_offset < current_block_end):
+                # Pointers are tricky. We to store the ones between the overflow text and the end of the block
+                # but not the pointers between blocks normally.
+                print hex(text_offset), "overflows past", hex(current_block_end), "with diff", pointer_diff
+                overflow_text.append(text_offset)
+
+        #try:
+        #    current_block_end = file_blocks[file][current_text_block][1] # the hi value.
+        #except TypeError:
+        #    pass
         #print hex(current_block_end)
         # Rather than look for something with the exact pointer, look for any translated text with a value between previous_pointer_offset (excl) and text_offset (incl)
         # Calculate the diff, then add it to pointer_diff. There might be three or more bits of text betweeen the pointers (ex. dialogue)
@@ -144,6 +158,15 @@ def get_pointers(file, pointer_xls):
                 if current_text_block != previous_text_block:
                     # First text in a new block. Reset the pointer diff.
                     pointer_diff = 0
+                    # Then, add all the poitners that got missed between the first and end.
+                    #print previous_text_block
+                #    first = first_offset_in_block(file, previous_text_block, overflow_text)
+                    #last = current_block_end
+                #    print "lo hi", hex(first), hex(n)
+                #    for p, t in pointers.iteritems():
+                #        if (p < first) and (p >= n):
+                #            overflow_text.append(t)
+                #            print "adding", hex(t), "to overflow"
 
                 # If the eng part of the translation is blank, don't calculate a pointer diff.
                 # But we still want it to be put in the overflow_text list.
@@ -153,8 +176,8 @@ def get_pointers(file, pointer_xls):
                 pointer_diff += len_diff
             except KeyError:
                 continue
-
-        previous_text_block = current_text_block
+        if current_text_block:
+            previous_text_block = current_text_block
         previous_text_offset = text_offset
         pointer_diffs[text_offset] = pointer_diff
         print hex(text_offset), pointer_diffs[text_offset]

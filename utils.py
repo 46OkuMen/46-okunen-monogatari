@@ -106,8 +106,24 @@ def get_current_block(text_offset, file):
         lo, hi = block
         if (text_offset >= lo) and (text_offset <= hi):
             return index
+        #else:
+        #    # It returns None when the text is overflowing. Rather,
+        #    # you want to get the previous block.
+        #    if text_offset > 0:
+        #        print "trying current_block at", hex(text_offset-60)
+        #        return get_current_block(text_offset-60, file)
+        #    else:
+        #        return None
 
-    # return "Offset not in text blocks"
+def first_offset_in_block(file, block_index, offsets):
+    if not offsets:
+        return None
+    print "first offset in block", file, block_index
+    print "overflow text:", offsets
+    block_lo, block_hi = file_blocks[file][block_index]
+    for o in offsets:
+        if (o >= block_lo) and (o <= block_hi):
+            return o
 
 def compare_strings(a, b):
     try:
