@@ -1,33 +1,23 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
-# TODO: Game crashing when entering menu items 2 & 3??
-# I may have messed something up in the creature block. Maybe I should insert spaces at the end?
-# Doesn't appear to be creature block related... still crashes with no creature block changes.
-# One of the functions is probably breaking.
+# TODO: Game crashing when entering menu items 2 & 3. (History, Encyclopedia)
+# The culprit is probably some kind of change to the location of a ref to SINKA.DAT around 0x11870.
+# Editing yes/no/cancel breaks Encyclopedia. If I keep them the same length ("No    ") it seems fine.
+# But can I edit the creatures??? Nope, that breaks it.
+# With all creature names except Thelodus? Nope, Encyclopedia crashes.
+# What about just Thelodus? Nope, that breaks it.
+# What about "Thelodus  "? Yeah, that works fine.
+# Possible solution: exclude these references from a block.
+# With all the creature names filled in, History(2) works but Encyclopedia(3) crashes.
+# They both work without the creature names.
 
 # TODO: Game crashes after you leave the first map and you learn of the thelodus sea's fate.
-# FIgure out which map is being loaded, see if the pointers may have gotten messed up.
+# A bunch of maps/the combat program ST5S1.EXE get loaded right after the first thelodus dialogue around 0xef15.
+# I have to split up the blocks exactly right! Gotta place the spaces right before filenames...
+# I wonder how sensitive it is? Do I need to do this for every .GDT image, or just new maps or exes?
+# More importantly, I wonder why the pointer adjustments themselves don't seem to have any effect...
 
 # TODO: Game boots to black screen when the first block is filled in...
-
-# Backtracking. Just editing Yes/No/Canel. Evolution menu itmes:.crash. Loading next map: Works!
-# Just editing end of dialogue block. Menu items work. Next map works.
-# Hmm. So the evolution menu stuff might depend on pointers that are below 0x10fa2 (ptrs) or 0x11839 (text).
-# TODO: Try looking at the code near the very end with all the spaces? Maybe some overlap with
-# the creature block...
-
-# But the next map code gets broken when the first Thelodus-dialogue is inserted.
-# The first dialogue/narration after changing maps is "Undersea volcano erupted!""
-# Looks like it's loaded in MAP101.MAP, MAP102.MAP, MAP100.MAP...
-# The pointer adjustments seem to be fine here...
-# One kind of annoying fix might be to break up the blocks 
-
-# TOOD: Check for text overflow. Examples:
-# 0x10b70 - "It's all thanks to us looking after him con[LN]stantly!"
-# 0x10d16 "you're from but you certainly suprised us[LN]."
-# 0x10dc3 "I'm just glad you're okay[LN]!"
-# 0x1094f "Do I look like I've changed to you? Elder?[LN]"
-# 0x1055d "The fish are violent there after being affe[LN]cted by the light...""
 
 # TODO: Moving overflow to the error block/spare block.
     # DONE - In the rom, replace the jp text with equivalent number of spaces
