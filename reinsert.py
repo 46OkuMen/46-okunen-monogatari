@@ -1,24 +1,41 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
-# TODO: Game crashing when entering menu items 2 & 3. (History, Encyclopedia)
+# Crashes to keep in mind:
+# 1) Crash on entering History/Encyclopedia
+# Seems to be related to either the Yes/No/Cancel (right before calls to SINKA.DAT) or creature name length changes.
+# Workaround for now is using creature names with the same length as the jp versions.
+# Will have to look closer at what causes the
 # The culprit is probably some kind of change to the location of a ref to SINKA.DAT around 0x11870.
 # Editing yes/no/cancel breaks Encyclopedia. If I keep them the same length ("No    ") it seems fine.
 # But can I edit the creatures??? Nope, that breaks it.
 # With all creature names except Thelodus? Nope, Encyclopedia crashes.
 # What about just Thelodus? Nope, that breaks it.
 # What about "Thelodus  "? Yeah, that works fine.
-# Possible solution: exclude these references from a block.
-# With all the creature names filled in, History(2) works but Encyclopedia(3) crashes.
 # They both work without the creature names.
 
-# TODO: Game crashes after you leave the first map and you learn of the thelodus sea's fate.
-# A bunch of maps/the combat program ST5S1.EXE get loaded right after the first thelodus dialogue around 0xef15.
+# 2) Crash on changing maps.
 # I have to split up the blocks exactly right! Gotta place the spaces right before filenames...
 # I wonder how sensitive it is? Do I need to do this for every .GDT image, or just new maps or exes?
 # More importantly, I wonder why the pointer adjustments themselves don't seem to have any effect...
 
-# TODO: Game boots to black screen when the first block is filled in...
+#TODO: Crash when entering battle.
 
+# TODO: Game boots to black screen when the first block is filled in...
+# Probably has something to do with a poorly placed space, or a bad determination of blocks to begin with?
+
+# TODO: Crazy shit happens when trying to confirm an evolution.
+# When there are creature names (different lengths), you don't get a yes/no choice and it gets glitchy.
+# (But it's fine when you use equal-length creature names.)
+# Fine when menu items & intro thelodus dialogue are inserted.
+# First dialogue block (& evo files) doesn't break it.
+# Something in the end-of-first-map dialogue breaks it...
+
+# TODO: Extra menu item when first dialogue block is filled in. "There was a hidden Hemicyclapsis!"
+
+# TODO: The HP stat is hiding. Its pointer is located at 0x321c, and it points to 0xea9d (but its offset is 0xea9e).
+# It doesn't get rewritten when filled out on the sheet...
+
+#
 # TODO: Moving overflow to the error block/spare block.
     # DONE - In the rom, replace the jp text with equivalent number of spaces
     # 2) Replace all of the error block with equivalent number of spaces
