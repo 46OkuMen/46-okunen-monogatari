@@ -62,7 +62,7 @@ files_to_translate = ['ST1.EXE',]
 
 def get_translations(file, dump_xls):
     # Parse the excel dump and return a dict full of translation tuples.
-    translations = OrderedDict() # translations[offset] = (japanese, english)
+    trans = OrderedDict() # translations[offset] = (japanese, english)
     
     wb = load_workbook(dump_xls)
     ws = wb.get_sheet_by_name(file)
@@ -85,18 +85,19 @@ def get_translations(file, dump_xls):
         else:
             english = ""
 
-        translations[offset] = (japanese, english)
+        trans[offset] = (japanese, english)
 
     translation_percent = int(math.floor((total_replacements / total_rows) * 100))
     print file, str(translation_percent) + "% complete"
 
-    return translations
+    return trans
 
-def get_pointers(file, pointer_xls):
+
+def get_pointers(file, ptr_xls):
     # Parse the pointer excel, calculate differences in pointer values,
     # and return dictionaries of pointers and diffs.
-    pointers = OrderedDict()              # text_offset: pointer_offset
-    pointer_diffs = OrderedDict()         # text_offset: diff
+    ptrs = OrderedDict()              # text_offset: pointer_offset
+    ptr_diffs = OrderedDict()         # text_offset: diff
 
     pointer_diff = 0           # Cumulative diff.
     previous_text_offset = file_blocks[file][0][0]
@@ -105,7 +106,7 @@ def get_pointers(file, pointer_xls):
     current_text_block = 0
     current_block_end = file_blocks[file][0][1]
 
-    pointer_wb = load_workbook(pointer_xls)
+    pointer_wb = load_workbook(ptr_xls)
     pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
 
     for row in pointer_sheet.rows:
@@ -114,13 +115,14 @@ def get_pointers(file, pointer_xls):
             
         text_offset = int(row[1].value, 16)
         pointer_offset = int(row[2].value, 16)
-        pointers[text_offset] = pointer_offset
+        ptrs[text_offset] = pointer_offset
         if get_current_block(text_offset, file):
             current_text_block = get_current_block(text_offset, file)
         #first_overflow = first_offset_in_block(file, current_text_block, overflow_text)
 
         if (current_text_block > previous_text_block) and current_text_block:
             current_block_end = file_blocks[file][current_text_block][1]
+            pointer_diff = 0
 
         #new_text_offset = text_offset + pointer_diff
         #if first_overflow:
@@ -155,15 +157,16 @@ def get_pointers(file, pointer_xls):
                     # TODO: Hmm... if you reset the first thing at the end of a block, it may not catch the rest...
                     # Gotta slice the rest of the block and save it somewhere for reinsertion in the spare block.
 
-                if current_text_block != previous_text_block:
+                #print current_text_block, previous_text_block
+                #if current_text_block != previous_text_block:
                     # First text in a new block. Reset the pointer diff.
-                    pointer_diff = 0
+                #    pointer_diff = 0
                     # Then, add all the poitners that got missed between the first and end.
                     #print previous_text_block
                 #    first = first_offset_in_block(file, previous_text_block, overflow_text)
                     #last = current_block_end
                 #    print "lo hi", hex(first), hex(n)
-                #    for p, t in pointers.iteritems():
+                #    for p, t in ptrs.iteritems():
                 #        if (p < first) and (p >= n):
                 #            overflow_text.append(t)
                 #            print "adding", hex(t), "to overflow"
@@ -179,10 +182,10 @@ def get_pointers(file, pointer_xls):
         if current_text_block:
             previous_text_block = current_text_block
         previous_text_offset = text_offset
-        pointer_diffs[text_offset] = pointer_diff
-        print hex(text_offset), pointer_diffs[text_offset]
+        ptr_diffs[text_offset] = pointer_diff
+        print hex(text_offset), ptr_diffs[text_offset]
 
-    return pointers, pointer_diffs
+    return ptrs, ptr_diffs
 
 
 def get_file_strings(rom_path):
@@ -263,7 +266,7 @@ def edit_pointers(file, pointer_diffs, file_string):
     return patched_file_string
 
 
-def edit_text(file, translations, full_rom_string):
+def edit_text(file, translations, rom_string):
     # Replace each jp bytestring with eng bytestrings in the text blocks.
     # Return a new file string.
     creature_block_lo, creature_block_hi = creature_block[file]
@@ -274,24 +277,27 @@ def edit_text(file, translations, full_rom_string):
             # If there treally is no english translation, skip the replacement.
             continue
 
-        current_block_end = file_blocks[file][get_current_block(original_location, file)][1]
-        try:
-            diff = pointer_diffs[original_location]
-        except KeyError:
-            try:
-                original_location -= 1
-                diff = pointer_diffs[original_location]
-            except KeyError:
-                print "KeyError", original_location
-                diff = 0
+        #current_block_end = file_blocks[file][get_current_block(original_location, file)][1]
+        #print hex(current_block_end)
+        #try:
+        #    diff = pointer_diffs[original_location]
+        #except KeyError:
+        #    try:
+        #        original_location -= 1
+        #        diff = pointer_diffs[original_location]
+        #    except KeyError:
+        #        print "KeyError", hex(original_location)
+        #        diff = 0
 
-        new_string_end = (original_location) + len(jp)*2 + diff
+        #new_string_end = (original_location) + len(jp)*2 + diff
 
-        if new_string_end > current_block_end:
-            print "overflow at", hex(original_location-1), "past", current_block_end
-            overflow_text.append(original_location-1)
+        #if new_string_end > current_block_end:
+        #    print "overflow at", hex(original_location-1), "past", current_block_end
+        #    overflow_text.append(original_location-1)
+        #    eng = ""
+
+        if original_location in overflow_text:
             eng = ""
-
 
         jp_bytestring = ""
         sjis = jp.encode('shift-jis')
@@ -313,6 +319,7 @@ def edit_text(file, translations, full_rom_string):
                 # Append the 00s to the jp_bytestring so they get replaced - keep the length the same.
                 jp_bytestring += "00"*((-1)*this_string_diff)
 
+        print hex(original_location)
         current_block = get_current_block(original_location, file)
         block_string = block_strings[current_block]
         try:
@@ -328,7 +335,6 @@ def edit_text(file, translations, full_rom_string):
         block_strings[current_block] = new_block_string
 
         previous_replacement_offset += i
-        #total_replacements += 1
 
     file_string = file_strings[file]
     patched_file_string = file_string
@@ -350,9 +356,9 @@ def edit_text(file, translations, full_rom_string):
 
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
         
-    full_rom_string = full_rom_string.replace(file_string, patched_file_string)
+    rom_string = rom_string.replace(file_string, patched_file_string)
 
-    return full_rom_string
+    return rom_string
 
 
 full_rom_string = file_to_hex_string(dest_rom_path)
