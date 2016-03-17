@@ -17,7 +17,7 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: Assign correct offsets to strings repeated in the .DAT files.
+# TODO: String offsets are calculated incorrectly if they are substrings of strings appearing earlier in the file.
 
 import os
 import subprocess

@@ -21,6 +21,7 @@
 
 # TODO: Crash when entering battle.
 # The text in the first dialogue block breaks it. Maybe I should separate that from battle text?
+# Fixed.
 
 # TODO: Game boots to black screen when the first block is filled in...
 # Probably has something to do with a poorly placed space, or a bad determination of blocks to begin with?
@@ -45,6 +46,8 @@
 # Looks like it appears as the first word in a string at 0xea9e, so its offset is incorrect.
 # "Strength was not enough" message appears before the HP stat, so its offset gets recorded instead. Whoops!
 # I should make sure the test dump sheet is sorted by offset...
+# This affects skill names too, since they appear in various battle messages.
+# TODO: What I really need to do is fix the dumper to have better offset calculations!
 
 # TODO: Moving overflow to the error block/spare block.
     # 0) Actually figure out where they are
@@ -434,6 +437,17 @@ def edit_dat_text(file, file_string):
         patched_file_string = patched_file_string.replace(jp_bytestring, eng_bytestring, 1)
     return patched_file_string
 
+def change_starting_map(map_number):
+    # Current map: MAP105.MAP
+    # Change to MAP103.MAP to test combat more easily?
+    starting_map_number_location = 0xedaa + file_start['ST1.EXE']
+    new_map_bytes = str(map_number).encode()
+    f = open(dest_rom_path, 'rb+')
+    f.seek(starting_map_number_location)
+    f.write(new_map_bytes)
+    f.close()
+    # omg this worked on the first try
+
 full_rom_string = file_to_hex_string(dest_rom_path)
 file_strings = get_file_strings(dest_rom_path)
 
@@ -479,3 +493,5 @@ for file in files_to_translate:
     with open(dest_rom_path, "wb") as output_file:
         data = unhexlify(full_rom_string)
         output_file.write(data)
+
+change_starting_map(100)
