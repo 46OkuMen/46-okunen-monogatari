@@ -17,29 +17,33 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                'ST5S3.EXE': ((0x3db9, 0x4ed0),),
                'ST6.EXE': ((0xa4f1, 0xa55b), (0xa59c, 0xccd1), (0xcd14, 0xce25), (0xcede, 0xd0bb), (0xd44a, 0xd756)),
                'ENDING.EXE': ((0x3c4e, 0x4b1f),),
-               'SINKA.DAT': ((0x0000, 0x874a),),
+               'SINKA.DAT': ((0x0000, 0x69a4),),
                'SEND.DAT': ((0x000, 0x8740),)
 }
 # What is my methodology for deciding when a block starts and ends?
 # The end of a block has to be a place where spaces are okay. My mistake may have been in putting them after filenames.
 # If you end right on top of a filename, the extra spaces will push the filename into the correct position... maybe?
 
-spare_block = {'OPENING.EXE': None,
+spare_block = {'OPENING.EXE': (0, 0),
                '46.EXE': (0x9cb8, 0xa07a),
                'ST1.EXE': (0x11d42, 0x1204e),
-               'SINKA.DAT': None,
-               'SEND.DAT': None
+               'SINKA.DAT': (0, 0),
+               'SEND.DAT': (0, 0)
                }
                # TODO: In progress. Also figure out what to do with the Nones.
 
-creature_block = {'ST1.EXE': (0x10fca, 0x11595), }
+creature_block = {'ST1.EXE': (0x10fca, 0x11595),
+                  'SINKA.DAT': (0, 0)}
                # TODO: Even more in progress than the last one.
 
 # Starting position, in bytes, of each file within the Disk 1 rom.
-file_start = {'ST1.EXE': 0x5e800,}
+file_start = {'ST1.EXE': 0x5e800,
+              'SINKA.DAT': 0x3d000,
+              'SEND.DAT': 0x34800,}
 
 # Length in bytes.
-file_length = {'ST1.EXE': 0x121a7,}
+file_length = {'ST1.EXE': 0x121a7,
+               'SINKA.DAT': 0x69a4}
 
 pointer_separators = {
         'OPENING.EXE': ("68", "04"), # Sep: 68-04

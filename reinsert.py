@@ -17,8 +17,10 @@
 # I have to split up the blocks exactly right! Gotta place the spaces right before filenames...
 # I wonder how sensitive it is? Do I need to do this for every .GDT image, or just new maps or exes?
 # More importantly, I wonder why the pointer adjustments themselves don't seem to have any effect...
+# TODO: Look really closely and see which pointers are getting adjusted, particularly the filename ones.
 
-#TODO: Crash when entering battle.
+# TODO: Crash when entering battle.
+# The text in the first dialogue block breaks it. Maybe I should separate that from battle text?
 
 # TODO: Game boots to black screen when the first block is filled in...
 # Probably has something to do with a poorly placed space, or a bad determination of blocks to begin with?
@@ -31,13 +33,15 @@
 # Something in the end-of-first-map dialogue breaks it...
 
 # TODO: Extra menu item when first dialogue block is filled in. "There was a hidden Hemicyclapsis!"
+# Something is going wrong with the very first block - jut "cancel" being filled in messes it up.
+# Workaround: Use "Cancel    ".
 
 # TODO: The HP stat is hiding. Its pointer is located at 0x321c, and it points to 0xea9d (but its offset is 0xea9e).
 # It doesn't get rewritten when filled out on the sheet...
 
-#
 # TODO: Moving overflow to the error block/spare block.
-    # DONE - In the rom, replace the jp text with equivalent number of spaces
+    # 0) Actually figure out where they are
+    # 1) In the rom, replace the jp text with equivalent number of spaces
     # 2) Replace all of the error block with equivalent number of spaces
     # 3) Place all the text in the error block (what about control codes???)
     # 4) Rewrite all the pointer values to point to new locations
@@ -65,7 +69,7 @@ copyfile(src_rom_path, dest_rom_path)
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
-files_to_translate = ['ST1.EXE',]
+files_to_translate = ['ST1.EXE', 'SINKA.DAT']
 
 def get_translations(file, dump_xls):
     # Parse the excel dump and return a dict full of translation tuples.
@@ -99,12 +103,34 @@ def get_translations(file, dump_xls):
 
     return trans
 
+def get_dat_translations(file, dump_xls):
+    # I failed to record accurate offsets for the .dat files, and I'm paying the price.
+    # But I can load up a list full of (jp, eng) tuples and replace the first instance of each one,
+    # and it should be fine.
+    trans = []
+    wb = load_workbook(dump_xls)
+    ws = wb.get_sheet_by_name(file)
+
+    total_rows = total_replacements = 0
+    for row in ws.rows[1:]:
+        total_rows += 1
+        japanese = row[2].value
+        english = row[4].value
+        if english:
+            total_replacements += 1
+        else:
+            english = ""
+        trans.append((japanese, english))
+    translation_percent = int(math.floor((total_replacements / total_rows) * 100))
+    print file, str(translation_percent) + "% complete"
+    return trans
 
 def get_pointers(file, ptr_xls):
     # Parse the pointer excel, calculate differences in pointer values,
     # and return dictionaries of pointers and diffs.
     ptrs = OrderedDict()              # text_offset: pointer_offset
     ptr_diffs = OrderedDict()         # text_offset: diff
+    ptr_count = 0
 
     pointer_diff = 0           # Cumulative diff.
     previous_text_offset = file_blocks[file][0][0]
@@ -119,6 +145,8 @@ def get_pointers(file, ptr_xls):
     for row in pointer_sheet.rows:
         if row[0].value != file:
             continue                          # Access ptrs for the current file only.
+
+        ptr_count += 1
             
         text_offset = int(row[1].value, 16)
         pointer_offset = int(row[2].value, 16)
@@ -186,12 +214,14 @@ def get_pointers(file, ptr_xls):
                 pointer_diff += len_diff
             except KeyError:
                 continue
+
         if current_text_block:
             previous_text_block = current_text_block
         previous_text_offset = text_offset
         ptr_diffs[text_offset] = pointer_diff
         print hex(text_offset), ptr_diffs[text_offset]
 
+    print "Pointer count: ", ptr_count
     return ptrs, ptr_diffs
 
 
@@ -239,9 +269,11 @@ def edit_pointers(file, pointer_diffs, file_string):
     pointer_constant = pointer_constants[file]
     overflow_block_lo, overflow_block_hi = spare_block[file]
 
+    adjustment_count = 0
+
     for text_location, diff in pointer_diffs.iteritems():
-        if diff == 0:
-            continue
+        #if diff == 0:
+        #    continue
         # TODO: Redirect the old error message strings. (Or just don't, since the patch is perfect and they'll never show up?)
         if (text_location >= overflow_block_lo) and (text_location <= overflow_block_hi):
             #print "It's an error code ", text_location
@@ -269,7 +301,10 @@ def edit_pointers(file, pointer_diffs, file_string):
         #print patched_file_string.index(old_slice)
         patched_file_string = patched_file_string.replace(old_slice, new_slice, 1)
 
+        adjustment_count += 1
+
     #print compare_strings(file_string, patched_file_string)
+    print "Pointer adjustments:", adjustment_count
     return patched_file_string
 
 
@@ -335,6 +370,7 @@ def edit_text(file, translations, rom_string):
         except ValueError:
             previous_replacement_offset = 0
             old_slice = block_string
+            # Why is block_strings[0] different from the one that is set before this in edit_dat_text?
             i = old_slice.index(jp_bytestring)//2
 
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
@@ -367,11 +403,45 @@ def edit_text(file, translations, rom_string):
 
     return rom_string
 
+def edit_dat_text(file, file_string):
+    translations = get_dat_translations(file, dump_xls)
+
+    patched_file_string = file_string
+
+    for (jp, eng) in translations:
+        if eng == "":
+            continue
+        jp_bytestring = ""
+        sjis = jp.encode('shift-jis')
+        for c in sjis:
+            hx = "%02x" % ord(c)
+            if hx == '20': # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
+                hx = '8140'
+            jp_bytestring += hx
+
+        eng_bytestring = ""
+        for c in eng:
+            eng_bytestring += "%02x" % ord(c)
+        patched_file_string = patched_file_string.replace(jp_bytestring, eng_bytestring, 1)
+    return patched_file_string
 
 full_rom_string = file_to_hex_string(dest_rom_path)
 file_strings = get_file_strings(dest_rom_path)
 
 for file in files_to_translate:
+    if file == "SINKA.DAT" or file == 'SEND.DAT':
+        # Edit the file separately. That'll have to do for now.
+        dat_path = os.path.join(src_path, file)
+        dest_dat_path = os.path.join(dest_path, file)
+        dat_file_string = file_to_hex_string(dat_path)
+
+        patched_dat_file_string = edit_dat_text(file, dat_file_string)
+
+        with open(dest_dat_path, "wb") as output_file:
+            data = unhexlify(patched_dat_file_string)
+            output_file.write(data)
+        continue
+
     overflow_text = []
     overflow_hex = []
 
