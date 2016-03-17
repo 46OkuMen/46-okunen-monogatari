@@ -31,13 +31,20 @@
 # Fine when menu items & intro thelodus dialogue are inserted.
 # First dialogue block (& evo files) doesn't break it.
 # Something in the end-of-first-map dialogue breaks it...
+# Related: "Is this alright?" choices "0, 6, es"
 
 # TODO: Extra menu item when first dialogue block is filled in. "There was a hidden Hemicyclapsis!"
 # Something is going wrong with the very first block - jut "cancel" being filled in messes it up.
 # Workaround: Use "Cancel    ".
 
+# TODO: "@Save Game" menu item name.
+# Looks like there's a space in the original japanese text. I'll insert that into the dump test sheet...
+# Fixed.
+
 # TODO: The HP stat is hiding. Its pointer is located at 0x321c, and it points to 0xea9d (but its offset is 0xea9e).
-# It doesn't get rewritten when filled out on the sheet...
+# Looks like it appears as the first word in a string at 0xea9e, so its offset is incorrect.
+# "Strength was not enough" message appears before the HP stat, so its offset gets recorded instead. Whoops!
+# I should make sure the test dump sheet is sorted by offset...
 
 # TODO: Moving overflow to the error block/spare block.
     # 0) Actually figure out where they are
@@ -99,6 +106,8 @@ def get_translations(file, dump_xls):
         trans[offset] = (japanese, english)
 
     translation_percent = int(math.floor((total_replacements / total_rows) * 100))
+    for o, (_, eng) in trans.iteritems():
+        print hex(o), eng
     print file, str(translation_percent) + "% complete"
 
     return trans
@@ -219,9 +228,9 @@ def get_pointers(file, ptr_xls):
             previous_text_block = current_text_block
         previous_text_offset = text_offset
         ptr_diffs[text_offset] = pointer_diff
-        print hex(text_offset), ptr_diffs[text_offset]
+        #print hex(text_offset), ptr_diffs[text_offset]
 
-    print "Pointer count: ", ptr_count
+    #print "Pointer count: ", ptr_count
     return ptrs, ptr_diffs
 
 
@@ -304,7 +313,7 @@ def edit_pointers(file, pointer_diffs, file_string):
         adjustment_count += 1
 
     #print compare_strings(file_string, patched_file_string)
-    print "Pointer adjustments:", adjustment_count
+    #print "Pointer adjustments:", adjustment_count
     return patched_file_string
 
 
@@ -361,7 +370,7 @@ def edit_text(file, translations, rom_string):
                 # Append the 00s to the jp_bytestring so they get replaced - keep the length the same.
                 jp_bytestring += "00"*((-1)*this_string_diff)
 
-        print hex(original_location)
+        #print hex(original_location)
         current_block = get_current_block(original_location, file)
         block_string = block_strings[current_block]
         try:
