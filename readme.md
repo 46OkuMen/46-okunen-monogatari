@@ -4,7 +4,7 @@ Git repo for romhacking notes and text dumping/reinserting utilities for *46 Oku
 ![first gameplay screen of the game, translated](https://raw.githubusercontent.com/hollowaytape/shank-a-rom/master/evidence.png)
 
 ###Reinsertion Status:
-* Chapter 1: 4%
+* Chapter 1: 10%
 * Chapter 2: 0%
 * Chapter 3: 0%
 * Chapter 4: 0%
