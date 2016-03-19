@@ -12,16 +12,15 @@
 # What about just Thelodus? Nope, that breaks it.
 # What about "Thelodus  "? Yeah, that works fine.
 # They both work without the creature names.
+# TODO: Can I extend the name-length of creatures you can't become without an issue?
+# All the creatures with short names are stuff like jellyfish, coral, urchin... stuff you can't evolve into.
+# Maybe I can get away with extending their names without causing an encyclopedia crash...
 
 # 2) Crash on changing maps.
 # I have to split up the blocks exactly right! Gotta place the spaces right before filenames...
 # I wonder how sensitive it is? Do I need to do this for every .GDT image, or just new maps or exes?
 # More importantly, I wonder why the pointer adjustments themselves don't seem to have any effect...
 # TODO: Look really closely and see which pointers are getting adjusted, particularly the filename ones.
-
-# TODO: Crash when entering battle.
-# The text in the first dialogue block breaks it. Maybe I should separate that from battle text?
-# Fixed.
 
 # TODO: Game boots to black screen when the first block is filled in...
 # Probably has something to do with a poorly placed space, or a bad determination of blocks to begin with?
@@ -33,21 +32,14 @@
 # First dialogue block (& evo files) doesn't break it.
 # Something in the end-of-first-map dialogue breaks it...
 # Related: "Is this alright?" choices "0, 6, es"
+# and "Is this alright?" choice 0.
+#  Fine with yes/no/cancel, menu items, evo files/cancel. Issue might be with creature names??
 
 # TODO: Extra menu item when first dialogue block is filled in. "There was a hidden Hemicyclapsis!"
 # Something is going wrong with the very first block - jut "cancel" being filled in messes it up.
 # Workaround: Use "Cancel    ".
 
-# TODO: "@Save Game" menu item name.
-# Looks like there's a space in the original japanese text. I'll insert that into the dump test sheet...
-# Fixed.
-
-# TODO: The HP stat is hiding. Its pointer is located at 0x321c, and it points to 0xea9d (but its offset is 0xea9e).
-# Looks like it appears as the first word in a string at 0xea9e, so its offset is incorrect.
-# "Strength was not enough" message appears before the HP stat, so its offset gets recorded instead. Whoops!
-# I should make sure the test dump sheet is sorted by offset...
-# This affects skill names too, since they appear in various battle messages.
-# TODO: What I really need to do is fix the dumper to have better offset calculations!
+# TODO: Weird stuff going on with "Escape." Is it getting replaced somewhere else??
 
 # TODO: Moving overflow to the error block/spare block.
     # 0) Actually figure out where they are
@@ -109,8 +101,8 @@ def get_translations(file, dump_xls):
         trans[offset] = (japanese, english)
 
     translation_percent = int(math.floor((total_replacements / total_rows) * 100))
-    for o, (_, eng) in trans.iteritems():
-        print hex(o), eng
+    #for o, (_, eng) in trans.iteritems():
+    #    print hex(o), eng
     print file, str(translation_percent) + "% complete"
 
     return trans
@@ -494,4 +486,7 @@ for file in files_to_translate:
         data = unhexlify(full_rom_string)
         output_file.write(data)
 
-change_starting_map(100)
+#change_starting_map(105)
+# 100: open water, volcano cutscene immediately, combat
+# 101: caves, hidden hemicyclapsis (fast combat example)
+# 105: (default) thelodus sea
