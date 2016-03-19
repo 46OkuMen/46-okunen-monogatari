@@ -31,7 +31,7 @@ from utils import capture_pointers_from_table, capture_pointers_from_function
 from utils import pointer_constants, pointer_separators
 from utils import pack, unpack, location_from_pointer
 
-DUMP_ASCII = True
+DUMP_ASCII = False
 
 # Nomenclature for different parts of things:
 # Game contains disks.
@@ -118,11 +118,15 @@ for file, blocks in file_blocks.iteritems():
             whole_file = in_file.read()
             in_file.seek(0)
             snippets = in_file.readlines()
+
+            last_snippet_offset = 0
+
             for snippet in snippets:
                 if snippet and len(snippet) > 4:
-                    snippet_start = whole_file.index(snippet)
-                    # ^ Here's where the offset calculation mistake is happening.
-                    # Plus a whole lot of inefficiency... any way to trim the file whenever I find an index?
+                    slice = whole_file[last_snippet_offset:]
+                    snippet_start = slice.index(snippet) + last_snippet_offset
+                    last_snippet_offset = snippet_start
+
                     offset = hex(snippet_start)
                     # TODO: If there's already a snippet file with the same source and offset, recalculate the offset.
                     snippet_filename = "snippet_" + offset  + "_" + file
@@ -154,16 +158,23 @@ for file, blocks in file_blocks.iteritems():
         
             in_file.seek(block_start)
             bytes = in_file.read(block_length)
-            only_hex = ""
+            only_hex = ""                      # Text block of all the bloc
             for c in bytes:
                 only_hex += "\\x%02x" % ord(c)
                 
             snippets = only_hex.split('\\x00')
+
+            last_snippet_offset = 0
             
             for snippet in snippets:
                 if snippet and len(snippet) > 4:       # at least one byte
-                    snippet_start = only_hex.index(snippet)
-                    offset = hex(block_start + (snippet_start / 4))
+                    slice = only_hex[last_snippet_offset*4:]
+                    index_within_snippet = slice.index(snippet) / 4
+                    snippet_start = index_within_snippet + last_snippet_offset
+                    offset = hex(snippet_start + block_start)
+                    #print offset
+
+                    last_snippet_offset = snippet_start
 
                     snippet_bytes = snippet.replace('\\x', '').decode('hex')
 
@@ -193,8 +204,7 @@ for file, blocks in file_blocks.iteritems():
 dump = []
         
 for file in dump_files:
-    # file.split('_') is ('dump', 'snippet', offset, length, source)
-    #offset, length, source = tuple(file.split('_')[2:5])
+    # file.split('_') is ('dump', 'snippet', offset, source)
     source = file.split('_')[3]
     offset = file.split('_')[2]
 
