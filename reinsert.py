@@ -12,9 +12,12 @@
 # What about just Thelodus? Nope, that breaks it.
 # What about "Thelodus  "? Yeah, that works fine.
 # They both work without the creature names.
+
 # TODO: Can I extend the name-length of creatures you can't become without an issue?
 # All the creatures with short names are stuff like jellyfish, coral, urchin... stuff you can't evolve into.
 # Maybe I can get away with extending their names without causing an encyclopedia crash...
+# Seems fine so far! Awaiting further crashes...
+# This is a stroke of luck. Maybe the other files will have a different distribution of creature name lengths.
 
 # 2) Crash on changing maps.
 # I have to split up the blocks exactly right! Gotta place the spaces right before filenames...
@@ -34,12 +37,14 @@
 # Related: "Is this alright?" choices "0, 6, es"
 # and "Is this alright?" choice 0.
 #  Fine with yes/no/cancel, menu items, evo files/cancel. Issue might be with creature names??
+# Looks like the pointer table right above the creature names is getting rewritten incorrectly...
 
 # TODO: Extra menu item when first dialogue block is filled in. "There was a hidden Hemicyclapsis!"
 # Something is going wrong with the very first block - jut "cancel" being filled in messes it up.
 # Workaround: Use "Cancel    ".
 
 # TODO: Weird stuff going on with "Escape." Is it getting replaced somewhere else??
+# Yes. Fixed the blockstring slicing, now it replaces it at the correct place.
 
 # TODO: Moving overflow to the error block/spare block.
     # 0) Actually figure out where they are
@@ -276,8 +281,8 @@ def edit_pointers(file, pointer_diffs, file_string):
     adjustment_count = 0
 
     for text_location, diff in pointer_diffs.iteritems():
-        #if diff == 0:
-        #    continue
+        if diff == 0:
+            continue
         # TODO: Redirect the old error message strings. (Or just don't, since the patch is perfect and they'll never show up?)
         if (text_location >= overflow_block_lo) and (text_location <= overflow_block_hi):
             #print "It's an error code ", text_location
@@ -369,7 +374,7 @@ def edit_text(file, translations, rom_string):
         current_block = get_current_block(original_location, file)
         block_string = block_strings[current_block]
         try:
-            old_slice = block_string[previous_replacement_offset:]
+            old_slice = block_string[previous_replacement_offset*2:]
             i = old_slice.index(jp_bytestring)//2
         except ValueError:
             previous_replacement_offset = 0
