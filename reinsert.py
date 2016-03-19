@@ -4,7 +4,6 @@
 # 1) Crash on entering History/Encyclopedia
 # Seems to be related to either the Yes/No/Cancel (right before calls to SINKA.DAT) or creature name length changes.
 # Workaround for now is using creature names with the same length as the jp versions.
-# Will have to look closer at what causes the
 # The culprit is probably some kind of change to the location of a ref to SINKA.DAT around 0x11870.
 # Editing yes/no/cancel breaks Encyclopedia. If I keep them the same length ("No    ") it seems fine.
 # But can I edit the creatures??? Nope, that breaks it.
@@ -148,6 +147,10 @@ def get_pointers(file, ptr_xls):
     current_text_block = 0
     current_block_end = file_blocks[file][0][1]
 
+    # Creature block has some functions to alter the length automatically, so don't include their diffs
+    # in the lo-hi text adjustment search.
+    creature_block_lo, creature_block_hi = creature_block[file]
+
     pointer_wb = load_workbook(ptr_xls)
     pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
 
@@ -165,6 +168,8 @@ def get_pointers(file, ptr_xls):
         #first_overflow = first_offset_in_block(file, current_text_block, overflow_text)
 
         if (current_text_block > previous_text_block) and current_text_block:
+            print "new block!"
+            print "first search is between", hex(previous_text_offset), hex(text_offset)
             current_block_end = file_blocks[file][current_text_block][1]
             pointer_diff = 0
 
@@ -189,6 +194,11 @@ def get_pointers(file, ptr_xls):
         for n in range((lo), (hi)):
             try:
                 jp, eng = translations[n]
+
+                # Ignore the creature block text adjustments, as they will be cancelled out in edit_text().
+                if (n >= creature_block_lo) and (n <= creature_block_hi):
+                    continue
+
                 len_diff = len(eng) - (len(jp)*2)
 
                 #end_of_string = n + len(eng) + pointer_diff
@@ -228,7 +238,8 @@ def get_pointers(file, ptr_xls):
             previous_text_block = current_text_block
         previous_text_offset = text_offset
         ptr_diffs[text_offset] = pointer_diff
-        #print hex(text_offset), ptr_diffs[text_offset]
+        print hex(text_offset), ptr_diffs[text_offset]
+        # TODO: Why are no ptr diffs being calculated for the creature names? ex. 0x10fca
 
     #print "Pointer count: ", ptr_count
     return ptrs, ptr_diffs
@@ -307,7 +318,6 @@ def edit_pointers(file, pointer_diffs, file_string):
 
         old_slice = patched_file_string[location_in_string:]
         new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
-        #print patched_file_string.index(old_slice)
         patched_file_string = patched_file_string.replace(old_slice, new_slice, 1)
 
         adjustment_count += 1
@@ -362,6 +372,9 @@ def edit_text(file, translations, rom_string):
         for c in eng:
             eng_bytestring += "%02x" % ord(c)
 
+
+        # TODO: This is causing an adjustment to the length of the text WITHOUT editing the pointer diff!
+        # Gotta fix that. Ignore the search-for-all-the-text-between-lo-and-hi if it's in creature block?
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
             this_string_diff = (len(jp)*2) - len(eng)
             if this_string_diff >= 0:
@@ -379,7 +392,6 @@ def edit_text(file, translations, rom_string):
         except ValueError:
             previous_replacement_offset = 0
             old_slice = block_string
-            # Why is block_strings[0] different from the one that is set before this in edit_dat_text?
             i = old_slice.index(jp_bytestring)//2
 
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)

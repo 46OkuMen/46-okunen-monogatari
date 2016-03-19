@@ -17,8 +17,6 @@
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
 
-# TODO: String offsets are calculated incorrectly if they are substrings of strings appearing earlier in the file.
-
 import os
 import subprocess
 import codecs
@@ -31,7 +29,7 @@ from utils import capture_pointers_from_table, capture_pointers_from_function
 from utils import pointer_constants, pointer_separators
 from utils import pack, unpack, location_from_pointer
 
-DUMP_ASCII = False
+DUMP_ASCII = True
 
 # Nomenclature for different parts of things:
 # Game contains disks.
