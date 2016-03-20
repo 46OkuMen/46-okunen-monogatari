@@ -33,17 +33,20 @@ spare_block = {'OPENING.EXE': (0, 0),
                }
                # TODO: In progress. Also figure out what to do with the Nones.
 
-creature_block = {'ST1.EXE': (0x10fca, 0x11595),
+creature_block = {'OPENING.EXE': (0, 0),
+                  'ST1.EXE': (0x10fca, 0x11595),
                   'SINKA.DAT': (0, 0)}
                # TODO: Even more in progress than the last one.
 
 # Starting position, in bytes, of each file within the Disk 1 rom.
-file_start = {'ST1.EXE': 0x5e800,
+file_start = {'OPENING.EXE': 0x58800,
+              'ST1.EXE': 0x5e800,
               'SINKA.DAT': 0x3d000,
               'SEND.DAT': 0x34800,}
 
 # Length in bytes.
-file_length = {'ST1.EXE': 0x121a7,
+file_length = {'OPENING.EXE': 0x5e4b,
+               'ST1.EXE': 0x121a7,
                'SINKA.DAT': 0x69a4}
 
 pointer_separators = {
@@ -155,3 +158,19 @@ def file_to_hex_string(file_path, start=0, length=0):
         for c in f.read():
             hex_string += "%02x" % ord(c)
     return hex_string
+
+def ascii_to_hex_string(eng):
+    eng_bytestring = ""
+    for c in eng:
+        eng_bytestring += "%02x" % ord(c)
+    return eng_bytestring
+
+def sjis_to_hex_string(jp):
+    jp_bytestring = ""
+    sjis = jp.encode('shift-jis')
+    for c in sjis:
+        hx = "%02x" % ord(c)
+        if hx == '20': # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
+            hx = '8140'
+        jp_bytestring += hx
+    return jp_bytestring

@@ -17,6 +17,10 @@
 # Maybe I can get away with extending their names without causing an encyclopedia crash...
 # Seems fine so far! Awaiting further crashes...
 # This is a stroke of luck. Maybe the other files will have a different distribution of creature name lengths.
+# Properties that creatures probably have:
+# a) character portrait
+# b) overworld graphics
+# c) number for encyclopedia
 
 # 2) Crash on changing maps.
 # I have to split up the blocks exactly right! Gotta place the spaces right before filenames...
@@ -28,6 +32,7 @@
 # Probably has something to do with a poorly placed space, or a bad determination of blocks to begin with?
 
 # TODO: Crazy shit happens when trying to confirm an evolution.
+# Choices get broken when there's dialogue inserted in the lower block.
 # When there are creature names (different lengths), you don't get a yes/no choice and it gets glitchy.
 # (But it's fine when you use equal-length creature names.)
 # Fine when menu items & intro thelodus dialogue are inserted.
@@ -38,15 +43,10 @@
 #  Fine with yes/no/cancel, menu items, evo files/cancel. Issue might be with creature names??
 # Looks like the pointer table right above the creature names is getting rewritten incorrectly...
 
-# TODO: Extra menu item when first dialogue block is filled in. "There was a hidden Hemicyclapsis!"
-# Something is going wrong with the very first block - jut "cancel" being filled in messes it up.
-# Workaround: Use "Cancel    ".
-
-# TODO: Weird stuff going on with "Escape." Is it getting replaced somewhere else??
-# Yes. Fixed the blockstring slicing, now it replaces it at the correct place.
-
 # TODO: Moving overflow to the error block/spare block.
     # 0) Actually figure out where they are
+    # (Might want to skip the pointer_diffs dictionary calculation and do it in the edit_text itself?
+    # Just keep track of a running pointer_diff calculation there, maybe make calls to edit_pointer as well.)
     # 1) In the rom, replace the jp text with equivalent number of spaces
     # 2) Replace all of the error block with equivalent number of spaces
     # 3) Place all the text in the error block (what about control codes???)
@@ -169,23 +169,18 @@ def get_pointers(file, ptr_xls):
 
         if (current_text_block > previous_text_block) and current_text_block:
             print "new block!"
-            print "first search is between", hex(previous_text_offset), hex(text_offset)
+            #print "first search is between", hex(previous_text_offset), hex(text_offset)
             current_block_end = file_blocks[file][current_text_block][1]
             pointer_diff = 0
 
-        #new_text_offset = text_offset + pointer_diff
-        #if first_overflow:
-        #    if (new_text_offset > first_overflow) and (new_text_offset < current_block_end):
+        new_text_offset = text_offset + pointer_diff
+        # Identify pointers that are pushed past the end of the block but are not usually past the end...
+        if new_text_offset >= current_block_end > text_offset:
         #        # Pointers are tricky. We to store the ones between the overflow text and the end of the block
         #        # but not the pointers between blocks normally.
-        #        print hex(text_offset), "overflows past", hex(current_block_end), "with diff", pointer_diff
-        #        overflow_text.append(text_offset)
+                print hex(text_offset), "overflows past", hex(current_block_end), "with diff", pointer_diff
+                overflow_text.append(text_offset)
 
-        #try:
-        #    current_block_end = file_blocks[file][current_text_block][1] # the hi value.
-        #except TypeError:
-        #    pass
-        #print hex(current_block_end)
         # Rather than look for something with the exact pointer, look for any translated text with a value between previous_pointer_offset (excl) and text_offset (incl)
         # Calculate the diff, then add it to pointer_diff. There might be three or more bits of text betweeen the pointers (ex. dialogue)
 
@@ -201,14 +196,12 @@ def get_pointers(file, ptr_xls):
 
                 len_diff = len(eng) - (len(jp)*2)
 
-                #end_of_string = n + len(eng) + pointer_diff
-                #if end_of_string > current_block_end:
-                #    print hex(n), "overflows past", hex(current_block_end), "with diff", pointer_diff, "and len", len(eng)
-                #    overflow_text.append(n)
-                    # When you first hit overflow, they have totally different pointer diffs anyway
-                    # So reset pointer_diff to have a fresh start when the new block begins.
-                    #pointer_diff = 0
-                    # TODO: Hmm... if you reset the first thing at the end of a block, it may not catch the rest...
+                end_of_string = n + len(eng) + pointer_diff
+                if end_of_string > current_block_end:
+                    print hex(n), "overflows past", hex(current_block_end), "with diff", pointer_diff, "and len", len(eng)
+                    overflow_text.append(n)
+
+                    # TODO: In a later function, figure out how to recalculate the diffs...
                     # Gotta slice the rest of the block and save it somewhere for reinsertion in the spare block.
 
                 #print current_text_block, previous_text_block
@@ -239,7 +232,6 @@ def get_pointers(file, ptr_xls):
         previous_text_offset = text_offset
         ptr_diffs[text_offset] = pointer_diff
         print hex(text_offset), ptr_diffs[text_offset]
-        # TODO: Why are no ptr diffs being calculated for the creature names? ex. 0x10fca
 
     #print "Pointer count: ", ptr_count
     return ptrs, ptr_diffs
@@ -264,23 +256,42 @@ def get_block_strings(file, rom_path):
         block_strings.append(file_to_hex_string(rom_path, block_start, block_length))
     return block_strings
 
-def get_overflow(file, rom_path, overflow_text):
+def get_overflow(file, rom_path, overflow_location, end_of_block):
     # Fetch all the overflow/remainder of a block, text and control codes.
-    overflow_locs = overflow_text
-    overflow_bytestrings = []
-    f = open(rom_path, 'rb')
-    for (block_lo, block_hi), i in file_blocks[file].enumerate():
-        end_of_block = block_hi
-        for text in overflow_locs:
-            if (text >= block_lo) and (text <= block_hi):
-                start = file_start[file] + text
-                length = (block_hi - block_lo) - text
-                overflow_bytestrings.append(file_to_hex_string(file, start, length))
-            # Then remove the rest of the overflow text in that block.
-            for text in overflow_locs:
-                if (text >= block_lo) and (text <= block_hi):
-                    overflow_locs.remove(text)
+    length_of_overflow = end_of_block - overflow_location
+    overflow_bytestrings = OrderedDict() # old_location: bytestring
+
+    bytestring = file_to_hex_string(file, overflow_location, length_of_overflow)
+
     return overflow_bytestrings
+
+
+def edit_pointer(file, text_location, diff, file_string):
+    pointer_constant = pointer_constants[file]
+    if diff == 0:
+        return file_string
+    pointer_location = pointers[text_location]
+
+    old_value = text_location - pointer_constant
+    old_bytes = pack(old_value)
+    old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
+
+        #print hex(pointer_location)
+        #print "old:", old_value, old_bytes, old_bytestring
+
+    new_value = old_value + diff
+
+    new_bytes = pack(new_value)
+    new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
+        #print "new:", new_value, new_bytes, new_bytestring
+
+    location_in_string = pointer_location * 2
+
+    old_slice = file_string[location_in_string:]
+    new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
+    patched_file_string = file_string.replace(old_slice, new_slice, 1)
+
+    return patched_file_string
 
 
 def edit_pointers(file, pointer_diffs, file_string):
@@ -289,12 +300,11 @@ def edit_pointers(file, pointer_diffs, file_string):
     pointer_constant = pointer_constants[file]
     overflow_block_lo, overflow_block_hi = spare_block[file]
 
-    adjustment_count = 0
-
     for text_location, diff in pointer_diffs.iteritems():
         if diff == 0:
             continue
-        # TODO: Redirect the old error message strings. (Or just don't, since the patch is perfect and they'll never show up?)
+        # TODO: Redirect the old error message strings.
+        # (Or just don't, since the patch is perfect and they'll never show up?)
         if (text_location >= overflow_block_lo) and (text_location <= overflow_block_hi):
             #print "It's an error code ", text_location
             text_location = overflow_block_lo
@@ -320,8 +330,6 @@ def edit_pointers(file, pointer_diffs, file_string):
         new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
         patched_file_string = patched_file_string.replace(old_slice, new_slice, 1)
 
-        adjustment_count += 1
-
     #print compare_strings(file_string, patched_file_string)
     #print "Pointer adjustments:", adjustment_count
     return patched_file_string
@@ -335,46 +343,14 @@ def edit_text(file, translations, rom_string):
 
     for original_location, (jp, eng) in translations.iteritems():
         if eng == "":
-            # If there treally is no english translation, skip the replacement.
             continue
-
-        #current_block_end = file_blocks[file][get_current_block(original_location, file)][1]
-        #print hex(current_block_end)
-        #try:
-        #    diff = pointer_diffs[original_location]
-        #except KeyError:
-        #    try:
-        #        original_location -= 1
-        #        diff = pointer_diffs[original_location]
-        #    except KeyError:
-        #        print "KeyError", hex(original_location)
-        #        diff = 0
-
-        #new_string_end = (original_location) + len(jp)*2 + diff
-
-        #if new_string_end > current_block_end:
-        #    print "overflow at", hex(original_location-1), "past", current_block_end
-        #    overflow_text.append(original_location-1)
-        #    eng = ""
 
         if original_location in overflow_text:
             eng = ""
 
-        jp_bytestring = ""
-        sjis = jp.encode('shift-jis')
-        for c in sjis:
-            hx = "%02x" % ord(c)
-            if hx == '20': # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
-                hx = '8140'
-            jp_bytestring += hx
+        jp_bytestring = sjis_to_hex_string(jp)
+        eng_bytestring = ascii_to_hex_string(eng)
 
-        eng_bytestring = ""
-        for c in eng:
-            eng_bytestring += "%02x" % ord(c)
-
-
-        # TODO: This is causing an adjustment to the length of the text WITHOUT editing the pointer diff!
-        # Gotta fix that. Ignore the search-for-all-the-text-between-lo-and-hi if it's in creature block?
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
             this_string_diff = (len(jp)*2) - len(eng)
             if this_string_diff >= 0:
@@ -416,7 +392,7 @@ def edit_text(file, translations, rom_string):
 
             print number_of_spaces, "added at", hex(inserted_spaces_index)
         elif block_diff > 0:
-            print "Something went wrong, it's too long"
+            print "Something went wrong, it's too long at block ending:", hex(file_blocks[file][i][1])
 
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
         
@@ -455,7 +431,6 @@ def change_starting_map(map_number):
     f.seek(starting_map_number_location)
     f.write(new_map_bytes)
     f.close()
-    # omg this worked on the first try
 
 full_rom_string = file_to_hex_string(dest_rom_path)
 file_strings = get_file_strings(dest_rom_path)
@@ -488,10 +463,6 @@ for file in files_to_translate:
     full_rom_string = full_rom_string.replace(old_file_string, new_file_string)
     file_strings[file] = new_file_string
 
-    # Then, rewrite the actual text.
-    #min_pointer_diff = min(pointer_diffs.itervalues()) # What's this for?
-    #dest_rom.seek(file_start[file])
-
     # Then get individual strings of each text block, and put them in a list.
     block_strings = get_block_strings(file, dest_rom_path)
     original_block_strings = list(block_strings)   # Needs to be copied - simple assignment would just pass the reference.
@@ -503,7 +474,12 @@ for file in files_to_translate:
         data = unhexlify(full_rom_string)
         output_file.write(data)
 
-#change_starting_map(105)
+change_starting_map(101)
 # 100: open water, volcano cutscene immediately, combat
-# 101: caves, hidden hemicyclapsis (fast combat example)
+# 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
+# 102: OOB cladoselache cave
+# 103: the void
+# 104:
 # 105: (default) thelodus sea
+# 200: chapter 2 world map
+# 201: super glitchy salamander cave
