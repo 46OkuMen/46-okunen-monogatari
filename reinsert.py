@@ -345,6 +345,8 @@ def edit_text(file, translations, rom_string):
     creature_block_lo, creature_block_hi = creature_block[file]
     previous_replacement_offset = 0
 
+    #pointer_diff = 0
+
     for original_location, (jp, eng) in translations.iteritems():
         if eng == "":
             continue
@@ -354,6 +356,10 @@ def edit_text(file, translations, rom_string):
 
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
+
+        #this_string_diff = len(jp_bytestring) - len(eng_bytestring)
+        #pointer_diff += this_string_diff
+        # TODO: This is a good idea but I'm doing it wrong. These string diffs mess with the evolution tree...
 
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
             this_string_diff = (len(jp)*2) - len(eng)

@@ -1,0 +1,6 @@
+                                             Thelodus
+
+                           v (DEF)    v (INT)       v (STR)        v (HP)
+                         Birkenia   unknown name Hemicyclapsis    Bothriolepis
+                                                       v (STR)
+                                                      Gemuendina
