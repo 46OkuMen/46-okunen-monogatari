@@ -1,5 +1,7 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
+# TODO: Crash when trying to put more EVO Genes than you have.
+
 # Crashes to keep in mind:
 # 1) Crash on entering History/Encyclopedia
 # Seems to be related to either the Yes/No/Cancel (right before calls to SINKA.DAT) or creature name length changes.
@@ -28,20 +30,22 @@
 # More importantly, I wonder why the pointer adjustments themselves don't seem to have any effect...
 # TODO: Look really closely and see which pointers are getting adjusted, particularly the filename ones.
 
+# TODO: How to deal cleverly with %s string formattings?
+# "You encountered a wild %s!" %s at the beginning
+# "You evolved into X!" %s in the middle
+# I know how I would deal with them manually, but...
+
 # TODO: Game boots to black screen when the first block is filled in...
 # Probably has something to do with a poorly placed space, or a bad determination of blocks to begin with?
 
 # TODO: Crazy shit happens when trying to confirm an evolution.
 # Choices get broken when there's dialogue inserted in the lower block.
 # When there are creature names (different lengths), you don't get a yes/no choice and it gets glitchy.
-# (But it's fine when you use equal-length creature names.)
-# Fine when menu items & intro thelodus dialogue are inserted.
-# First dialogue block (& evo files) doesn't break it.
-# Something in the end-of-first-map dialogue breaks it...
-# Related: "Is this alright?" choices "0, 6, es"
-# and "Is this alright?" choice 0.
-#  Fine with yes/no/cancel, menu items, evo files/cancel. Issue might be with creature names??
 # Looks like the pointer table right above the creature names is getting rewritten incorrectly...
+
+# TODO: Are all of the battle messages showing up when they should be? There are some conspicuous silences...
+
+# TODO: Funny line breaks/waits in the cave thelodus dialogue.
 
 # TODO: Moving overflow to the error block/spare block.
     # 0) Actually figure out where they are
@@ -483,3 +487,5 @@ change_starting_map(101)
 # 105: (default) thelodus sea
 # 200: chapter 2 world map
 # 201: super glitchy salamander cave
+
+# Useful tip: "Load File 1" takes you to map 105 from any map!
