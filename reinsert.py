@@ -11,6 +11,8 @@
 # What about just Thelodus? Nope, that breaks it.
 # What about "Thelodus  "? Yeah, that works fine.
 # They both work without the creature names.
+# TODO:
+# Also get an encyclopedia crash when "But you evolved too far..." is filled in. Think there's a weird length calc...
 
 # TODO: Can I extend the name-length of creatures you can't become without an issue?
 # All the creatures with short names are stuff like jellyfish, coral, urchin... stuff you can't evolve into.
