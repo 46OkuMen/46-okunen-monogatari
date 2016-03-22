@@ -1,6 +1,13 @@
                                              Thelodus
-
                            v (DEF)    v (INT)       v (STR)        v (HP)
                          Birkenia   unknown name Hemicyclapsis    Bothriolepis
-                                                       v (STR)
-                                                      Gemuendina
+                                                 v (STR)
+                                X          Gemuendina    > (HP) Lunapsis
+                                                                      v (HP)
+                           X           X          Coccosteus < (STR)  Dunkleosteus
+                                                v (STR)
+                                X           Cheirolepsis             X
+                                               v (STR)
+                        Osteolepis  < (DEF) Coelacanth             X
+
+                                           Icthyostega?

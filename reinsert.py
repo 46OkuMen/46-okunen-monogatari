@@ -1,7 +1,5 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
-# TODO: Crash when trying to put more EVO Genes than you have.
-
 # Crashes to keep in mind:
 # 1) Crash on entering History/Encyclopedia
 # Seems to be related to either the Yes/No/Cancel (right before calls to SINKA.DAT) or creature name length changes.
@@ -35,17 +33,11 @@
 # "You evolved into X!" %s in the middle
 # I know how I would deal with them manually, but...
 
-# TODO: Game boots to black screen when the first block is filled in...
-# Probably has something to do with a poorly placed space, or a bad determination of blocks to begin with?
-
-# TODO: Crazy shit happens when trying to confirm an evolution.
-# Choices get broken when there's dialogue inserted in the lower block.
-# When there are creature names (different lengths), you don't get a yes/no choice and it gets glitchy.
-# Looks like the pointer table right above the creature names is getting rewritten incorrectly...
-
 # TODO: Are all of the battle messages showing up when they should be? There are some conspicuous silences...
+# Yes. Some things get cut off when stuff in the final battle text block is filled in/changes lengths.
 
 # TODO: Funny line breaks/waits in the cave thelodus dialogue.
+# This is probably hard-coded into the function...? It happens in the Japanese as well.
 
 # TODO: Moving overflow to the error block/spare block.
     # 0) Actually figure out where they are
@@ -68,7 +60,7 @@ from shutil import copyfile
 from collections import OrderedDict
 
 script_dir = os.path.dirname(__file__)
-src_path = os.path.join(script_dir, 'original_roms')
+src_path = os.path.join(script_dir, 'intermediate_roms')
 dest_path = os.path.join(script_dir, 'patched_roms')
 
 src_rom_path = os.path.join(src_path, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
