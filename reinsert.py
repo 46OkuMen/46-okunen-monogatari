@@ -11,8 +11,8 @@
 # What about just Thelodus? Nope, that breaks it.
 # What about "Thelodus  "? Yeah, that works fine.
 # They both work without the creature names.
-# TODO:
-# Also get an encyclopedia crash when "But you evolved too far..." is filled in. Think there's a weird length calc...
+# TODO:  Also get an encyclopedia crash when "But you evolved too far..." is filled in.
+# # Think there's a weird length calc... It says it's overflowing when replaced with something with the same length.
 
 # TODO: Can I extend the name-length of creatures you can't become without an issue?
 # All the creatures with short names are stuff like jellyfish, coral, urchin... stuff you can't evolve into.
@@ -23,6 +23,9 @@
 # a) character portrait
 # b) overworld graphics
 # c) number for encyclopedia
+
+# I think the crash may have been unrelated?? It's not happening anymore, even when I evolve into something
+# with a different name length...
 
 # 2) Crash on changing maps.
 # I have to split up the blocks exactly right! Gotta place the spaces right before filenames...
