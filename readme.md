@@ -10,6 +10,6 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 * Chapter 6: 0%
 * System: 100%
 * Cinematics: 0%
-* Encyclopedia: 23%
+* Encyclopedia: 32%
 * Alternate Endings: 0%
 * Images: 0%
