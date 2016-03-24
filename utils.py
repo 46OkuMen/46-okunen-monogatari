@@ -5,11 +5,21 @@ files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'S
 
 file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                '46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
-               'ST1.EXE': ((0xd872, 0xd8b3), (0xd8f3, 0xd932), (0xd984, 0xe6f8), (0xe6fa, 0xec4c), (0xec4c, 0xec9e),
-                           (0xec9e, 0xef15),
-                           (0xef55, 0x10e99), (0x10e99, 0x10eb8), (0x10eb8, 0x10f12), (0x10f12, 0x10f85),
-                           (0x10fca, 0x117c6), (0x117c7, 0x117df), (0x11838, 0x11856),
-                           (0x11892, 0x119a3), (0x11d42, 0x1204e)),
+               'ST1.EXE': ((0xd872, 0xd8b3), # not variable; environment messages
+                           (0xd8f3, 0xd932), # not variable; Gaia's Heart
+                           (0xd984, 0xe6f9), # variable; dialogue
+                           (0xe6fa, 0xec4c), # not variable; battle msgs
+                           (0xec4c, 0xec9e), # not variable; evolution msgs
+                           (0xec9e, 0xef15), # not variable; stats
+                           (0xef55, 0x10e99), # variable; dialogue
+                           (0x10e99, 0x10eb8),
+                           (0x10eb8, 0x10f12),
+                           (0x10f12, 0x10f85), # not variable; environment messages
+                           (0x10fca, 0x117c6), # variable; creature names
+                           (0x117c7, 0x117df), # not variable; yes/no/cancel
+                           (0x11838, 0x11856), # not variable; "evolved too far" message
+                           (0x11892, 0x119a3), # not variable; battle msgs
+                           (0x11d42, 0x1204e)), # error block
                'ST2.EXE': ((0xc23b, 0xdd4f), (0xde35, 0xfaa0), (0xfae4, 0xfe50), (0x10004, 0x101df), (0x10570, 0x1087b)),
                'ST3.EXE': ((0xb49d, 0xb548), (0xb58a, 0xdb3a), (0xdb7e, 0xe2d5), (0xe617, 0xe7f3), (0xeb82, 0xee8e)),
                'ST4.EXE': ((0xe262, 0xe29e), (0xe2f4, 0x120a0), (0x12114, 0x149e4), (0x14a28, 0x15a1e), (0x16031, 0x1620d), (0x1659c, 0x168a8)),
