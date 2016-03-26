@@ -12,8 +12,8 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                            (0xec4c, 0xec9e), # not variable; evolution msgs
                            (0xec9e, 0xef15), # not variable; stats
                            (0xef55, 0x10e99), # variable; dialogue
-                           (0x10e99, 0x10eb8),
-                           (0x10eb8, 0x10f12),
+                           (0x10e99, 0x10eb8), # not variable; environment messages
+                           (0x10eb8, 0x10f12), # not variable; environment messages
                            (0x10f12, 0x10f85), # not variable; environment messages
                            (0x10fca, 0x117c6), # variable; creature names
                            (0x117c7, 0x117df), # not variable; yes/no/cancel
