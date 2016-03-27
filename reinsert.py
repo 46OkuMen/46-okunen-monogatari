@@ -1,15 +1,5 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
-# TODO: Pointers are getting written incorrectly after the refactoring...
-
-# Crashes to keep in mind:
-
-# 1) Crash on changing maps.
-# I have to split up the blocks exactly right! Gotta place the spaces right before filenames...
-# I wonder how sensitive it is? Do I need to do this for every .GDT image, or just new maps or exes?
-# More importantly, I wonder why the pointer adjustments themselves don't seem to have any effect...
-# TODO: Look really closely and see which pointers are getting adjusted, particularly the filename ones.
-
 # TODO: How to deal cleverly with %s string formattings?
 # "You encountered a wild %s!" %s at the beginning
 # "You evolved into X!" %s in the middle
@@ -20,6 +10,7 @@
 
 # TODO: Funny line breaks/waits in the cave thelodus dialogue.
 # This is probably hard-coded into the function...? It happens in the Japanese as well.
+# Look for SJIS space 81-76 between the lines I've listed in the excel sheet. Add it to the end of line 1.
 
 # TODO: Moving overflow to the error block/spare block.
     # Done?) Actually figure out where they are
@@ -80,13 +71,12 @@ def get_translations(file, dump_xls):
         trans[offset] = (japanese, english)
 
     translation_percent = int(math.floor((total_replacements / total_rows) * 100))
-    #for o, (_, eng) in trans.iteritems():
-    #    print hex(o), eng
     print file, str(translation_percent) + "% complete"
 
     return trans
 
 def get_dat_translations(file, dump_xls):
+    # TODO: I fixed the offsets for the .dat files, do I still need this as a separate function?
     # I failed to record accurate offsets for the .dat files, and I'm paying the price.
     # But I can load up a list full of (jp, eng) tuples and replace the first instance of each one,
     # and it should be fine.
@@ -158,14 +148,14 @@ def edit_pointer(file, text_location, diff, file_string):
     old_bytes = pack(old_value)
     old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
 
-    print hex(pointer_location)
-    print "old:", old_value, old_bytes, old_bytestring
+    #print hex(pointer_location)
+    #print "old:", old_value, old_bytes, old_bytestring
 
     new_value = old_value + diff
 
     new_bytes = pack(new_value)
     new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-    print "new:", new_value, new_bytes, new_bytestring
+    #print "new:", new_value, new_bytes, new_bytestring
 
     location_in_string = pointer_location * 2
 
@@ -173,7 +163,7 @@ def edit_pointer(file, text_location, diff, file_string):
     new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
     patched_file_string = file_string.replace(old_slice, new_slice, 1)
 
-    print "Pointer edit with text_location", hex(text_location), "pointer_location", hex(pointer_location)
+    #print "Pointer edit with text_location", hex(text_location), "pointer_location", hex(pointer_location)
     #print compare_strings(original_file_string, patched_file_string)
 
     return patched_file_string
@@ -233,31 +223,19 @@ def edit_text(file, translations):
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
 
-        # Problems with diff calculations:
-        # 0xedd9 should be 0xeddb (+2)
-        # 0xee0a should be 0xee0c (+2)
-        # 0xee2c should be 0xee2e (+2)
-
-        #this_string_diff = len(eng) - len(jp)*2
         this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)   # since 2 chars per byte
-        #print eng_bytestring
-        #print jp_bytestring
 
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
             #this_string_diff = (len(jp)*2) - len(eng)
             if this_string_diff >= 0:
                 eng_bytestring += "00"*this_string_diff
                 this_string_diff = (len(jp_bytestring) - len(eng_bytestring)) // 2
-                print eng_bytestring
-                print jp_bytestring
                 assert this_string_diff == 0, 'creature string diff not 0'
                 # Should be zero unless something went wrong...
             else:
                 # Append the 00s to the jp_bytestring so they get replaced - keep the length the same.
                 jp_bytestring += "00"*((-1)*this_string_diff)
                 this_string_diff = (len(jp_bytestring) - len(eng_bytestring)) // 2
-                print eng_bytestring
-                print jp_bytestring
                 assert this_string_diff == 0, 'creature string diff not 0'
 
         pointer_diff += this_string_diff
@@ -277,9 +255,9 @@ def edit_text(file, translations):
 
         previous_replacement_offset += i
 
-    file_string = file_strings[file]
-    patched_file_string = file_string
-    patched_file_string = pad_text_blocks(file, block_strings, patched_file_string)
+    #file_string = file_strings[file]
+    #patched_file_string = file_string
+    patched_file_string = pad_text_blocks(file, block_strings, file_strings[file])
 
     return patched_file_string
 
@@ -290,14 +268,12 @@ def pad_text_blocks(file, block_strings, file_string):
         block_diff = len(blk) - len(original_block_strings[i])   # if block is too short, negative; too long, positive
         #print len(original_block_strings[i]), len(blk)
         print block_diff
+        assert block_diff <= 0, 'Block ending in %s is too long' % hex(file_blocks[file][i][1])
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
             inserted_spaces_index = file_blocks[file][i][0] + (len(blk)//2)
-            blk += '20' * number_of_spaces  # Fill it up with ascii 20 (space)
-
+            blk += '20' * number_of_spaces       # Fill it up with ascii 20 (space)
             print number_of_spaces, "added at", hex(inserted_spaces_index)
-        elif block_diff > 0:
-            print "Something went wrong, it's too long at block ending:", hex(file_blocks[file][i][1])
 
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
 
@@ -312,24 +288,14 @@ def edit_dat_text(file, file_string):
     for (jp, eng) in translations:
         if eng == "":
             continue
-        jp_bytestring = ""
-        sjis = jp.encode('shift-jis')
-        for c in sjis:
-            hx = "%02x" % ord(c)
-            if hx == '20': # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
-                hx = '8140'
-            jp_bytestring += hx
+        jp_bytestring = sjis_to_hex_string(jp)
+        eng_bytestring = ascii_to_hex_string(eng)
 
-        eng_bytestring = ""
-        for c in eng:
-            eng_bytestring += "%02x" % ord(c)
         patched_file_string = patched_file_string.replace(jp_bytestring, eng_bytestring, 1)
     return patched_file_string
 
 
 def change_starting_map(map_number):
-    # Current map: MAP105.MAP
-    # Change to MAP103.MAP to test combat more easily?
     starting_map_number_location = 0xedaa + file_start['ST1.EXE']
     new_map_bytes = str(map_number).encode()
     f = open(dest_rom_path, 'rb+')
