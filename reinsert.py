@@ -22,15 +22,12 @@
 # This is probably hard-coded into the function...? It happens in the Japanese as well.
 
 # TODO: Moving overflow to the error block/spare block.
-    # 0) Actually figure out where they are
-    # (Might want to skip the pointer_diffs dictionary calculation and do it in the edit_text itself?
-    # Just keep track of a running pointer_diff calculation there, maybe make calls to edit_pointer as well.)
-    # 1) In the rom, replace the jp text with equivalent number of spaces
+    # Done?) Actually figure out where they are
+    # Done) In the rom, replace the jp text with equivalent number of spaces
     # 2) Replace all of the error block with equivalent number of spaces
     # 3) Place all the text in the error block (what about control codes???)
     # 4) Rewrite all the pointer values to point to new locations
  # What about control codes??? If I move text from one block to another, I'll need to move hte control code as
-# Note the first instance of overflow, slice it until the end of the block, save that raw code for later.
 
 from __future__ import division
 import os
@@ -116,19 +113,6 @@ def get_pointers(file, ptr_xls):
     # Parse the pointer excel, calculate differences in pointer values,
     # and return dictionaries of pointers and diffs.
     ptrs = OrderedDict()              # text_offset: pointer_offset
-    #ptr_diffs = OrderedDict()         # text_offset: diff
-    #ptr_count = 0
-
-    #pointer_diff = 0           # Cumulative diff.
-    #previous_text_offset = file_blocks[file][0][0]
-
-    #previous_text_block = 0
-    #current_text_block = 0
-    #current_block_end = file_blocks[file][0][1]
-
-    # Creature block has some functions to alter the length automatically, so don't include their diffs
-    # in the lo-hi text adjustment search.
-    #creature_block_lo, creature_block_hi = creature_block[file]
 
     pointer_wb = load_workbook(ptr_xls)
     pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") # For now, they are all in the same sheet... kinda ugly.
@@ -140,74 +124,7 @@ def get_pointers(file, ptr_xls):
         text_offset = int(row[1].value, 16)
         pointer_offset = int(row[2].value, 16)
         ptrs[text_offset] = pointer_offset
-        #if get_current_block(text_offset, file):
-        #    current_text_block = get_current_block(text_offset, file)
 
-        #if (current_text_block > previous_text_block) and current_text_block:
-        #    print "new block!"
-        #    #print "first search is between", hex(previous_text_offset), hex(text_offset)
-        #    current_block_end = file_blocks[file][current_text_block][1]
-        #    pointer_diff = 0
-
-        #new_text_offset = text_offset + pointer_diff
-        ## Identify pointers that are pushed past the end of the block but are not usually past the end...
-        #if new_text_offset >= current_block_end > text_offset:
-        ##        # Pointers are tricky. We to store the ones between the overflow text and the end of the block
-        ##        # but not the pointers between blocks normally.
-        #        print hex(text_offset), "overflows past", hex(current_block_end), "with diff", pointer_diff
-        #        overflow_text.append(text_offset)
-
-        # Rather than look for something with the exact pointer, look for any translated text with a value between previous_pointer_offset (excl) and text_offset (incl)
-        # Calculate the diff, then add it to pointer_diff. There might be three or more bits of text betweeen the pointers (ex. dialogue)
-
-        #lo = previous_text_offset
-        #hi = text_offset
-        #for n in range((lo), (hi)):
-        #    try:
-        #        jp, eng = translations[n]
-
-                # Ignore the creature block text adjustments, as they will be cancelled out in edit_text().
-                #if (n >= creature_block_lo) and (n <= creature_block_hi):
-                #    continue
-
-                #len_diff = len(eng) - (len(jp)*2)
-
-                #end_of_string = n + len(eng) + pointer_diff
-                #if end_of_string > current_block_end:
-                #    print hex(n), "overflows past", hex(current_block_end), "with diff", pointer_diff, "and len", len(eng)
-                #    overflow_text.append(n)
-
-
-                #print current_text_block, previous_text_block
-                #if current_text_block != previous_text_block:
-                    # First text in a new block. Reset the pointer diff.
-                #    pointer_diff = 0
-                    # Then, add all the poitners that got missed between the first and end.
-                    #print previous_text_block
-                #    first = first_offset_in_block(file, previous_text_block, overflow_text)
-                    #last = current_block_end
-                #    print "lo hi", hex(first), hex(n)
-                #    for p, t in ptrs.iteritems():
-                #        if (p < first) and (p >= n):
-                #            overflow_text.append(t)
-                #            print "adding", hex(t), "to overflow"
-
-                # If the eng part of the translation is blank, don't calculate a pointer diff.
-                # But we still want it to be put in the overflow_text list.
-     #           if not eng:
-     #               continue
-
-     #           pointer_diff += len_diff
-     #       except KeyError:
-     #           continue
-
-     #   if current_text_block:
-     #       previous_text_block = current_text_block
-     #   previous_text_offset = text_offset
-     #   ptr_diffs[text_offset] = pointer_diff
-        #print hex(text_offset), ptr_diffs[text_offset]
-
-    #print "Pointer count: ", ptr_count
     return ptrs
 
 
@@ -241,21 +158,19 @@ def edit_pointer(file, text_location, diff, file_string):
     old_bytes = pack(old_value)
     old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
 
-        #print hex(pointer_location)
-        #print "old:", old_value, old_bytes, old_bytestring
+    print hex(pointer_location)
+    print "old:", old_value, old_bytes, old_bytestring
 
     new_value = old_value + diff
 
     new_bytes = pack(new_value)
     new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-        #print "new:", new_value, new_bytes, new_bytestring
+    print "new:", new_value, new_bytes, new_bytestring
 
     location_in_string = pointer_location * 2
 
     old_slice = file_string[location_in_string:]
-    print old_slice.index(old_bytestring)
     new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
-    print file_string.index(old_slice)
     patched_file_string = file_string.replace(old_slice, new_slice, 1)
 
     print "Pointer edit with text_location", hex(text_location), "pointer_location", hex(pointer_location)
@@ -265,8 +180,7 @@ def edit_pointer(file, text_location, diff, file_string):
 
 
 def edit_pointers_in_range(file, file_string, (lo, hi), diff):
-    print "Editing pointers in range", hex(lo), hex(hi)
-    for n in range(lo, hi):
+    for n in range(lo, hi+1):
         try:
             ptr = pointers[n]
             file_string = file_strings[file]
@@ -319,19 +233,31 @@ def edit_text(file, translations):
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
 
-        this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2   # since 2 chars per byte
+        # Problems with diff calculations:
+        # 0xedd9 should be 0xeddb (+2)
+        # 0xee0a should be 0xee0c (+2)
+        # 0xee2c should be 0xee2e (+2)
+
+        #this_string_diff = len(eng) - len(jp)*2
+        this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)   # since 2 chars per byte
+        #print eng_bytestring
+        #print jp_bytestring
 
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
             #this_string_diff = (len(jp)*2) - len(eng)
             if this_string_diff >= 0:
                 eng_bytestring += "00"*this_string_diff
-                this_string_diff = len(jp_bytestring) - len(eng_bytestring)
+                this_string_diff = (len(jp_bytestring) - len(eng_bytestring)) // 2
+                print eng_bytestring
+                print jp_bytestring
                 assert this_string_diff == 0, 'creature string diff not 0'
                 # Should be zero unless something went wrong...
             else:
                 # Append the 00s to the jp_bytestring so they get replaced - keep the length the same.
                 jp_bytestring += "00"*((-1)*this_string_diff)
-                this_string_diff = len(jp_bytestring) - len(eng_bytestring)
+                this_string_diff = (len(jp_bytestring) - len(eng_bytestring)) // 2
+                print eng_bytestring
+                print jp_bytestring
                 assert this_string_diff == 0, 'creature string diff not 0'
 
         pointer_diff += this_string_diff
@@ -345,11 +271,8 @@ def edit_text(file, translations):
             old_slice = block_string
             i = old_slice.index(jp_bytestring)//2
 
-        print old_slice.index(jp_bytestring)
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
-        print block_strings[current_text_block].index(old_slice)
         new_block_string = block_strings[current_text_block].replace(old_slice, new_slice, 1)
-        print compare_strings(block_strings[current_text_block], new_block_string)
         block_strings[current_text_block] = new_block_string
 
         previous_replacement_offset += i
@@ -365,8 +288,7 @@ def pad_text_blocks(file, block_strings, file_string):
     patched_file_string = file_string
     for i, blk in enumerate(block_strings):
         block_diff = len(blk) - len(original_block_strings[i])   # if block is too short, negative; too long, positive
-        print compare_strings(original_block_strings[i], blk)
-        print len(original_block_strings[i]), len(blk)
+        #print len(original_block_strings[i]), len(blk)
         print block_diff
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
@@ -377,7 +299,6 @@ def pad_text_blocks(file, block_strings, file_string):
         elif block_diff > 0:
             print "Something went wrong, it's too long at block ending:", hex(file_blocks[file][i][1])
 
-        print patched_file_string.index(original_block_strings[i])
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
 
     return patched_file_string
@@ -445,7 +366,6 @@ for file in files_to_translate:
     original_block_strings = list(block_strings)   # Needs to be copied - simple assignment would just pass the ref.
 
     patched_file_string = edit_text(file, translations)
-    print hex(full_rom_string.index(original_file_strings[file]))          # Returns something
     full_rom_string = full_rom_string.replace(original_file_strings[file], patched_file_string, 1)
 
     # Write the data to the patched file.

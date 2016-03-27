@@ -182,6 +182,7 @@ def sjis_to_hex_string(jp):
     for c in sjis:
         hx = "%02x" % ord(c)
         if hx == '20': # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
+            print "fixing an 8140"
             hx = '8140'
         jp_bytestring += hx
     return jp_bytestring
