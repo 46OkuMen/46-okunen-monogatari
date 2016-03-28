@@ -1,9 +1,11 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
-# TODO: How to deal cleverly with %s string formattings?
-# "You encountered a wild %s!" %s at the beginning
-# "You evolved into X!" %s in the middle
-# I know how I would deal with them manually, but...
+# TODO: Problems with refactored script:
+# 1) Creature name padding isn't working properly.
+# 2) Not slicing block strings enough - the "run problem" is showing up again.
+# 3) Not treating overflow.
+
+# TODO: Crashes when changing length of battle options.
 
 # TODO: Are all of the battle messages showing up when they should be? There are some conspicuous silences...
 # Yes. Some things get cut off when stuff in the final battle text block is filled in/changes lengths.
@@ -194,7 +196,9 @@ def edit_text(file, translations):
 
     previous_text_block = 0
     current_text_block = 0
+    current_block_start = file_blocks[file][0][0]
     current_block_end = file_blocks[file][0][1]
+    is_overflowing = False
 
     overflow_text = []
 
@@ -205,20 +209,30 @@ def edit_text(file, translations):
         if current_text_block != previous_text_block:
             print "Hey, it's a new block!", hex(original_location)
             pointer_diff = 0
-            current_block_end = file_blocks[file][current_text_block][1]
+            is_overflowing = False
+            block_string = block_strings[current_text_block]
+            current_block_start, current_block_end = file_blocks[file][current_text_block]
         if current_text_block:
             previous_text_block = current_text_block
 
         previous_text_offset = original_location
 
+        new_text_offset = original_location + len(jp*2) + pointer_diff
+        #print "testing overflow.", hex(original_location), "+", len(jp*2), "+", pointer_diff, "past", hex(current_block_end), "?"
+        if new_text_offset > current_block_end:
+            print hex(new_text_offset), "overflows past", hex(current_block_end)
+            is_overflowing = True
+            overflow_text.append(original_location)
+            start_in_block = (original_location - current_block_start)*2
+            end_in_block = (current_block_end - current_block_start)*2
+            overflow_bytestring = block_string[start_in_block:end_in_block]
+            print overflow_bytestring
+
         if eng == "":
             continue
 
-        new_text_offset = original_location + len(jp*2) + pointer_diff
-        if new_text_offset > current_block_end:
-            print hex(new_text_offset), "overflows past", hex(current_block_end)
+        if is_overflowing:
             eng = ""
-            overflow_text.append(original_location)
 
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
@@ -339,7 +353,7 @@ for file in files_to_translate:
         data = unhexlify(full_rom_string)
         output_file.write(data)
 
-#change_starting_map(101)
+change_starting_map(101)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
