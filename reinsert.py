@@ -6,6 +6,8 @@
 # 3) Not treating overflow.
 
 # TODO: Crashes when changing length of battle options.
+# Does this have something to do with the pointer-pointers? They point a few bytes away from their pointer...
+# Am I breaking up the blocks in the right location? If I mess with a pointer table and then reset the diff, that's bad.
 
 # TODO: Are all of the battle messages showing up when they should be? There are some conspicuous silences...
 # Yes. Some things get cut off when stuff in the final battle text block is filled in/changes lengths.
@@ -150,6 +152,11 @@ def edit_pointer(file, text_location, diff, file_string):
     old_bytes = pack(old_value)
     old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
 
+    location_in_string = (pointer_location + file_start[file])*2
+    rom_bytestring = full_rom_string[location_in_string:location_in_string+4]
+
+    assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
+
     #print hex(pointer_location)
     #print "old:", old_value, old_bytes, old_bytestring
 
@@ -241,15 +248,15 @@ def edit_text(file, translations):
 
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
             #this_string_diff = (len(jp)*2) - len(eng)
-            if this_string_diff >= 0:
-                eng_bytestring += "00"*this_string_diff
-                this_string_diff = (len(jp_bytestring) - len(eng_bytestring)) // 2
+            if this_string_diff <= 0:
+                eng_bytestring += "00"*(this_string_diff*(-1))
+                this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)
                 assert this_string_diff == 0, 'creature string diff not 0'
                 # Should be zero unless something went wrong...
             else:
                 # Append the 00s to the jp_bytestring so they get replaced - keep the length the same.
-                jp_bytestring += "00"*((-1)*this_string_diff)
-                this_string_diff = (len(jp_bytestring) - len(eng_bytestring)) // 2
+                jp_bytestring += "00"*(this_string_diff)
+                this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)
                 assert this_string_diff == 0, 'creature string diff not 0'
 
         pointer_diff += this_string_diff
