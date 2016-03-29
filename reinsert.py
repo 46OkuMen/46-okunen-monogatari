@@ -3,6 +3,8 @@
 # TODO: Problems with refactored script:
 # 3) Not treating overflow.
 
+# TODO: Fix the confusion with offsets where blocks end and start.
+
 # TODO: Some stuff not getting inserted, but not showing any indication?
 # Cancel and EVO File numbers are in the chart, but not showing up in the game or rom...
 # The same thing happens in the first dialogue block for some reason. The pointers get adjusted but text is the same.
@@ -12,9 +14,6 @@
 # TODO: Crashes when changing length of battle options.
 # Does this have something to do with the pointer-pointers? They point a few bytes away from their pointer...
 # Am I breaking up the blocks in the right location? If I mess with a pointer table and then reset the diff, that's bad.
-
-# TODO: Are all of the battle messages showing up when they should be? There are some conspicuous silences...
-# Yes. Some things get cut off when stuff in the final battle text block is filled in/changes lengths.
 
 # TODO: Funny line breaks/waits in the cave thelodus dialogue.
 # This is probably hard-coded into the function...? It happens in the Japanese as well.
@@ -217,6 +216,7 @@ def edit_text(file, translations):
         file_strings[file] = edit_pointers_in_range(file, file_strings[file], (previous_text_offset, original_location), pointer_diff)
         print hex(original_location), pointer_diff
         current_text_block = get_current_block(original_location, file)
+        print current_text_block
         if current_text_block != previous_text_block:
             print "Hey, it's a new block!", hex(original_location)
             pointer_diff = 0
@@ -252,7 +252,6 @@ def edit_text(file, translations):
         this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)   # since 2 chars per byte
 
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
-            #this_string_diff = (len(jp)*2) - len(eng)
             if this_string_diff <= 0:
                 eng_bytestring += "00"*(this_string_diff*(-1))
                 this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)
@@ -267,6 +266,10 @@ def edit_text(file, translations):
         pointer_diff += this_string_diff
 
         block_string = block_strings[current_text_block]
+        #print jp_bytestring
+        #print previous_replacement_offset
+        #print current_text_block
+        #print block_string
         try:
             old_slice = block_string[previous_replacement_offset*2:]
             i = old_slice.index(jp_bytestring)//2
