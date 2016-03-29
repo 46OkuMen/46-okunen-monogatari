@@ -2,9 +2,6 @@
 
 # TODO: Problems with refactored script:
 # 3) Not treating overflow.
-
-# TODO: Fix the confusion with offsets where blocks end and start.
-
 # TODO: Some stuff not getting inserted, but not showing any indication?
 # Cancel and EVO File numbers are in the chart, but not showing up in the game or rom...
 # The same thing happens in the first dialogue block for some reason. The pointers get adjusted but text is the same.
@@ -279,6 +276,7 @@ def edit_text(file, translations):
             i = old_slice.index(jp_bytestring)//2
 
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
+        j = block_strings[current_text_block].index(old_slice)
         new_block_string = block_strings[current_text_block].replace(old_slice, new_slice, 1)
         block_strings[current_text_block] = new_block_string
 
@@ -300,10 +298,13 @@ def pad_text_blocks(file, block_strings, file_string):
         assert block_diff <= 0, 'Block ending in %s is too long' % hex(file_blocks[file][i][1])
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
-            inserted_spaces_index = file_blocks[file][i][0] + (len(blk)//2)
+            inserted_spaces_index = file_blocks[file][i][1]
             blk += '20' * number_of_spaces       # Fill it up with ascii 20 (space)
             print number_of_spaces, "added at", hex(inserted_spaces_index)
 
+        print original_block_strings[i]
+        j = file_strings[file].index(original_block_strings[i])
+        j = patched_file_string.index(original_block_strings[i])   #TODO: This is the one that crashes...
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
 
     return patched_file_string
@@ -320,6 +321,7 @@ def edit_dat_text(file, file_string):
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
 
+        i = patched_file_string.index(jp_bytestring)
         patched_file_string = patched_file_string.replace(jp_bytestring, eng_bytestring, 1)
     return patched_file_string
 
@@ -361,6 +363,7 @@ for file in files_to_translate:
     original_block_strings = list(block_strings)   # Needs to be copied - simple assignment would just pass the ref.
 
     patched_file_string = edit_text(file, translations)
+    i = full_rom_string.index(original_file_strings[file])
     full_rom_string = full_rom_string.replace(original_file_strings[file], patched_file_string, 1)
 
     # Write the data to the patched file.

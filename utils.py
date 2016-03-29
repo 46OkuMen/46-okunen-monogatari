@@ -7,8 +7,7 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                '46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
                'ST1.EXE': ((0xd873, 0xd8b3), # not variable; environment messages
                            (0xd8f3, 0xd934), # not variable; Gaia's Heart
-                           (0xd984, 0xe6fb), # variable; dialogue
-                           (0xe6fb, 0xebe9), # not variable; battle options
+                           (0xd984, 0xebe9), # not variable; battle options
                            (0xebe9, 0xec4c), # not variable; battle msgs
                            (0xec4c, 0xec9e), # not variable; evolution msgs
                            (0xec9e, 0xef16), # not variable; stats
