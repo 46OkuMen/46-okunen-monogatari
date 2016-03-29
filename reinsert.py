@@ -1,9 +1,13 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
 # TODO: Problems with refactored script:
-# 1) Creature name padding isn't working properly.
-# 2) Not slicing block strings enough - the "run problem" is showing up again.
 # 3) Not treating overflow.
+
+# TODO: Some stuff not getting inserted, but not showing any indication?
+# Cancel and EVO File numbers are in the chart, but not showing up in the game or rom...
+# The same thing happens in the first dialogue block for some reason. The pointers get adjusted but text is the same.
+# ...and now it's happening with the elder dialogue. ????
+# Gotta look at edit_text and see if anything fishy is going on.
 
 # TODO: Crashes when changing length of battle options.
 # Does this have something to do with the pointer-pointers? They point a few bytes away from their pointer...
@@ -45,7 +49,7 @@ copyfile(src_rom_path, dest_rom_path)
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
-files_to_translate = ['ST1.EXE',]
+files_to_translate = ['ST1.EXE', 'SINKA.DAT']
 
 def get_translations(file, dump_xls):
     # Parse the excel dump and return a dict full of translation tuples.
@@ -216,6 +220,7 @@ def edit_text(file, translations):
         if current_text_block != previous_text_block:
             print "Hey, it's a new block!", hex(original_location)
             pointer_diff = 0
+            previous_replacement_offset = 0
             is_overflowing = False
             block_string = block_strings[current_text_block]
             current_block_start, current_block_end = file_blocks[file][current_text_block]
@@ -360,7 +365,7 @@ for file in files_to_translate:
         data = unhexlify(full_rom_string)
         output_file.write(data)
 
-change_starting_map(101)
+#change_starting_map(101)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right

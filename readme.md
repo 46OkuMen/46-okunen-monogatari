@@ -2,7 +2,7 @@
 Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatari: The Shinka Ron*, the Japan-only predecessor to *E.V.O: Search for Eden*. 
 
 ###Reinsertion Status:
-* Chapter 1: 21%
+* Chapter 1: 16%
 * Chapter 2: 0%
 * Chapter 3: 0%
 * Chapter 4: 0%
@@ -10,6 +10,6 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 * Chapter 6: 0%
 * System: 100%
 * Cinematics: 0%
-* Encyclopedia: 32%
+* Encyclopedia: 34%
 * Alternate Endings: 0%
 * Images: 0%
