@@ -12,6 +12,8 @@
 # Does this have something to do with the pointer-pointers? They point a few bytes away from their pointer...
 # Am I breaking up the blocks in the right location? If I mess with a pointer table and then reset the diff, that's bad.
 
+# TODO: "&" replacing some elipses in battle messages...?
+
 # TODO: Funny line breaks/waits in the cave thelodus dialogue.
 # This is probably hard-coded into the function...? It happens in the Japanese as well.
 # Look for SJIS space 81-76 between the lines I've listed in the excel sheet. Add it to the end of line 1.
@@ -145,16 +147,17 @@ def get_block_strings(file, rom_path):
 def edit_pointer(file, text_location, diff, file_string):
     if diff == 0:
         return file_string
+
     pointer_constant = pointer_constants[file]
     pointer_location = pointers[text_location]
+    print "text is at", hex(text_location), "so edit pointer at", hex(pointer_location)
 
     old_value = text_location - pointer_constant
     old_bytes = pack(old_value)
     old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
 
-    location_in_string = (pointer_location + file_start[file])*2
-    rom_bytestring = full_rom_string[location_in_string:location_in_string+4]
-
+    location_in_file_string = pointer_location*2
+    rom_bytestring = original_file_strings[file][location_in_file_string:location_in_file_string+4]
     assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
 
     #print hex(pointer_location)
@@ -172,14 +175,12 @@ def edit_pointer(file, text_location, diff, file_string):
     new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
     patched_file_string = file_string.replace(old_slice, new_slice, 1)
 
-    #print "Pointer edit with text_location", hex(text_location), "pointer_location", hex(pointer_location)
-    #print compare_strings(original_file_string, patched_file_string)
-
     return patched_file_string
 
 
 def edit_pointers_in_range(file, file_string, (lo, hi), diff):
-    for n in range(lo, hi+1):
+    print "lo hi", hex(lo), hex(hi)
+    for n in range(lo, hi):
         try:
             ptr = pointers[n]
             file_string = file_strings[file]
@@ -187,6 +188,8 @@ def edit_pointers_in_range(file, file_string, (lo, hi), diff):
             file_strings[file] = patched_file_string
         except KeyError:
             continue
+        print file_strings[file][0xdd39*2]
+        assert original_file_strings[file][0xdd39*2] == file_strings[file][0xdd39*2], 'byte got changed before here'
     return file_strings[file]
 
 
@@ -263,10 +266,6 @@ def edit_text(file, translations):
         pointer_diff += this_string_diff
 
         block_string = block_strings[current_text_block]
-        #print jp_bytestring
-        #print previous_replacement_offset
-        #print current_text_block
-        #print block_string
         try:
             old_slice = block_string[previous_replacement_offset*2:]
             i = old_slice.index(jp_bytestring)//2
@@ -282,8 +281,6 @@ def edit_text(file, translations):
 
         previous_replacement_offset += i
 
-    #file_string = file_strings[file]
-    #patched_file_string = file_string
     patched_file_string = pad_text_blocks(file, block_strings, file_strings[file])
 
     return patched_file_string
@@ -302,8 +299,12 @@ def pad_text_blocks(file, block_strings, file_string):
             blk += '20' * number_of_spaces       # Fill it up with ascii 20 (space)
             print number_of_spaces, "added at", hex(inserted_spaces_index)
 
-        print original_block_strings[i]
-        j = file_strings[file].index(original_block_strings[i])
+        print "padding block #", i
+
+        j = original_file_strings[file].index(original_block_strings[i])
+
+        #assert original_file_strings[file][0xdd39*2] == file_strings[file][0xdd39*2], 'byte got changed before here'
+        # Looks like ST1.EXE:0xdd39 is being changed from an 0x8 to a 0x9. Why?????
         j = patched_file_string.index(original_block_strings[i])   #TODO: This is the one that crashes...
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
 
@@ -321,7 +322,7 @@ def edit_dat_text(file, file_string):
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
 
-        i = patched_file_string.index(jp_bytestring)
+        #i = patched_file_string.index(jp_bytestring)       # TODO: Something similar is going wrong here.
         patched_file_string = patched_file_string.replace(jp_bytestring, eng_bytestring, 1)
     return patched_file_string
 

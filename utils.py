@@ -153,7 +153,7 @@ def first_offset_in_block(file, block_index, offsets):
 
 def compare_strings(a, b):
     try:
-        return [i for i in xrange(len(a)) if a[i] != b[i]]
+        return [hex(i/2) for i in xrange(len(a)) if a[i] != b[i]]
     except IndexError:
         return "strings different lengths, so probably different"
 
