@@ -2,17 +2,9 @@
 
 # TODO: Problems with refactored script:
 # 3) Not treating overflow.
-# TODO: Some stuff not getting inserted, but not showing any indication?
-# Cancel and EVO File numbers are in the chart, but not showing up in the game or rom...
-# The same thing happens in the first dialogue block for some reason. The pointers get adjusted but text is the same.
-# ...and now it's happening with the elder dialogue. ????
-# Gotta look at edit_text and see if anything fishy is going on.
-
-# TODO: Crashes when changing length of battle options.
-# Does this have something to do with the pointer-pointers? They point a few bytes away from their pointer...
-# Am I breaking up the blocks in the right location? If I mess with a pointer table and then reset the diff, that's bad.
 
 # TODO: "&" replacing some elipses in battle messages...?
+# SOLVED - Excel was autocorrecting "..." to a single elipsis character which coded for "&" in ascii.
 
 # TODO: Funny line breaks/waits in the cave thelodus dialogue.
 # This is probably hard-coded into the function...? It happens in the Japanese as well.
@@ -375,7 +367,7 @@ for file in files_to_translate:
         data = unhexlify(full_rom_string)
         output_file.write(data)
 
-#change_starting_map(101)
+change_starting_map(101)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
