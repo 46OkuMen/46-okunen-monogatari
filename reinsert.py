@@ -150,7 +150,10 @@ def edit_pointer(file, text_location, diff, file_string):
 
     pointer_constant = pointer_constants[file]
     pointer_location = pointers[text_location]
-    print "text is at", hex(text_location), "so edit pointer at", hex(pointer_location)
+    print "text is at", hex(text_location), "so edit pointer at", hex(pointer_location), "with diff", diff
+
+    # So, the text location (the original location) + the diff is not equal to the new location... why?
+    # I think the
 
     old_value = text_location - pointer_constant
     old_bytes = pack(old_value)
@@ -161,13 +164,13 @@ def edit_pointer(file, text_location, diff, file_string):
     assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
 
     #print hex(pointer_location)
-    #print "old:", old_value, old_bytes, old_bytestring
+    print "old:", old_value, old_bytes, old_bytestring
 
     new_value = old_value + diff
 
     new_bytes = pack(new_value)
     new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-    #print "new:", new_value, new_bytes, new_bytestring
+    print "new:", new_value, new_bytes, new_bytestring
 
     location_in_string = pointer_location * 2
 
@@ -179,8 +182,8 @@ def edit_pointer(file, text_location, diff, file_string):
 
 
 def edit_pointers_in_range(file, file_string, (lo, hi), diff):
-    print "lo hi", hex(lo), hex(hi)
-    for n in range(lo, hi):
+    #print "lo hi", hex(lo), hex(hi)
+    for n in range(lo+1, hi+1):
         try:
             ptr = pointers[n]
             file_string = file_strings[file]
@@ -188,7 +191,7 @@ def edit_pointers_in_range(file, file_string, (lo, hi), diff):
             file_strings[file] = patched_file_string
         except KeyError:
             continue
-        print file_strings[file][0xdd39*2]
+        #print file_strings[file][0xdd39*2]
         assert original_file_strings[file][0xdd39*2] == file_strings[file][0xdd39*2], 'byte got changed before here'
     return file_strings[file]
 
@@ -216,7 +219,7 @@ def edit_text(file, translations):
         file_strings[file] = edit_pointers_in_range(file, file_strings[file], (previous_text_offset, original_location), pointer_diff)
         print hex(original_location), pointer_diff
         current_text_block = get_current_block(original_location, file)
-        print current_text_block
+        #print current_text_block
         if current_text_block != previous_text_block:
             print "Hey, it's a new block!", hex(original_location)
             pointer_diff = 0
