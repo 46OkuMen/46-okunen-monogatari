@@ -1,14 +1,15 @@
-# Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
+# Reinsertion script for 46 Okunen Monogatari: The Shinka Ron
 
-# TODO: Problems with refactored script:
-# 3) Not treating overflow.
-
-# TODO: "&" replacing some elipses in battle messages...?
-# SOLVED - Excel was autocorrecting "..." to a single elipsis character which coded for "&" in ascii.
+# TODO: Crashes to watch out for:
+# 1) On moving to next map - happens when changing length of stuff before 0x10555-ish. (Split this block?)
+# 2) On reading an encyclopedia entry/evolving - happens when changing length of "You evolved too far..." block.
+# 3) On fadeout of title graphic - happens when changing length of "Gaia's Heart" environment message.
 
 # TODO: Funny line breaks/waits in the cave thelodus dialogue.
 # This is probably hard-coded into the function...? It happens in the Japanese as well.
 # Look for SJIS space 81-76 between the lines I've listed in the excel sheet. Add it to the end of line 1.
+
+# TODO: Weird extra text at the end of "A %s attacked!". Something to do with text in the first dialogue block.
 
 # TODO: Moving overflow to the error block/spare block.
     # Done?) Actually figure out where they are
