@@ -2,14 +2,28 @@
 
 # TODO: Crashes to watch out for:
 # 1) On moving to next map - happens when changing length of stuff before 0x10555-ish. (Split this block?)
+# Looks like the narration right before it is fine to change the length of.
+# Trying thelodus girl dialogue:
 # 2) On reading an encyclopedia entry/evolving - happens when changing length of "You evolved too far..." block.
 # 3) On fadeout of title graphic - happens when changing length of "Gaia's Heart" environment message.
+# 4) On selecting "Evolve" menu option - happens when changing length of battle options and skill names.
 
 # TODO: Funny line breaks/waits in the cave thelodus dialogue.
 # This is probably hard-coded into the function...? It happens in the Japanese as well.
 # Look for SJIS space 81-76 between the lines I've listed in the excel sheet. Add it to the end of line 1.
+# SOLVED - there's a control code 11-08 which pauses for a bit. Added that to sinkaron.tbl.
 
 # TODO: Weird extra text at the end of "A %s attacked!". Something to do with text in the first dialogue block.
+# "th your sharp head." added at the end of A %s attacked and also randomly when it's saying you attacked someone.
+# Look for pointers pointing to 0xe91c. So, pointers with the value 3c-11.
+# One pointer at 0x38b7. (Pointer value is the same before and after reinsertion.)
+# Another pointer at 0x3cd3. (Pointer value also still the same.)
+# (The pointer at 0x2eef used to point to 0xe91c, but now it points to 0xe903, which is just a period and some <END>s)
+
+# So in the original patch, three pointers (0x2eef, 0x38b7, 0x3cd3) all pointed to this particular place...
+# The first two are not in the pointer sheet!!
+# These are likely pointers that were found by the dumper, but overwritten by the later ones since it's a dict.
+# I need to go back to assisted_dump.py and allow multiple pointers with the same text_location.
 
 # TODO: Moving overflow to the error block/spare block.
     # Done?) Actually figure out where they are
@@ -17,7 +31,6 @@
     # 2) Replace all of the error block with equivalent number of spaces
     # 3) Place all the text in the error block (what about control codes???)
     # 4) Rewrite all the pointer values to point to new locations
- # What about control codes??? If I move text from one block to another, I'll need to move hte control code as
 
 from __future__ import division
 import os
@@ -68,9 +81,6 @@ def get_translations(file, dump_xls):
             english = ""
 
         trans[offset] = (japanese, english)
-
-    translation_percent = int(math.floor((total_replacements / total_rows) * 100))
-    print file, str(translation_percent) + "% complete"
 
     return trans
 
@@ -300,8 +310,7 @@ def pad_text_blocks(file, block_strings, file_string):
         j = original_file_strings[file].index(original_block_strings[i])
 
         #assert original_file_strings[file][0xdd39*2] == file_strings[file][0xdd39*2], 'byte got changed before here'
-        # Looks like ST1.EXE:0xdd39 is being changed from an 0x8 to a 0x9. Why?????
-        j = patched_file_string.index(original_block_strings[i])   #TODO: This is the one that crashes...
+        j = patched_file_string.index(original_block_strings[i])
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
 
     return patched_file_string
@@ -318,7 +327,6 @@ def edit_dat_text(file, file_string):
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
 
-        #i = patched_file_string.index(jp_bytestring)       # TODO: Something similar is going wrong here.
         patched_file_string = patched_file_string.replace(jp_bytestring, eng_bytestring, 1)
     return patched_file_string
 
@@ -367,8 +375,16 @@ for file in files_to_translate:
     with open(dest_rom_path, "wb") as output_file:
         data = unhexlify(full_rom_string)
         output_file.write(data)
+    translated_strings = 0
+    total_strings = len(translations)
+    for _, eng in translations.itervalues():
+        if eng:
+            translated_strings += 1
 
-change_starting_map(101)
+    translation_percent = int(math.floor((translated_strings / total_strings) * 100))
+    print file, str(translation_percent), "% complete"
+
+#change_starting_map(101)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
