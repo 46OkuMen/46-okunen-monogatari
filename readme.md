@@ -1,7 +1,7 @@
 ##shank-a-rom
 Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatari: The Shinka Ron*, the 1990 Japan-only predecessor to *E.V.O: Search for Eden*. 
 
-![screen from mid-Chapter 1, translated](https://raw.githubusercontent.com/hollowaytape/shank-a-rom/master/evidence_02.png
+![screen from mid-Chapter 1, translated](https://raw.githubusercontent.com/hollowaytape/shank-a-rom/master/evidence_02.png)
 
 ###Reinsertion Status:
 * Chapter 1: 73%
