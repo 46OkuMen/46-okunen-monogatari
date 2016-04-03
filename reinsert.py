@@ -35,12 +35,22 @@
 # One at 0x5d3c, value 60-17
 # Wow. It's a wonder this map loads at all!
 
+# OK. Rewrote the pointer dumper to get the duplicates too, and get_pointers() here to get a list of pointers.
+# Can move between open water and cave now.
+# No more "th your sharp head" either.
+# Can move between cave and next open water now!
+# I might call this one solved for now...
+
 # TODO: Crashes to watch out for:
 # 1) On moving to next map - happens when changing length of stuff before 0x10555-ish. (Split this block?)
 # Looks like the narration right before it is fine to change the length of. Also the thelodus girl dialogue.
 # 2) On reading an encyclopedia entry/evolving - happens when changing length of "You evolved too far..." block.
 # 3) On fadeout of title graphic - happens when changing length of "Gaia's Heart" environment message.
 # 4) On selecting "Evolve" menu option - happens when changing length of battle options and skill names.
+
+# TODO: Missing battle text:
+# "You got %d EVO Genes."
+# Looks like this is being properly blanked due to overflow, that's good. Just gotta treat the overflow...
 
 # TODO: Moving overflow to the error block/spare block.
     # Done?) Actually figure out where they are
@@ -67,7 +77,7 @@ dest_rom_path = os.path.join(dest_path, "46 Okunen Monogatari - The Sinkaron (J)
 
 copyfile(src_rom_path, dest_rom_path)
 
-dump_xls = "shinkaron_dump_test_46.xlsx"
+dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 files_to_translate = ['ST1.EXE', 'SINKA.DAT']
@@ -139,7 +149,10 @@ def get_pointers(file, ptr_xls):
 
         text_offset = int(row[1].value, 16)
         pointer_offset = int(row[2].value, 16)
-        ptrs[text_offset] = pointer_offset
+        if text_offset in ptrs:
+            ptrs[text_offset].append(pointer_offset)
+        else:
+            ptrs[text_offset] = [pointer_offset]
 
     return ptrs
 
@@ -165,38 +178,40 @@ def get_block_strings(file, rom_path):
 
 
 def edit_pointer(file, text_location, diff, file_string):
+    # Misnomer now, since it edits all pointers pointing to a given text_location...
     if diff == 0:
         return file_string
 
     pointer_constant = pointer_constants[file]
-    pointer_location = pointers[text_location]
-    print "text is at", hex(text_location), "so edit pointer at", hex(pointer_location), "with diff", diff
+    pointer_locations = pointers[text_location]
+    print "This text has", len(pointer_locations), "depending on it"
 
-    # So, the text location (the original location) + the diff is not equal to the new location... why?
-    # I think the
+    patched_file_string = file_string
+    for ptr in pointer_locations:
+        print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
 
-    old_value = text_location - pointer_constant
-    old_bytes = pack(old_value)
-    old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
+        old_value = text_location - pointer_constant
+        old_bytes = pack(old_value)
+        old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
 
-    location_in_file_string = pointer_location*2
-    rom_bytestring = original_file_strings[file][location_in_file_string:location_in_file_string+4]
-    assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
+        location_in_file_string = ptr*2
+        rom_bytestring = original_file_strings[file][location_in_file_string:location_in_file_string+4]
+        assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
 
-    #print hex(pointer_location)
-    print "old:", old_value, old_bytes, old_bytestring
+        #print hex(pointer_location)
+        print "old:", old_value, old_bytes, old_bytestring
 
-    new_value = old_value + diff
+        new_value = old_value + diff
 
-    new_bytes = pack(new_value)
-    new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-    print "new:", new_value, new_bytes, new_bytestring
+        new_bytes = pack(new_value)
+        new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
+        print "new:", new_value, new_bytes, new_bytestring
 
-    location_in_string = pointer_location * 2
+        location_in_string = ptr * 2
 
-    old_slice = file_string[location_in_string:]
-    new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
-    patched_file_string = file_string.replace(old_slice, new_slice, 1)
+        old_slice = file_string[location_in_string:]
+        new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
+        patched_file_string = patched_file_string.replace(old_slice, new_slice, 1)
 
     return patched_file_string
 
@@ -239,7 +254,7 @@ def edit_text(file, translations):
         file_strings[file] = edit_pointers_in_range(file, file_strings[file], (previous_text_offset, original_location), pointer_diff)
         print hex(original_location), pointer_diff
         current_text_block = get_current_block(original_location, file)
-        print "block #:", current_text_block
+        #print "block #:", current_text_block
         if current_text_block != previous_text_block:
             print "Hey, it's a new block!", hex(original_location)
             pointer_diff = 0
@@ -401,7 +416,7 @@ for file in files_to_translate:
     translation_percent = int(math.floor((translated_strings / total_strings) * 100))
     print file, str(translation_percent), "% complete"
 
-change_starting_map(101)
+#change_starting_map(101)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right

@@ -15,7 +15,7 @@
 # that size. It splits two-byte characters across multiple buffers, and as a result, it mis-encodes them.
 # I didn't know enough C++ to alter the program without causing memory leaks. Messy solution:
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
-# game text lines themselves, which are never longer than the game window (usually like 60 bytes of text).
+# game text lines themselves, which are never longer than the game window (usually like 80 bytes of text).
 
 import os
 import subprocess
@@ -80,35 +80,55 @@ for file, blocks in file_blocks.iteritems():
         
         for p in pointers:
             # pointer_locations[(file, text_location)] = pointer_location
+            # TODO: trying something new. pointer_locations[(file, text_location)] = [pointer1_location, pointer2,...]
+            # Multiple pointer_locations for the same text_location...
             # Since we want to take a piece of text from the file and find its pointer.
-            pointer_location = only_hex.index(p.group(0))/4  # Where is this pointer found?
+
+            #pointer_location = only_hex.index(p.group(0))/4  # Where is this pointer found?
+            # TODO: Oh, this is probably why there are so many duplicates - it' s just reporting the first one a lot.
+            pointer_location = p.start()/4
+
             pointer_location = '0x%05x' % pointer_location
-            # Take the value of the pointer, 
+            # And where does it point?
             text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
+
             if int(text_location, 16) > file_length:     # Clearly something is wrong.
-                print "Weird pointer at", pointer_location, "points to", text_location
+                # These include: the code that tells pointers to add the pointer constant, ...
+                #print "Weird pointer at", pointer_location, "points to", text_location
                 continue
-            pointer_locations[(file, text_location)] = pointer_location
+
+            #print text_location, pointer_location
+            all_locations = [pointer_location,]
+
+            if (file, text_location) in pointer_locations:
+                print "duplicate pointer at", pointer_location, "points to", text_location
+                all_locations = pointer_locations[(file, text_location)]
+                all_locations.append(pointer_location)
+
+            pointer_locations[(file, text_location)] = all_locations
 
         for p in dialogue_pointers:
-            pointer_location = (only_hex.index(p.group(0))/4) + 2 # Don't include the identifier! Go 2 bytes after it.
+            pointer_location = p.start()/4 + 2 # Don't include the identifier! Go 2 bytes after it.
             pointer_location = '0x%05x' % pointer_location
             #print p.group(1), p.group(2)
             text_location = location_from_pointer((p.group(1), p.group(2)), pointer_constants[file])
             if int(text_location, 16) > file_length:
-                print "Weird pointer at", pointer_location, "points to", text_location
+                #print "Weird pointer at", pointer_location, "points to", text_location
                 continue
-            pointer_locations[(file, text_location)] = pointer_location
+
+            ##print text_location, pointer_location
+            all_locations = [pointer_location,]
+
+            if (file, text_location) in pointer_locations:
+                all_locations = pointer_locations[(file, text_location)]
+                all_locations.append(pointer_location)
+
+            pointer_locations[(file, text_location)] = all_locations
 
         # So, it looks like some of the weird pointers are the table regex picking up lone 5e-0ds in the
         # function code. Safe to ignore those.
-    
-    for (block_start, block_end) in blocks:
-        # TODO: If the dump has already been done, abort this loop.
-        # (Still need a way to get hte list of files to dump.)
-        #if os.path.exists(os.path.join(snippet_folder_path, "dump_snippet_0x13c3f_ST4.EXE")):
-        #    break
 
+    for (block_start, block_end) in blocks:
         dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
 
         if dat_dump:
@@ -223,14 +243,16 @@ for file in dump_files:
         total_offset = '0x%05x' % total_offset
         
         text = lines[n+1].rstrip() # No more newline chars
-        
-        try:
-            pointer = pointer_locations[(source, total_offset)]
-            pointer_count += 1
-        except KeyError:
-            pointer = ''
+
+        if (source, total_offset) in pointer_locations:
+            for ptr in pointer_locations[(source, total_offset)]:
+                try:
+                    pointer = ptr
+                    pointer_count += 1
+                except KeyError:
+                    pointer = ''
     
-        dump.append(((source, total_offset), (pointer, text)))
+                dump.append(((source, total_offset), (pointer, text)))
         
     fo.close()
 
@@ -252,47 +274,54 @@ pointer_workbook = xlsxwriter.Workbook('shinkaron_pointer_dump.xlsx')
 pointer_sheet = pointer_workbook.add_worksheet()
 excel_row = 0
 
+# I'm not convinced the pointer-pointer thing is worth doing - let's just treat them as any other pointer.
 # Deal with pointer-pointers separately.
 # A pointer-pointer is a pointer whose text_location (the thing it points to) equals another pointer's pointer_location (where it is)
 # Hence, pointer-pointer. It points to a pointer.
 # There's usually a table of pointer-pointers at the top, pointing to a pointer table closer to the text block.
 # Looks like all the pointer-pointers are for menu options and error messages.
-for (source, text_location), pointer_location in pointer_locations.iteritems():
-    try:
-        # a pointer-pointer is a pointer whose text_location equals another pointer's pointer_location.
-        # They point to the first byte of the (preceding) separator rather than the first byte of the pointer value, unlike the text... weird.
-        # 565 pointer-pointers matched with -2.
-        # 606 pointer-pointers matched with +2. (Must be right.)
-        alternate_pointer_location = '0x%05x' % (int(pointer_location, 16) + 2)
-        pointer_pointer_location = pointer_locations[(source, alternate_pointer_location)]
-        text = "[PTR] " + [d[1] for d in dump if d[0] == (source, text_location)][0][1]
+#for (source, text_location), pointer_location in pointer_locations.iteritems():
+#    try:
+#        # a pointer-pointer is a pointer whose text_location equals another pointer's pointer_location.
+#        # They point to the first byte of the (preceding) separator rather than the first byte of the pointer value, unlike the text... weird.
+#        # 565 pointer-pointers matched with -2.
+#        # 606 pointer-pointers matched with +2. (Must be right.)
+#        alternate_pointer_location = '0x%05x' % (int(pointer_location, 16) + 2)
+#        pointer_pointer_location = pointer_locations[(source, alternate_pointer_location)]
+#        text = "[PTR] " + [d[1] for d in dump if d[0] == (source, text_location)][0][1]#
 
-        pointer_sheet.write(excel_row, 0, source)
-        pointer_sheet.write(excel_row, 1, alternate_pointer_location)
-        pointer_sheet.write(excel_row, 2, pointer_pointer_location)
-        pointer_sheet.write(excel_row, 3, text)
-        excel_row += 1
-        del pointer_locations[(source, alternate_pointer_location)]
-    except KeyError:
-        continue
-    except IndexError:
-        continue
+#        pointer_sheet.write(excel_row, 0, source)
+#        pointer_sheet.write(excel_row, 1, alternate_pointer_location)
+#        pointer_sheet.write(excel_row, 2, pointer_pointer_location)
+#        pointer_sheet.write(excel_row, 3, text)
+#        excel_row += 1
+#        del pointer_locations[(source, alternate_pointer_location)]
+#    except KeyError:
+#        continue
+#    except IndexError:
+#        continue
 
 # pointer_locations[(source, text_location)] = pointer_location
+# pointer_locations[(source, text_location)] = [pointer1_location, pointer2_location, ...]
 # dump = ((source, text_location), (pointer_location, text))
-for (source, text_location) in pointer_locations.iterkeys():
-    try:
-        # This isn't taking well to tuple unpacking... Ugly solution it is!
-        pointer_location = [d[1] for d in dump if d[0] == (source, text_location)][0][0]
-        text = [d[1] for d in dump if d[0] == (source, text_location)][0][1]
-    except IndexError:
-        (pointer_location, text) = (pointer_locations[(source, text_location)], '')
+for (source, text_location), pointer_locs in pointer_locations.iteritems():
+    for ptr in pointer_locs:
+        # What is this try/except loop trying to do? Match up pointers with their text to put them on the sheet?
+        try:
+            # This isn't taking well to tuple unpacking... Ugly solution it is!
+            #pointer_location = [d[1] for d in dump if d[0] == (source, text_location)][0][0]
+            pointer_location = ptr
+            text = [d[1] for d in dump if d[0] == (source, text_location)][0][1]
+        except IndexError:
+            pointer_location = ptr
+            text = ''
+            #(pointer_location, text) = (pointer_locations[(source, text_location)], '')
 
-    pointer_sheet.write(excel_row, 0, source)           # Source File
-    pointer_sheet.write(excel_row, 1, text_location)    # Text Location
-    pointer_sheet.write(excel_row, 2, pointer_location) # Pointer
-    pointer_sheet.write(excel_row, 3, text)             # JP Text
-    excel_row += 1
+        pointer_sheet.write(excel_row, 0, source)           # Source File
+        pointer_sheet.write(excel_row, 1, text_location)    # Text Location
+        pointer_sheet.write(excel_row, 2, pointer_location) # Pointer
+        pointer_sheet.write(excel_row, 3, text)             # JP Text
+        excel_row += 1
 
 print "Cleaning up..."
 # Cleanup.

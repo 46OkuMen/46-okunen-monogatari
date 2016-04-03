@@ -32,6 +32,10 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
                'SEND.DAT': ((0x000, 0x8740),)
 }
+
+# TODO: Now that the blocks are less finicky, I can probably combine a lot of these blocks rather than
+# split them wherever there's a filename.
+
 # What is my methodology for deciding when a block starts and ends?
 # The end of a block has to be a place where spaces are okay. My mistake may have been in putting them after filenames.
 # If you end right on top of a filename, the extra spaces will push the filename into the correct position... maybe?
