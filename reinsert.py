@@ -1,19 +1,7 @@
-# Reinsertion script for 46 Okunen Monogatari: The Shinka Ron
+# Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
-# TODO: Crashes to watch out for:
-# 1) On moving to next map - happens when changing length of stuff before 0x10555-ish. (Split this block?)
-# Looks like the narration right before it is fine to change the length of.
-# Trying thelodus girl dialogue:
-# 2) On reading an encyclopedia entry/evolving - happens when changing length of "You evolved too far..." block.
-# 3) On fadeout of title graphic - happens when changing length of "Gaia's Heart" environment message.
-# 4) On selecting "Evolve" menu option - happens when changing length of battle options and skill names.
-
-# TODO: Funny line breaks/waits in the cave thelodus dialogue.
-# This is probably hard-coded into the function...? It happens in the Japanese as well.
-# Look for SJIS space 81-76 between the lines I've listed in the excel sheet. Add it to the end of line 1.
-# SOLVED - there's a control code 11-08 which pauses for a bit. Added that to sinkaron.tbl.
-
-# TODO: Weird extra text at the end of "A %s attacked!". Something to do with text in the first dialogue block.
+# TODO: When multiple pointers point to one location, only the last pointer with that location gets adjusted!!
+# Manifestation 1): Weird extra text all over the place in battle.
 # "th your sharp head." added at the end of A %s attacked and also randomly when it's saying you attacked someone.
 # Look for pointers pointing to 0xe91c. So, pointers with the value 3c-11.
 # One pointer at 0x38b7. (Pointer value is the same before and after reinsertion.)
@@ -24,6 +12,35 @@
 # The first two are not in the pointer sheet!!
 # These are likely pointers that were found by the dumper, but overwritten by the later ones since it's a dict.
 # I need to go back to assisted_dump.py and allow multiple pointers with the same text_location.
+
+# Manifestation 2): Problems loading various maps.
+# 1.5) On changing maps from thelodus cave to open ocean. Didn't notice this one...
+# The image call is at 0xef4b (segment loading a bunch of maps right after opening thelodus dialogue)
+# After reinsertion, the string "AV102.GDT" remains in the same place (ef4b) but its pointer (5a33) gets diff'd by -45!!
+# What block are these strings in?? They're between blocks 5 (0xec9e, 0xef16) and 6 (0xef56, 0x10412).
+# Since the block diff gets reset only when the new block begins, the new diffs are unaware of the block-end spaces.
+# Combined the blocks. Now AV102.GDT gets displayed, but crashes on going to the next map (MAP100.MAP)...
+
+# 1.6) Also crash when moving from first open water to MAP101 (thelodus cave)...
+# So MAP100.MAP loads successfully, but MAP101.MAP does not.
+# I wonder if there are multiple pointers to MAP101?
+# Pointer at 0x5728, value 4a-17 (edited: 1d-17)
+# Pointer at 0x59ca, value 4a-17 (edited: still 4a-17!!)  <-- this one is getting forgotten
+# Looks like the multiple pointer bug is more far-reaching than I thought!
+
+# What about MAP100.MAP? Orginal location: 0xef40, so look for 60-17.
+# One at 0x578a, value 60-17
+# One at 0x5b09, value 60-17
+# One at 0x5b42, value 60-17
+# One at 0x5d3c, value 60-17
+# Wow. It's a wonder this map loads at all!
+
+# TODO: Crashes to watch out for:
+# 1) On moving to next map - happens when changing length of stuff before 0x10555-ish. (Split this block?)
+# Looks like the narration right before it is fine to change the length of. Also the thelodus girl dialogue.
+# 2) On reading an encyclopedia entry/evolving - happens when changing length of "You evolved too far..." block.
+# 3) On fadeout of title graphic - happens when changing length of "Gaia's Heart" environment message.
+# 4) On selecting "Evolve" menu option - happens when changing length of battle options and skill names.
 
 # TODO: Moving overflow to the error block/spare block.
     # Done?) Actually figure out where they are
@@ -50,7 +67,7 @@ dest_rom_path = os.path.join(dest_path, "46 Okunen Monogatari - The Sinkaron (J)
 
 copyfile(src_rom_path, dest_rom_path)
 
-dump_xls = "shinkaron_dump_test.xlsx"
+dump_xls = "shinkaron_dump_test_46.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 files_to_translate = ['ST1.EXE', 'SINKA.DAT']
@@ -222,7 +239,7 @@ def edit_text(file, translations):
         file_strings[file] = edit_pointers_in_range(file, file_strings[file], (previous_text_offset, original_location), pointer_diff)
         print hex(original_location), pointer_diff
         current_text_block = get_current_block(original_location, file)
-        #print current_text_block
+        print "block #:", current_text_block
         if current_text_block != previous_text_block:
             print "Hey, it's a new block!", hex(original_location)
             pointer_diff = 0
@@ -384,7 +401,7 @@ for file in files_to_translate:
     translation_percent = int(math.floor((translated_strings / total_strings) * 100))
     print file, str(translation_percent), "% complete"
 
-#change_starting_map(101)
+change_starting_map(101)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right

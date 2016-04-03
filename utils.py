@@ -10,8 +10,7 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                            (0xd984, 0xebe9), # not variable; battle options
                            (0xebe9, 0xec4c), # not variable; battle msgs
                            (0xec4c, 0xec9e), # not variable; evolution msgs
-                           (0xec9e, 0xef16), # not variable; stats
-                           (0xef56, 0x10412), # variable; dialogue
+                           (0xec9e, 0x10412), # variable; dialogue
                            (0x10412, 0x10e99), # variable; dialogue
                            (0x10e99, 0x10eb8), # not variable; environment messages
                            (0x10eb8, 0x10f12), # not variable; environment messages
