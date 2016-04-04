@@ -5,23 +5,29 @@ files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'S
 
 file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                '46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
-               'ST1.EXE': ((0xd873, 0xd8b3), # not variable; environment messages
-                           (0xd8f3, 0xd934), # not variable; Gaia's Heart
-                           (0xd984, 0xebe9), # not variable; battle options
-                           (0xebe9, 0xec4c), # not variable; battle msgs
-                           (0xec4c, 0xec9e), # not variable; evolution msgs
-                           (0xec9e, 0x10412), # variable; dialogue
-                           (0x10412, 0x10e99), # variable; dialogue
-                           (0x10e99, 0x10eb8), # not variable; environment messages
-                           (0x10eb8, 0x10f12), # not variable; environment messages
-                           (0x10f12, 0x10f96), # not variable; environment messages
-                           (0x10fca, 0x117c7), # variable; creature names
-                           (0x117c7, 0x117df), # not variable; yes/no/cancel    # iffy ending
-                           (0x11839, 0x11857), # not variable; "evolved too far" message
-                           (0x11893, 0x119ae), # not variable; battle msgs      # iffy ending
-                           (0x11d42, 0x1204e)), # error block
-               'ST2.EXE': ((0xc23b, 0xdd4f), (0xde35, 0xfaa0), (0xfae4, 0xfe50), (0x10004, 0x101df), (0x10570, 0x1087b)),
-               'ST3.EXE': ((0xb49d, 0xb548), (0xb58a, 0xdb3a), (0xdb7e, 0xe2d5), (0xe617, 0xe7f3), (0xeb82, 0xee8e)),
+               'ST1.EXE': ((0xd873, 0xd934),  # not variable; environment messages
+                           (0xd984, 0xec4c),  # not variable; battle msgs    # ec4c separation is necessary! (AWAKU0.GDT)
+                           (0xec4c, 0xec9e),  # not variable; evolution msgs
+                           (0xec9e, 0x10e99),  # variable; dialogue
+                           (0x10e99, 0x10eb8),  # not variable; environment messages
+                           (0x10eb8, 0x10f12),  # not variable; environment messages
+                           (0x10f12, 0x10f96),  # not variable; environment messages
+                           (0x10fca, 0x117c7),  # variable; creature names
+                           (0x117c7, 0x117df),  # not variable; yes/no/cancel    # iffy ending
+                           (0x11839, 0x11857),  # not variable; "evolved too far" message
+                           (0x11893, 0x119ae),  # not variable; battle msgs      # iffy ending
+                           (0x11d42, 0x1204e)),  # error block
+               'ST2.EXE': ((0xc23b, 0xdd4f),
+                           (0xde35, 0xfaa0),
+                           (0xfae4, 0xfe50),
+                           (0x10004, 0x101df),
+                           (0x10570, 0x1087b)),
+               'ST3.EXE': ((0xb49d, 0xb548),
+                           (0xb58a, 0xbccb), # split at AWAKU0.GDT
+                           (0xbccb, 0xdb3a),
+                           (0xdb7e, 0xe2d5),
+                           (0xe617, 0xe7f3),
+                           (0xeb82, 0xee8e)),
                'ST4.EXE': ((0xe262, 0xe29e), (0xe2f4, 0x120a0), (0x12114, 0x149e4), (0x14a28, 0x15a1e), (0x16031, 0x1620d), (0x1659c, 0x168a8)),
                'ST5.EXE': ((0xcc02, 0xcc5e), (0xccf2, 0xcd2e), (0xcd74, 0xeabe), (0xebc3, 0x107a3), (0x107e6, 0x11466), (0x11976, 0x11b53), (0x11ef2, 0x121fe)),
                'ST5S1.EXE': ((0x24e8, 0x3af1),),
@@ -43,6 +49,7 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
 spare_block = {'OPENING.EXE': (0, 0),
                '46.EXE': (0x9cb8, 0xa07a),
                'ST1.EXE': (0x11d42, 0x1204e),
+               'ENDING.EXE': (0, 0),
                'SINKA.DAT': (0, 0),
                'SEND.DAT': (0, 0)
                }
@@ -50,18 +57,40 @@ spare_block = {'OPENING.EXE': (0, 0),
 
 creature_block = {'OPENING.EXE': (0, 0),
                   'ST1.EXE': (0x10fca, 0x11595),
-                  'SINKA.DAT': (0, 0)}
+                  'ST2.EXE': (0xfae4, 0xfe50),
+                  'ST3.EXE': (0xdb7e, 0xe2d5),
+                  'ENDING.EXE': (0, 0),
+                  'SINKA.DAT': (0, 0),
+                  'SEND.DAT': (0, 0)}
                # TODO: Even more in progress than the last one.
 
 # Starting position, in bytes, of each file within the Disk 1 rom.
 file_start = {'OPENING.EXE': 0x58800,
               'ST1.EXE': 0x5e800,
+              'ST2.EXE': 0x70c00,
+              'ST3.EXE': 0x81800,
+              'ST4.EXE': 0x90800,
+              'ST5.EXE': 0xa7400,
+              'ST5S1.EXE': 0xb9800,
+              'ST5S2.EXE': 0xbd400,
+              'ST5S3.EXE': 0xc1000,
+              'ST6.EXE': 0xc6400,
+              'ENDING.EXE': 0x4e000,
               'SINKA.DAT': 0x3d000,
               'SEND.DAT': 0x34800,}
 
 # Length in bytes.
 file_length = {'OPENING.EXE': 0x5e4b,
                'ST1.EXE': 0x121a7,
+               'ST2.EXE': 0x109d5,
+               'ST3.EXE':  0xefe7,
+               'ST4.EXE': 0x16a01,
+               'ST5.EXE': 0x12357,
+               'ST5S1.EXE': 0x3bbb,
+               'ST5S2.EXE': 0x3861,
+               'ST5S3.EXE': 0x50ef,
+               'ST6.EXE': 0xd8af,
+               'ENDING.EXE': 0x4f55,
                'SINKA.DAT': 0x69a4}
 
 pointer_separators = {
@@ -94,9 +123,9 @@ pointer_constants = {
         '46.EXE': 0x92c0,
 }
 
-old_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
+#old_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
 pointer_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f])(\\x[0-f][0-f]))((\\x[0-f][0-f])\\x[0-f][0-f]\2\3(?!\3\5)){7,}"
-dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])\\x50" # Starts with \\x1e\\xb8 , then the thing to be captured, then \\x50.
+#dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])\\x50" # Starts with \\x1e\\xb8 , then the thing to be captured, then \\x50.
 new_dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])" # Minus the \\x50. Adds 50 more pointers.
 
 # Binary patterns used in GDT pattern encoding
