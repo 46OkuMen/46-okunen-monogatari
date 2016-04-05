@@ -28,8 +28,19 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                            (0xdb7e, 0xe2d5),
                            (0xe617, 0xe7f3),
                            (0xeb82, 0xee8e)),
-               'ST4.EXE': ((0xe262, 0xe29e), (0xe2f4, 0x120a0), (0x12114, 0x149e4), (0x14a28, 0x15a1e), (0x16031, 0x1620d), (0x1659c, 0x168a8)),
-               'ST5.EXE': ((0xcc02, 0xcc5e), (0xccf2, 0xcd2e), (0xcd74, 0xeabe), (0xebc3, 0x107a3), (0x107e6, 0x11466), (0x11976, 0x11b53), (0x11ef2, 0x121fe)),
+               'ST4.EXE': ((0xe262, 0xe29e),
+                           (0xe2f4, 0x120a0),
+                           (0x12114, 0x149e4),
+                           (0x14a28, 0x15a1e),
+                           (0x16031, 0x1620d),
+                           (0x1659c, 0x168a8)),
+               'ST5.EXE': ((0xcc02, 0xcc5e),
+                           (0xccf2, 0xcd2e),
+                           (0xcd74, 0xeabe),
+                           (0xebc3, 0x107a3),
+                           (0x107e6, 0x11466),
+                           (0x11976, 0x11b53),
+                           (0x11ef2, 0x121fe)),
                'ST5S1.EXE': ((0x24e8, 0x3af1),),
                'ST5S2.EXE': ((0x23f9, 0x3797),),
                'ST5S3.EXE': ((0x3db9, 0x4ed0),),
@@ -46,23 +57,31 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
 # The end of a block has to be a place where spaces are okay. My mistake may have been in putting them after filenames.
 # If you end right on top of a filename, the extra spaces will push the filename into the correct position... maybe?
 
-spare_block = {'OPENING.EXE': (0, 0),
+spare_block = {#'OPENING.EXE': None,
                '46.EXE': (0x9cb8, 0xa07a),
                'ST1.EXE': (0x11d42, 0x1204e),
-               'ENDING.EXE': (0, 0),
-               'SINKA.DAT': (0, 0),
-               'SEND.DAT': (0, 0)
+               'ST2.EXE': (0x10570, 0x1087b),
+               'ST3.EXE': (0xeb82, 0xee8e),
+               'ST4.EXE': (0x1659c, 0x168a8),
+               'ST5.EXE': (0x11ef2, 0x121fe),
+               #'ENDING.EXE': None,
+               #'SINKA.DAT': None,
+               #'SEND.DAT': None
                }
+ # Usually the last block.
                # TODO: In progress. Also figure out what to do with the Nones.
 
 creature_block = {'OPENING.EXE': (0, 0),
                   'ST1.EXE': (0x10fca, 0x11595),
                   'ST2.EXE': (0xfae4, 0xfe50),
                   'ST3.EXE': (0xdb7e, 0xe2d5),
+                  'ST4.EXE': (0x14a28, 0x15a1e),
+                  'ST5.EXE': (0x107e6, 0x11466),
                   'ENDING.EXE': (0, 0),
                   'SINKA.DAT': (0, 0),
                   'SEND.DAT': (0, 0)}
                # TODO: Even more in progress than the last one.
+# Usually the third-to-last block.
 
 # Starting position, in bytes, of each file within the Disk 1 rom.
 file_start = {'OPENING.EXE': 0x58800,
@@ -215,7 +234,6 @@ def sjis_to_hex_string(jp):
     for c in sjis:
         hx = "%02x" % ord(c)
         if hx == '20': # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
-            print "fixing an 8140"
             hx = '8140'
         jp_bytestring += hx
     return jp_bytestring

@@ -8,7 +8,7 @@ dump_xls = "shinkaron_dump_test.xlsx"
 
 wb = load_workbook(dump_xls)
 sheets = wb.get_sheet_names()
-ws = wb.get_sheet_by_name('ST4.EXE')
+ws = wb.get_sheet_by_name('ST1.EXE')
 
 translations = {}
 for sheet in sheets:

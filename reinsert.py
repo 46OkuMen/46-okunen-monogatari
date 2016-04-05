@@ -40,7 +40,8 @@ copyfile(src_rom_path, dest_rom_path)
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
-files_to_translate = ['ST1.EXE', 'SINKA.DAT']
+files_to_translate = ['ST1.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'SINKA.DAT']
+# TODO: ST2.EXE has an issue in finding the first block. Check the file_start value...
 
 def get_translations(file, dump_xls):
     # Parse the excel dump and return a dict full of translation tuples.
@@ -70,6 +71,7 @@ def get_translations(file, dump_xls):
         trans[offset] = (japanese, english)
 
     return trans
+
 
 def get_dat_translations(file, dump_xls):
     # TODO: I fixed the offsets for the .dat files, do I still need this as a separate function?
@@ -137,18 +139,27 @@ def get_block_strings(file, rom_path):
     return block_strings
 
 
+def erase_spare_block(file, block_strings):
+    if file in spare_block:
+        #print block_strings[-1]
+        length = len(block_strings[-1])
+        block_strings[-1] = '0'*length       # Or would it be better to do an ascii space '20'?
+        #print block_strings[-1]
+    return block_strings
+
+
 def edit_pointer(file, text_location, diff, file_string):
-    # Misnomer now, since it edits all pointers pointing to a given text_location...
+    # TODO: It's a misnomer now, since it edits all pointers pointing to a given text_location...
     if diff == 0:
         return file_string
 
     pointer_constant = pointer_constants[file]
     pointer_locations = pointers[text_location]
-    print "This text has", len(pointer_locations), "depending on it"
+    #print "This text has", len(pointer_locations), "depending on it"
 
     patched_file_string = file_string
     for ptr in pointer_locations:
-        print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
+        #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
 
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
@@ -159,13 +170,13 @@ def edit_pointer(file, text_location, diff, file_string):
         assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
 
         #print hex(pointer_location)
-        print "old:", old_value, old_bytes, old_bytestring
+        #print "old:", old_value, old_bytes, old_bytestring
 
         new_value = old_value + diff
 
         new_bytes = pack(new_value)
         new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-        print "new:", new_value, new_bytes, new_bytestring
+        #print "new:", new_value, new_bytes, new_bytestring
 
         location_in_string = ptr * 2
 
@@ -208,7 +219,7 @@ def edit_text(file, translations):
     current_block_end = file_blocks[file][0][1]
     is_overflowing = False
 
-    overflow_text = []
+    overflow_bytestrings = OrderedDict()
 
     for original_location, (jp, eng) in translations.iteritems():
         file_strings[file] = edit_pointers_in_range(file, file_strings[file], (previous_text_offset, original_location), pointer_diff)
@@ -229,13 +240,22 @@ def edit_text(file, translations):
 
         new_text_offset = original_location + len(jp*2) + pointer_diff
         #print "testing overflow.", hex(original_location), "+", len(jp*2), "+", pointer_diff, "past", hex(current_block_end), "?"
-        if new_text_offset > current_block_end:
+        if new_text_offset > current_block_end and not is_overflowing:
             print hex(new_text_offset), "overflows past", hex(current_block_end)
+            # OK, so it looks like this just goes to the end of the block. It only includes control codes if those
+            # are included in the block to begin with. Is that the case for some of these blocks?
+            # ... huh, looks like they do. Still want to see what some of these look like, though.
             is_overflowing = True
-            overflow_text.append(original_location)
             start_in_block = (original_location - current_block_start)*2
-            end_in_block = (current_block_end - current_block_start)*2
-            overflow_bytestring = block_string[start_in_block:end_in_block]
+            #end_in_block = (current_block_end - current_block_start)*2
+            #overflow_bytes = block_string[start_in_block:end_in_block]
+            overflow_bytestring = block_string[start_in_block:]
+
+            # If I grab everything in the block from this string's start to the end of the block,
+            # there might be other translated strings inside it. Maybe keep a list of the pointers to adjust?
+            overflow_lo, overflow_hi = original_location, current_block_end
+
+            overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
             print overflow_bytestring
 
         if eng == "":
@@ -243,6 +263,7 @@ def edit_text(file, translations):
 
         if is_overflowing:
             eng = ""
+            # TODO: What else should happen when it's overflowing? Should the pointer still get adjusted?
 
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
@@ -279,6 +300,8 @@ def edit_text(file, translations):
 
         previous_replacement_offset += i
 
+    patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
+
     patched_file_string = pad_text_blocks(file, block_strings, file_strings[file])
 
     return patched_file_string
@@ -298,14 +321,52 @@ def pad_text_blocks(file, block_strings, file_string):
             print number_of_spaces, "added at", hex(inserted_spaces_index)
 
         print "padding block #", i
-
         j = original_file_strings[file].index(original_block_strings[i])
+
+        #print original_block_strings[i]
 
         #assert original_file_strings[file][0xdd39*2] == file_strings[file][0xdd39*2], 'byte got changed before here'
         j = patched_file_string.index(original_block_strings[i])
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
 
     return patched_file_string
+
+
+def move_overflow(file, file_string, overflow_bytestrings):
+    spare_block_lo, spare_block_hi = spare_block[file]
+    for (lo, hi), bytestring in overflow_bytestrings.iteritems():
+        # The first pointer must be adjusted to point to the beginning of the spare block.
+        #last_pointer_adjustment = lo-1
+        pointer_diff = (spare_block_lo - lo)
+        # Find all the translations that need to be applied.
+        t = OrderedDict()
+        for i in range(lo, hi):
+            previous_text_location = lo
+            if i in translations:
+                print "translating overflow"
+                print hex(i), pointer_diff
+                t[i] = translations[i]
+                jp = t[i][0]
+                eng = t[i][1]
+
+                jp_bytestring = sjis_to_hex_string(jp)
+                eng_bytestring = ascii_to_hex_string(eng)
+
+                this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)
+
+                print jp_bytestring
+                print eng_bytestring
+                print this_string_diff
+
+                j = bytestring.index(jp_bytestring)
+                bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
+                edit_pointers_in_range(file, file_string, (previous_text_location, i), pointer_diff)
+
+                previous_text_location = i
+                pointer_diff += this_string_diff
+    # edit pointers.
+    # write the bytestring to the spare block.
+    return file_string
 
 
 def edit_dat_text(file, file_string):
@@ -349,17 +410,16 @@ for file in files_to_translate:
             output_file.write(data)
         continue
 
-    overflow_text = []
-    overflow_hex = []
-
     translations = get_translations(file, dump_xls)
     pointers = get_pointers(file, pointer_xls)
 
     # Then get individual strings of each text block, and put them in a list.
     block_strings = get_block_strings(file, dest_rom_path)
     original_block_strings = list(block_strings)   # Needs to be copied - simple assignment would just pass the ref.
+    block_strings = erase_spare_block(file, block_strings)
 
     patched_file_string = edit_text(file, translations)
+
     i = full_rom_string.index(original_file_strings[file])
     full_rom_string = full_rom_string.replace(original_file_strings[file], patched_file_string, 1)
 
