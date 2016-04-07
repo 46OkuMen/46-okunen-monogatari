@@ -40,7 +40,7 @@ copyfile(src_rom_path, dest_rom_path)
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
-files_to_translate = ['ST1.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'SINKA.DAT']
+files_to_translate = ['ST1.EXE', 'SINKA.DAT']
 # TODO: ST2.EXE has an issue in finding the first block. Check the file_start value...
 
 def get_translations(file, dump_xls):
@@ -139,13 +139,12 @@ def get_block_strings(file, rom_path):
     return block_strings
 
 
-def erase_spare_block(file, block_strings):
+def erase_spare_block(file, block_string):
     if file in spare_block:
-        #print block_strings[-1]
-        length = len(block_strings[-1])
-        block_strings[-1] = '0'*length       # Or would it be better to do an ascii space '20'?
-        #print block_strings[-1]
-    return block_strings
+        #length = len(block_string)
+        #block_string = '0'*length       # Or would it be better to do an ascii space '20'?
+        block_string = ''
+    return block_string
 
 
 def edit_pointer(file, text_location, diff, file_string):
@@ -159,7 +158,7 @@ def edit_pointer(file, text_location, diff, file_string):
 
     patched_file_string = file_string
     for ptr in pointer_locations:
-        #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
+        print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
 
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
@@ -312,6 +311,7 @@ def pad_text_blocks(file, block_strings, file_string):
     for i, blk in enumerate(block_strings):
         block_diff = len(blk) - len(original_block_strings[i])   # if block is too short, negative; too long, positive
         #print len(original_block_strings[i]), len(blk)
+        print "padding block #", i
         print block_diff
         assert block_diff <= 0, 'Block ending in %s is too long' % hex(file_blocks[file][i][1])
         if block_diff < 0:
@@ -320,7 +320,6 @@ def pad_text_blocks(file, block_strings, file_string):
             blk += '20' * number_of_spaces       # Fill it up with ascii 20 (space)
             print number_of_spaces, "added at", hex(inserted_spaces_index)
 
-        print "padding block #", i
         j = original_file_strings[file].index(original_block_strings[i])
 
         #print original_block_strings[i]
@@ -334,6 +333,9 @@ def pad_text_blocks(file, block_strings, file_string):
 
 def move_overflow(file, file_string, overflow_bytestrings):
     spare_block_lo, spare_block_hi = spare_block[file]
+    #spare_block_string = erase_spare_block(file, block_strings)
+    spare_block_string = ''
+    location_in_spare_block = 0
     for (lo, hi), bytestring in overflow_bytestrings.iteritems():
         # The first pointer must be adjusted to point to the beginning of the spare block.
         #last_pointer_adjustment = lo-1
@@ -354,18 +356,25 @@ def move_overflow(file, file_string, overflow_bytestrings):
 
                 this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)
 
-                print jp_bytestring
-                print eng_bytestring
-                print this_string_diff
+                #print jp_bytestring
+                #print eng_bytestring
+                #print this_string_diff
 
                 j = bytestring.index(jp_bytestring)
                 bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
+                print "editing pointers between", hex(previous_text_location), hex(i)
                 edit_pointers_in_range(file, file_string, (previous_text_location, i), pointer_diff)
+
+                spare_block_string += bytestring
+
+                #print spare_block_string
 
                 previous_text_location = i
                 pointer_diff += this_string_diff
-    # edit pointers.
-    # write the bytestring to the spare block.
+
+    block_strings[-1] = spare_block_string
+    original_block_string = original_block_strings[-1]
+    file_string = file_string.replace(original_block_string, spare_block_string)
     return file_string
 
 
@@ -416,7 +425,7 @@ for file in files_to_translate:
     # Then get individual strings of each text block, and put them in a list.
     block_strings = get_block_strings(file, dest_rom_path)
     original_block_strings = list(block_strings)   # Needs to be copied - simple assignment would just pass the ref.
-    block_strings = erase_spare_block(file, block_strings)
+    #block_strings = erase_spare_block(file, block_strings)
 
     patched_file_string = edit_text(file, translations)
 
