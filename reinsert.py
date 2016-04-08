@@ -24,6 +24,8 @@ import os
 import math
 from binascii import unhexlify
 from utils import *
+from rominfo import file_blocks, file_location, file_length, creature_block, spare_block, pointer_constants
+
 from openpyxl import load_workbook
 from shutil import copyfile
 from collections import OrderedDict
@@ -42,6 +44,7 @@ pointer_xls = "shinkaron_pointer_dump.xlsx"
 
 files_to_translate = ['ST1.EXE', 'SINKA.DAT']
 # TODO: ST2.EXE has an issue in finding the first block. Check the file_start value...
+
 
 def get_translations(file, dump_xls):
     # Parse the excel dump and return a dict full of translation tuples.
@@ -122,7 +125,7 @@ def get_pointers(file, ptr_xls):
 def get_file_strings(rom_path):
     file_strings = {}
     for file in files_to_translate:
-        start = file_start[file]
+        start = file_location[file]
         length = file_length[file]
         file_strings[file] = file_to_hex_string(rom_path, start, length)
     return file_strings
@@ -133,7 +136,7 @@ def get_block_strings(file, rom_path):
     for index, block in enumerate(file_blocks[file]):
         lo, hi = block
         block_length = hi - lo
-        block_start = file_start[file] + lo
+        block_start = file_location[file] + lo
 
         block_strings.append(file_to_hex_string(rom_path, block_start, block_length))
     return block_strings
@@ -212,6 +215,7 @@ def edit_text(file, translations):
 
     previous_replacement_offset = 0
 
+    block_string = file_blocks[file][0]
     previous_text_block = 0
     current_text_block = 0
     current_block_start = file_blocks[file][0][0]
@@ -237,7 +241,7 @@ def edit_text(file, translations):
 
         previous_text_offset = original_location
 
-        new_text_offset = original_location + len(jp*2) + pointer_diff
+        new_text_offset = original_location + len(jp)*2 + pointer_diff
         #print "testing overflow.", hex(original_location), "+", len(jp*2), "+", pointer_diff, "past", hex(current_block_end), "?"
         if new_text_offset > current_block_end and not is_overflowing:
             print hex(new_text_offset), "overflows past", hex(current_block_end)
@@ -299,7 +303,8 @@ def edit_text(file, translations):
 
         previous_replacement_offset += i
 
-    patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
+    # TODO: Re-implement this when it doesn't crash.
+    #patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
 
     patched_file_string = pad_text_blocks(file, block_strings, file_strings[file])
 
@@ -394,7 +399,7 @@ def edit_dat_text(file, file_string):
 
 
 def change_starting_map(map_number):
-    starting_map_number_location = 0xedaa + file_start['ST1.EXE']
+    starting_map_number_location = 0xedaa + file_location['ST1.EXE']
     new_map_bytes = str(map_number).encode()
     f = open(dest_rom_path, 'rb+')
     f.seek(starting_map_number_location)
@@ -425,7 +430,6 @@ for file in files_to_translate:
     # Then get individual strings of each text block, and put them in a list.
     block_strings = get_block_strings(file, dest_rom_path)
     original_block_strings = list(block_strings)   # Needs to be copied - simple assignment would just pass the ref.
-    #block_strings = erase_spare_block(file, block_strings)
 
     patched_file_string = edit_text(file, translations)
 
