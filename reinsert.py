@@ -446,6 +446,12 @@ for file in files_to_translate:
         if eng:
             translated_strings += 1
 
+    # "Permission denied: 'patched_roms\\ST1.EXE'"
+    #dest_file_path = os.path.join(dest_path, file)
+    #with open(dest_file_path, "wb") as output_file:
+    #    data = unhexlify(file_strings[file])
+    #    output_file.write(data)
+
     translation_percent = int(math.floor((translated_strings / total_strings) * 100))
     print file, str(translation_percent), "% complete"
 
@@ -454,8 +460,8 @@ change_starting_map(101)
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
 # 102: OOB cladoselache cave
-# 103: the void
-# 104:
+# 103: OOB ???
+# 104: OOB Gaia portal
 # 105: (default) thelodus sea
 # 200: chapter 2 world map
 # 201: super glitchy salamander cave
