@@ -4,22 +4,25 @@ files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'S
 file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                '46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
                'ST1.EXE': ((0xd873, 0xd934),  # not variable; environment messages
-                           (0xd984, 0xec4c),  # not variable; battle msgs    # ec4c separation is necessary! (AWAKU0.GDT)
+                           (0xd984, 0xe6f9),
+                           (0xe6f9, 0xec4c),  # not variable; battle msgs    # ec4c separation is necessary! (AWAKU0.GDT)
                            (0xec4c, 0xec9e),  # not variable; evolution msgs
-                           (0xec9e, 0x10e99),  # variable; dialogue
-                           (0x10e99, 0x10eb8),  # not variable; environment messages
-                           (0x10eb8, 0x10f12),  # not variable; environment messages
-                           (0x10f12, 0x10f96),  # not variable; environment messages
+                           (0xec9e, 0x10e39),  # variable; dialogue
+                           (0x10e39, 0x10f96),  # not variable; environment messages
                            (0x10fca, 0x117c7),  # variable; creature names
                            (0x117c7, 0x117df),  # not variable; yes/no/cancel    # iffy ending
                            (0x11839, 0x11857),  # not variable; "evolved too far" message
                            (0x11893, 0x119ae),  # not variable; battle msgs      # iffy ending
                            (0x11d42, 0x1204e)),  # error block
-               'ST2.EXE': ((0xc23b, 0xdd4f),
-                           (0xde35, 0xfaa0),
-                           (0xfae4, 0xfe50),
-                           (0x10004, 0x101df),
-                           (0x10570, 0x1087b)),
+               'ST2.EXE': ((0xc23b, 0xc27c),   # environment
+                           (0xc2bc, 0xd757),   # evo files, dialogue
+                           (0xd757, 0xd894),   # evolution, menu
+                           (0xd894, 0xdd50),   # battle stuff
+                           (0xde35, 0xf948),   # dialogue
+                           (0xf980, 0xfaa2),   # environment (probably needs additional splits)
+                           (0xfae4, 0xfe50),   # creature block
+                           (0x10004, 0x101df), # battle stuff
+                           (0x10570, 0x1087d)), # error block
                'ST3.EXE': ((0xb49d, 0xb548),
                            (0xb58a, 0xbccb), # split at AWAKU0.GDT
                            (0xbccb, 0xdb3a),

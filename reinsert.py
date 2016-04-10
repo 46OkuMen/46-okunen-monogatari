@@ -1,5 +1,8 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
+# TODO: Environment message pointers aren't getting adjusted correctly.
+# Eoither way, the spaces in front of the "volcanic currrents" message are unsightly.
+
 # TODO: Crashes to watch out for:
 # 1) On moving to next map - happens when changing length of stuff before 0x10555-ish. (Split this block?)
 # Looks like the narration right before it is fine to change the length of. Also the thelodus girl dialogue.
@@ -42,7 +45,7 @@ copyfile(src_rom_path, dest_rom_path)
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
-files_to_translate = ['ST1.EXE', 'SINKA.DAT']
+files_to_translate = ['ST1.EXE', 'ST2.EXE', 'SINKA.DAT']
 # TODO: ST2.EXE has an issue in finding the first block. Check the file_start value...
 
 
@@ -238,6 +241,9 @@ def edit_text(file, translations):
             current_block_start, current_block_end = file_blocks[file][current_text_block]
         if current_text_block:
             previous_text_block = current_text_block
+        else:
+            # TODO: Consider resetting the block here.
+            pass
 
         previous_text_offset = original_location
 
@@ -440,17 +446,19 @@ for file in files_to_translate:
     with open(dest_rom_path, "wb") as output_file:
         data = unhexlify(full_rom_string)
         output_file.write(data)
+
+    # Write the translated file alone to the file too.
+    dest_file_path = os.path.join(dest_path, file)
+    with open(dest_file_path, "wb") as output_file:
+        data = unhexlify(patched_file_string)
+        output_file.write(data)
+
+    # Get some quick stats on reinsertion progress.
     translated_strings = 0
     total_strings = len(translations)
     for _, eng in translations.itervalues():
         if eng:
             translated_strings += 1
-
-    # "Permission denied: 'patched_roms\\ST1.EXE'"
-    #dest_file_path = os.path.join(dest_path, file)
-    #with open(dest_file_path, "wb") as output_file:
-    #    data = unhexlify(file_strings[file])
-    #    output_file.write(data)
 
     translation_percent = int(math.floor((translated_strings / total_strings) * 100))
     print file, str(translation_percent), "% complete"
@@ -465,5 +473,9 @@ change_starting_map(101)
 # 105: (default) thelodus sea
 # 200: chapter 2 world map
 # 201: super glitchy salamander cave
+# 202: useful! take one step, die from fresh water, respawn as an Ichthyostega!
+# goes until 209.
+# 300: black screen. It's on a different disk, of course...
+
 
 # Useful tip: "Load File 1" takes you to map 105 from any map!
