@@ -1,7 +1,7 @@
 # Reinsertion script for 46 Okunen Monogatari: The Shinka Ron.
 
 # TODO: Environment message pointers aren't getting adjusted correctly.
-# Eoither way, the spaces in front of the "volcanic currrents" message are unsightly.
+# Either way, the spaces in front of the "volcanic currrents" message are unsightly.
 
 # TODO: Crashes to watch out for:
 # 1) On moving to next map - happens when changing length of stuff before 0x10555-ish. (Split this block?)
@@ -45,7 +45,7 @@ copyfile(src_rom_path, dest_rom_path)
 dump_xls = "shinkaron_dump_test.xlsx"
 pointer_xls = "shinkaron_pointer_dump.xlsx"
 
-files_to_translate = ['ST1.EXE', 'ST2.EXE', 'SINKA.DAT']
+files_to_translate = ['ST1.EXE', 'SINKA.DAT']
 # TODO: ST2.EXE has an issue in finding the first block. Check the file_start value...
 
 
@@ -164,7 +164,7 @@ def edit_pointer(file, text_location, diff, file_string):
 
     patched_file_string = file_string
     for ptr in pointer_locations:
-        print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
+        #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
 
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
@@ -211,18 +211,15 @@ def edit_text(file, translations):
     # Replace each jp bytestring with eng bytestrings in the text blocks.
     # Return a new file string.
 
-    pointer_diff = 0
-
     creature_block_lo, creature_block_hi = creature_block[file]
+
     previous_text_offset = file_blocks[file][0][0]
-
+    pointer_diff = 0
     previous_replacement_offset = 0
-
     block_string = file_blocks[file][0]
     previous_text_block = 0
     current_text_block = 0
-    current_block_start = file_blocks[file][0][0]
-    current_block_end = file_blocks[file][0][1]
+    current_block_start,current_block_end = file_blocks[file][0]
     is_overflowing = False
 
     overflow_bytestrings = OrderedDict()
@@ -240,41 +237,48 @@ def edit_text(file, translations):
             block_string = block_strings[current_text_block]
             current_block_start, current_block_end = file_blocks[file][current_text_block]
         if current_text_block:
+            # Does not update if the current_block is 0... since 0 is falsy.
+            # Can't do "or if current_text_bllock == 0", since that's "true or false" (always true)
             previous_text_block = current_text_block
         else:
+            #print hex(original_location), "is not part of any block"
             # TODO: Consider resetting the block here.
+            # Doesn't seem to apply anywhere... really, it's the pointers between blocks you gotta watch out for.
             pass
 
         previous_text_offset = original_location
 
-        new_text_offset = original_location + len(jp)*2 + pointer_diff
-        #print "testing overflow.", hex(original_location), "+", len(jp*2), "+", pointer_diff, "past", hex(current_block_end), "?"
+        jp_bytestring = sjis_to_hex_string(jp)
+        eng_bytestring = ascii_to_hex_string(eng)
+
+        if eng_bytestring:
+            new_text_offset = original_location + len(eng_bytestring)//2 + pointer_diff
+            # The bytestring is twice as long as the number of bytes.
+        else:
+            new_text_offset = original_location + len(jp_bytestring)//2 + pointer_diff
+
         if new_text_offset > current_block_end and not is_overflowing:
             print hex(new_text_offset), "overflows past", hex(current_block_end)
-            # OK, so it looks like this just goes to the end of the block. It only includes control codes if those
-            # are included in the block to begin with. Is that the case for some of these blocks?
-            # ... huh, looks like they do. Still want to see what some of these look like, though.
+            print eng
             is_overflowing = True
             start_in_block = (original_location - current_block_start)*2
-            #end_in_block = (current_block_end - current_block_start)*2
-            #overflow_bytes = block_string[start_in_block:end_in_block]
-            overflow_bytestring = block_string[start_in_block:]
-
-            # If I grab everything in the block from this string's start to the end of the block,
-            # there might be other translated strings inside it. Maybe keep a list of the pointers to adjust?
+            overflow_bytestring = original_block_strings[current_text_block][start_in_block:]
+            # Store the start and end of the overflow bytestring, to make sure all pointers are adjusted in the range.
             overflow_lo, overflow_hi = original_location, current_block_end
 
             overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
-            print overflow_bytestring
+            print "adding new oveflow bytestring", overflow_bytestring
 
         if eng == "":
             continue
 
         if is_overflowing:
+            print hex(original_location), "is part of an overflow"
             eng = ""
             # TODO: What else should happen when it's overflowing? Should the pointer still get adjusted?
 
-        jp_bytestring = sjis_to_hex_string(jp)
+
+        # Recalculate this in case eng got erased.
         eng_bytestring = ascii_to_hex_string(eng)
 
         this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)   # since 2 chars per byte
@@ -309,9 +313,9 @@ def edit_text(file, translations):
 
         previous_replacement_offset += i
 
-    # TODO: Re-implement this when it doesn't crash.
-    #patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
+    patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
 
+    # TODO: Do I need to get patched_file_string rather than file_strings[file]? Doesn't seem like it...
     patched_file_string = pad_text_blocks(file, block_strings, file_strings[file])
 
     return patched_file_string
@@ -347,6 +351,7 @@ def move_overflow(file, file_string, overflow_bytestrings):
     #spare_block_string = erase_spare_block(file, block_strings)
     spare_block_string = ''
     location_in_spare_block = 0
+    # TODO: Find out why there are duplicate bytestrings being moved.
     for (lo, hi), bytestring in overflow_bytestrings.iteritems():
         # The first pointer must be adjusted to point to the beginning of the spare block.
         #last_pointer_adjustment = lo-1
