@@ -12,7 +12,7 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                            (0x10fca, 0x117c7),  # variable; creature names
                            (0x117c7, 0x117df),  # not variable; yes/no/cancel    # iffy ending
                            (0x11839, 0x11857),  # not variable; "evolved too far" message
-                           (0x11893, 0x119ae),  # not variable; battle msgs      # iffy ending
+                           (0x11893, 0x119a4),  # not variable; battle msgs      # iffy ending
                            (0x11d42, 0x1204e)),  # error block
                'ST2.EXE': ((0xc23b, 0xc27c),   # environment
                            (0xc2bc, 0xd757),   # evo files, dialogue

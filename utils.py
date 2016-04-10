@@ -49,8 +49,6 @@ def get_current_block(text_offset, file):
         lo, hi = block
         if (text_offset >= lo) and (text_offset < hi):
             return index
-        else:
-            print hex(text_offset), "is outside any block"
         #else:
         #    # It returns None when the text is overflowing. Rather,
         #    # you want to get the previous block.
