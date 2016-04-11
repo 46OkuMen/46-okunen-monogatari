@@ -37,7 +37,6 @@ FILES_TO_TRANSLATE = ['ST1.EXE', 'SINKA.DAT']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
-
 def get_translations(gamefile):
     """For the given file, return a diciotnary of its translations from the dump."""
     trans = OrderedDict() # translations[offset] = (japanese, english)
@@ -147,9 +146,9 @@ def edit_pointer(file, text_location, diff, file_string):
         old_bytes = pack(old_value)
         old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
 
-        location_in_file_string = ptr*2
-        rom_bytestring = ORIGINAL_FILE_STRINGS[file][location_in_file_string:location_in_file_string+4]
-        assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
+        #location_in_file_string = ptr*2
+        #rom_bytestring = ORIGINAL_FILE_STRINGS[file][location_in_file_string:location_in_file_string+4]
+        #assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
 
         #print hex(pointer_location)
         print "old:", old_value, old_bytes, old_bytestring
@@ -171,13 +170,20 @@ def edit_pointer(file, text_location, diff, file_string):
 
 def edit_pointers_in_range(file, file_string, (lo, hi), diff):
     """Edit all the pointers in the (lo, hi) range."""
-    #print "lo hi", hex(lo), hex(hi)
+    #print "searching between", hex(lo+1), hex(hi+1)
     for n in range(lo+1, hi+1):
         if n in pointers:
             file_string = file_strings[file]
             patched_file_string = edit_pointer(file, n, diff, file_string)
             file_strings[file] = patched_file_string
     return file_strings[file]
+
+
+def most_recent_pointer(lo, hi):
+    """Return the highest offset with a pointer in the given range."""
+    for n in reversed(range(lo, hi+1)):
+        if n in pointers:
+            return n
 
 
 def edit_text(file, translations):
@@ -197,7 +203,6 @@ def edit_text(file, translations):
     overflow_bytestrings = OrderedDict()
 
     for original_location, (jp, eng) in translations.iteritems():
-        file_strings[file] = edit_pointers_in_range(file, file_strings[file], (previous_text_offset, original_location), pointer_diff)
         print hex(original_location), pointer_diff
         current_text_block = get_current_block(original_location, file)
         if current_text_block != previous_text_block:
@@ -210,8 +215,6 @@ def edit_text(file, translations):
             # Does not update if the current_block is 0... since 0 is falsy.
             # Can't do "or if current_text_bllock == 0", since that's "true or false" (always true)
             previous_text_block = current_text_block
-
-        previous_text_offset = original_location
 
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
@@ -229,13 +232,20 @@ def edit_text(file, translations):
             # TODO: Here's the problem. Some pointers point to something a few control codes before the text.
             # So I need to calculate start_in_block as the pointer right before its current value...
             # Otherwise, the pointers won't get readjusted!
-            start_in_block = (original_location - current_block_start)*2
+            recent_pointer = most_recent_pointer(previous_text_offset, original_location)
+            diff_between_pointer_and_text = recent_pointer - original_location
+            start_in_block = (recent_pointer - current_block_start)*2
             overflow_bytestring = original_block_strings[current_text_block][start_in_block:]
             # Store the start and end of the overflow bytestring, 
             # to make sure all pointers are adjusted in the range.
             overflow_lo, overflow_hi = original_location, current_block_end
 
-            overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
+            overflow_bytestrings[((overflow_lo, overflow_hi), diff_between_pointer_and_text)] = overflow_bytestring
+
+        if not is_overflowing:
+            file_strings[file] = edit_pointers_in_range(file, file_strings[file], (previous_text_offset, original_location), pointer_diff)
+
+        previous_text_offset = original_location
 
         if eng == "":
             continue
@@ -247,7 +257,7 @@ def edit_text(file, translations):
         # Recalculate this in case eng got erased.
         eng_bytestring = ascii_to_hex_string(eng)
 
-        this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)   # since 2 chars per byte
+        this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)
 
         if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
             if this_string_diff <= 0:
@@ -272,14 +282,13 @@ def edit_text(file, translations):
 
     patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
 
-
     patched_file_string = pad_text_blocks(file, block_strings, file_strings[file])
     # Should this take patched_file_string as an argument instead?
 
     return patched_file_string
 
 
-def pad_text_blocks(file, block_strings, file_string):
+def pad_text_blocks(gamefile, block_strings, file_string):
     """Add ascii spaces to the end of each block to preserve the function code."""
     patched_file_string = file_string
     for i, blk in enumerate(block_strings):
@@ -291,7 +300,7 @@ def pad_text_blocks(file, block_strings, file_string):
         assert block_diff <= 0, 'Block ending in %s is too long' % hex(file_blocks[file][i][1])
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
-            inserted_spaces_index = file_blocks[file][i][1]
+            inserted_spaces_index = file_blocks[gamefile][i][1]
             blk += '20' * number_of_spaces       # Fill it up with ascii 20 (space)
             print number_of_spaces, "added at", hex(inserted_spaces_index)
 
@@ -307,16 +316,19 @@ def move_overflow(file, file_string, overflow_bytestrings):
     spare_block_lo, spare_block_hi = spare_block[file]
     spare_block_string = ''
     #location_in_spare_block = 0
-    for (lo, hi), bytestring in overflow_bytestrings.iteritems():
+    for ((lo, hi), diff_between_pointer_and_text), bytestring in overflow_bytestrings.iteritems():
         # The first pointer must be adjusted to point to the beginning of the spare block.
         #last_pointer_adjustment = lo-1
-        pointer_diff = (spare_block_lo - lo)
+        pointer_diff = (spare_block_lo - lo) + len(spare_block_string) + diff_between_pointer_and_text
+        # TODO: How to carry over the length of the overflow string?
+        print hex(spare_block_lo), hex(lo), pointer_diff
         # Find all the translations that need to be applied.
         trans = OrderedDict()
+        previous_text_location = lo-1
         for i in range(lo, hi):
-            previous_text_location = lo
             if i in translations:
                 print "translating overflow"
+                print "previous_text_location:", hex(previous_text_location)
                 print hex(i), pointer_diff
                 trans[i] = translations[i]
                 jp, eng = trans[i]
@@ -327,15 +339,12 @@ def move_overflow(file, file_string, overflow_bytestrings):
 
                 this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)
 
-                j = bytestring.index(jp_bytestring)
+                #j = bytestring.index(jp_bytestring)
                 bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
-                print "editing pointers between", hex(previous_text_location), hex(i)
-                edit_pointers_in_range(file, file_string, (previous_text_location, i), pointer_diff)
-                # TODO: Plus this pointer isn't getting the proper adjustment anyway...
+                print "editing pointers between", hex(previous_text_location-1), hex(i)
+                edit_pointers_in_range(file, file_string, (previous_text_location-1, i), pointer_diff)
 
                 spare_block_string += bytestring
-
-                #print spare_block_string
 
                 previous_text_location = i
                 pointer_diff += this_string_diff
@@ -350,13 +359,13 @@ def edit_dat_text(gamefile, file_string):
     """Edit text for SINKA.DAT or SEND.DAT. Do not adjust pointers."""
     trans = get_dat_translations(gamefile)
 
-    patched_file_string = file_string
+    patched_file_string = "" + file_string
 
-    for (jp, eng) in trans:
-        if eng == "":
+    for (japanese, english) in trans:
+        if english == "":
             continue
-        jp_bytestring = sjis_to_hex_string(jp)
-        eng_bytestring = ascii_to_hex_string(eng)
+        jp_bytestring = sjis_to_hex_string(japanese)
+        eng_bytestring = ascii_to_hex_string(english)
 
         patched_file_string = patched_file_string.replace(jp_bytestring, eng_bytestring, 1)
     return patched_file_string
@@ -425,7 +434,7 @@ if __name__ == '__main__':
         translation_percent = int(math.floor((translated_strings / total_strings) * 100))
         print file, str(translation_percent), "% complete"
 
-    change_starting_map(101)
+    change_starting_map(105)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
