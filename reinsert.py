@@ -224,7 +224,7 @@ def edit_text(file, translations):
             # So I need to calculate start_in_block as the pointer right before its current value...
             # Otherwise, the pointers won't get readjusted!
             recent_pointer = most_recent_pointer(previous_text_offset, original_location)
-            diff_between_pointer_and_text = recent_pointer - original_location
+            diff_between_pointer_and_text = original_location - recent_pointer
             start_in_block = (recent_pointer - current_block_start)*2
             overflow_bytestring = original_block_strings[current_text_block][start_in_block:]
             # Store the start and end of the overflow bytestring, 
@@ -310,8 +310,7 @@ def move_overflow(file, file_string, overflow_bytestrings):
     #location_in_spare_block = 0
     for ((lo, hi), diff_between_pointer_and_text), bytestring in overflow_bytestrings.iteritems():
         # The first pointer must be adjusted to point to the beginning of the spare block.
-        #last_pointer_adjustment = lo-1
-        pointer_diff = (spare_block_lo - lo) + len(spare_block_string) + diff_between_pointer_and_text
+        pointer_diff = (spare_block_lo - lo) + len(spare_block_string)//2 + diff_between_pointer_and_text
         # Find all the translations that need to be applied.
         trans = OrderedDict()
         previous_text_location = lo-1
@@ -333,6 +332,9 @@ def move_overflow(file, file_string, overflow_bytestrings):
                 bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
                 edit_pointers_in_range(file, file_string, (previous_text_location-1, i), pointer_diff)
                 # TODO: Pointer adjustments still not correct.
+                # "Be nice to everyone." correct
+                # "Got %u EVO Genes." is 2 too low
+                # "n/a" is 2 too low
                 previous_text_location = i
                 pointer_diff += this_string_diff
 
@@ -423,7 +425,7 @@ if __name__ == '__main__':
         translation_percent = int(math.floor((translated_strings / total_strings) * 100))
         print file, str(translation_percent), "% complete"
 
-    change_starting_map(105)
+    change_starting_map(101)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
