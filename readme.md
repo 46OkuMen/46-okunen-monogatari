@@ -4,7 +4,7 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 ![screen from mid-Chapter 1, translated](https://raw.githubusercontent.com/hollowaytape/shank-a-rom/master/evidence_02.png)
 
 ###Reinsertion Status:
-* Chapter 1: 77%
+* Chapter 1: 79%
 * Chapter 2: 10%
 * Chapter 3: 0%
 * Chapter 4: 0%

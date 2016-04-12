@@ -1,9 +1,19 @@
-from rominfo import file_blocks
-import re
+"""Various utilities for use in the dumper/reinserter for 46 Okunen Monogatari: The Shinka Ron."""
 
-#old_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f]\\x[0-f][0-f]))(\\x[0-f][0-f]\\x[0-f][0-f]\2){2,}"
+import os, re
+from rominfo import file_blocks
+
+SCRIPT_DIR = os.path.dirname(__file__)
+SRC_PATH = os.path.join(SCRIPT_DIR, 'intermediate_roms')
+DEST_PATH = os.path.join(SCRIPT_DIR, 'patched_roms')
+
+SRC_ROM_PATH = os.path.join(SRC_PATH, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
+DEST_ROM_PATH = os.path.join(DEST_PATH, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
+
+DUMP_XLS = "shinkaron_dump_test.xlsx"
+POINTER_XLS = "shinkaron_pointer_dump.xlsx"
+
 pointer_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f])(\\x[0-f][0-f]))((\\x[0-f][0-f])\\x[0-f][0-f]\2\3(?!\3\5)){7,}"
-#dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])\\x50" # Starts with \\x1e\\xb8 , then the thing to be captured, then \\x50.
 new_dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])" # Minus the \\x50. Adds 50 more pointers.
 
 # Binary patterns used in GDT pattern encoding
@@ -69,11 +79,13 @@ def first_offset_in_block(file, block_index, offsets):
         if (o >= block_lo) and (o <= block_hi):
             return o
 
+
 def compare_strings(a, b):
     try:
         return [hex(i/2) for i in xrange(len(a)) if a[i] != b[i]]
     except IndexError:
         return "strings different lengths, so probably different"
+
 
 def file_to_hex_string(file_path, start=0, length=0):
     # Defaults: read full file from start.
@@ -88,11 +100,13 @@ def file_to_hex_string(file_path, start=0, length=0):
             hex_string += "%02x" % ord(c)
     return hex_string
 
+
 def ascii_to_hex_string(eng):
     eng_bytestring = ""
     for c in eng:
         eng_bytestring += "%02x" % ord(c)
     return eng_bytestring
+
 
 def sjis_to_hex_string(jp):
     jp_bytestring = ""

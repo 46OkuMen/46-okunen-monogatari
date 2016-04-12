@@ -18,20 +18,11 @@ from shutil import copyfile
 from collections import OrderedDict
 from openpyxl import load_workbook
 
+from utils import DUMP_XLS, POINTER_XLS, SRC_PATH, DEST_PATH, SRC_ROM_PATH, DEST_ROM_PATH
 from utils import pack, get_current_block, file_to_hex_string
 from utils import sjis_to_hex_string, ascii_to_hex_string
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
-
-SCRIPT_DIR = os.path.dirname(__file__)
-SRC_PATH = os.path.join(SCRIPT_DIR, 'intermediate_roms')
-DEST_PATH = os.path.join(SCRIPT_DIR, 'patched_roms')
-
-SRC_ROM_PATH = os.path.join(SRC_PATH, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
-DEST_ROM_PATH = os.path.join(DEST_PATH, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
-
-DUMP_XLS = "shinkaron_dump_test.xlsx"
-POINTER_XLS = "shinkaron_pointer_dump.xlsx"
 
 FILES_TO_TRANSLATE = ['ST1.EXE', 'SINKA.DAT']
 
@@ -243,7 +234,8 @@ def edit_text(file, translations):
             overflow_bytestrings[((overflow_lo, overflow_hi), diff_between_pointer_and_text)] = overflow_bytestring
 
         if not is_overflowing:
-            file_strings[file] = edit_pointers_in_range(file, file_strings[file], (previous_text_offset, original_location), pointer_diff)
+            file_strings[file] = edit_pointers_in_range(file, file_strings[file], 
+                    (previous_text_offset, original_location), pointer_diff)
 
         previous_text_offset = original_location
 
@@ -320,8 +312,6 @@ def move_overflow(file, file_string, overflow_bytestrings):
         # The first pointer must be adjusted to point to the beginning of the spare block.
         #last_pointer_adjustment = lo-1
         pointer_diff = (spare_block_lo - lo) + len(spare_block_string) + diff_between_pointer_and_text
-        # TODO: How to carry over the length of the overflow string?
-        print hex(spare_block_lo), hex(lo), pointer_diff
         # Find all the translations that need to be applied.
         trans = OrderedDict()
         previous_text_location = lo-1
@@ -331,23 +321,22 @@ def move_overflow(file, file_string, overflow_bytestrings):
                 print "previous_text_location:", hex(previous_text_location)
                 print hex(i), pointer_diff
                 trans[i] = translations[i]
-                jp, eng = trans[i]
-                print eng
+                japanese, english = trans[i]
+                print english
 
-                jp_bytestring = sjis_to_hex_string(jp)
-                eng_bytestring = ascii_to_hex_string(eng)
+                jp_bytestring = sjis_to_hex_string(japanese)
+                eng_bytestring = ascii_to_hex_string(english)
 
-                this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)
+                this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
 
                 #j = bytestring.index(jp_bytestring)
                 bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
-                print "editing pointers between", hex(previous_text_location-1), hex(i)
                 edit_pointers_in_range(file, file_string, (previous_text_location-1, i), pointer_diff)
-
-                spare_block_string += bytestring
-
+                # TODO: Pointer adjustments still not correct.
                 previous_text_location = i
                 pointer_diff += this_string_diff
+
+        spare_block_string += bytestring
 
     block_strings[-1] = spare_block_string
     original_block_string = original_block_strings[-1]
