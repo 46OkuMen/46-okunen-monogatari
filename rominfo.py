@@ -17,7 +17,7 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                'ST2.EXE': ((0xc23b, 0xc27c),   # environment
                            (0xc2bc, 0xd757),   # evo files, dialogue
                            (0xd757, 0xd894),   # evolution, menu
-                           (0xd894, 0xdd50),   # battle stuff
+                           (0xd8c6, 0xdd50),   # battle stuff
                            (0xde35, 0xf948),   # dialogue
                            (0xf980, 0xfaa2),   # environment (probably needs additional splits)
                            (0xfae4, 0xfe50),   # creature block
@@ -25,7 +25,7 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                            (0x10570, 0x1087d)), # error block
                'ST3.EXE': ((0xb49d, 0xb548),
                            (0xb58a, 0xbccb), # split at AWAKU0.GDT
-                           (0xbccb, 0xdb3a),
+                           (0xbccb, 0xdb3a),    # "string not found" error here
                            (0xdb7e, 0xe2d5),
                            (0xe617, 0xe7f3),
                            (0xeb82, 0xee8e)),
@@ -51,8 +51,6 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                'SEND.DAT': ((0x000, 0x8740),)
 }
 
-# TODO: Now that the blocks are less finicky, I can probably combine a lot of these blocks rather than
-# split them wherever there's a filename.
 
 # What is my methodology for deciding when a block starts and ends?
 # The end of a block has to be a place where spaces are okay. My mistake may have been in putting them after filenames.

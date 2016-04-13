@@ -1,6 +1,7 @@
-from openpyxl import load_workbook
-from utils import files
 import os
+from openpyxl import load_workbook
+from rominfo import files
+
 
 script_dir = os.path.dirname(__file__)
 

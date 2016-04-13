@@ -21,10 +21,11 @@ from openpyxl import load_workbook
 from utils import DUMP_XLS, POINTER_XLS, SRC_PATH, DEST_PATH, SRC_ROM_PATH, DEST_ROM_PATH
 from utils import pack, get_current_block, file_to_hex_string
 from utils import sjis_to_hex_string, ascii_to_hex_string
+from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
 
-FILES_TO_TRANSLATE = ['ST1.EXE', 'SINKA.DAT']
+FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'SINKA.DAT']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -159,10 +160,10 @@ def edit_pointer(file, text_location, diff, file_string):
     return patched_file_string
 
 
-def edit_pointers_in_range(file, file_string, (lo, hi), diff):
-    """Edit all the pointers in the (lo, hi) range."""
+def edit_pointers_in_range(file, file_string, (start, stop), diff):
+    """Edit all the pointers in the (start, stop) range."""
     #print "searching between", hex(lo+1), hex(hi+1)
-    for n in range(lo+1, hi+1):
+    for n in range(start+1, stop+1):
         if n in pointers:
             file_string = file_strings[file]
             patched_file_string = edit_pointer(file, n, diff, file_string)
@@ -297,7 +298,16 @@ def pad_text_blocks(gamefile, block_strings, file_string):
             print number_of_spaces, "added at", hex(inserted_spaces_index)
 
         j = ORIGINAL_FILE_STRINGS[file].index(original_block_strings[i])
-        j = patched_file_string.index(original_block_strings[i])
+        try:
+            j = patched_file_string.index(original_block_strings[i])
+        except ValueError:
+            print "looking for:"
+            print original_block_strings[i]
+            start, stop = file_blocks[gamefile][i]
+            print "in:"
+            print patched_file_string[start*2:stop*2]
+            for n in compare_strings(original_block_strings[i], patched_file_string[start*2:stop*2]):
+                print "look at offset", hex(n + file_blocks[gamefile][i][0])
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
 
     return patched_file_string
