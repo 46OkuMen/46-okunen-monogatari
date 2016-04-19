@@ -25,13 +25,13 @@ from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
 
-FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'SINKA.DAT']
+FILES_TO_TRANSLATE = ['ST2.EXE',]
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
 def get_translations(gamefile):
     """For the given file, return a diciotnary of its translations from the dump."""
-    trans = OrderedDict() # translations[offset] = (japanese, english)
+    trans = OrderedDict()    # translations[offset] = (japanese, english)
     
     workbook = load_workbook(DUMP_XLS)
     worksheet = workbook.get_sheet_by_name(gamefile)
@@ -133,12 +133,18 @@ def edit_pointer(file, text_location, diff, file_string):
     patched_file_string = file_string
     for ptr in pointer_locations:
         print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
+    #    for (blk_start, blk_end) in file_blocks[file]:
+    #        if blk_start <= ptr <= blk_end:
+    #            print "uh oh, this pointer is in a text block!!"
 
+    #    # Check for the status of the problem values...
+        problem_values = [0x4ab7, 0xc8be, 0xd562]
+    #
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
         old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
 
-        #location_in_file_string = ptr*2
+        location_in_string = ptr*2
         #rom_bytestring = ORIGINAL_FILE_STRINGS[file][location_in_file_string:location_in_file_string+4]
         #assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
 
@@ -151,18 +157,35 @@ def edit_pointer(file, text_location, diff, file_string):
         new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
         print "new:", new_value, new_bytes, new_bytestring
 
-        location_in_string = ptr * 2
+        # TODO: The problem is that one of the pointers is getting written twice. Why?
+        # It may be simpler just to write directly to the location without looking for the old value.
+        # But if the diffs are different, that's weird. Also figure out why it gets written twice...
 
-        old_slice = file_string[location_in_string:]
-        new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
-        patched_file_string = patched_file_string.replace(old_slice, new_slice, 1)
+        old_slice = file_string[location_in_string:location_in_string+4]
+        j = old_slice.index(old_bytestring)
+        if j > 0:
+            print j, "is in a weird place"
+        #new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
+
+        patched_file_string = patched_file_string[0:location_in_string] + new_bytestring + patched_file_string[location_in_string+4:]
+
+        #patched_file_string = patched_file_string.replace(old_slice, new_slice, 1)
+
+        for p in problem_values:
+            #print file_string[(p*2):(p*2)+2]
+            if file_string[(p*2):(p*2)+2] != patched_file_string[(p*2):(p*2)+2]:
+                print hex(p), "got changed right before this!!!!!!!!!"
 
     return patched_file_string
 
 
 def edit_pointers_in_range(file, file_string, (start, stop), diff):
     """Edit all the pointers in the (start, stop) range."""
-    #print "searching between", hex(lo+1), hex(hi+1)
+    if start > stop:
+        print "start > stop, so something weird happened"
+    if diff == 0:
+        return file_strings[file]
+    print "searching between", hex(start+1), hex(stop+1)
     for n in range(start+1, stop+1):
         if n in pointers:
             file_string = file_strings[file]
@@ -195,9 +218,10 @@ def edit_text(file, translations):
     overflow_bytestrings = OrderedDict()
 
     for original_location, (jp, eng) in translations.iteritems():
-        print hex(original_location), pointer_diff
+        #print hex(original_location), pointer_diff
         current_text_block = get_current_block(original_location, file)
         if current_text_block != previous_text_block:
+            print "New block!"
             pointer_diff = 0
             previous_replacement_offset = 0
             is_overflowing = False
