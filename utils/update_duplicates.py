@@ -1,11 +1,15 @@
-import os
+"""Finds the duplicate entries in the dump excel sheet, taking one sheet as the base."""
+
+from os import path
 from openpyxl import load_workbook
-from rominfo import files
 
 
-script_dir = os.path.dirname(__file__)
+script_dir = path.abspath(__file__)
+xls_dir = path.dirname(script_dir)
 
 dump_xls = "shinkaron_dump_test.xlsx"
+
+xls_path = path.join(xls_dir, dump_xls)
 
 wb = load_workbook(dump_xls)
 sheets = wb.get_sheet_names()
