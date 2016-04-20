@@ -25,7 +25,7 @@ from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
 
-FILES_TO_TRANSLATE = ['ST2.EXE',]
+FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -459,7 +459,7 @@ if __name__ == '__main__':
         translation_percent = int(math.floor((translated_strings / total_strings) * 100))
         print file, str(translation_percent), "% complete"
 
-    change_starting_map(101)
+    change_starting_map(204)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
@@ -470,5 +470,7 @@ if __name__ == '__main__':
 # 200: chapter 2 world map
 # 201: super glitchy salamander cave
 # 202: useful! take one step, die from fresh water, respawn as an Ichthyostega!
+# 203: OOB lava cave
+# 204: mountain, right near the top! easy access to combat, cut scenes - plus fish equivs of animals
 # goes until 209.
 # 300: black screen. It's on a different disk, of course...

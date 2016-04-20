@@ -23,9 +23,13 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                            (0xfae4, 0xfe50),   # creature block
                            (0x10004, 0x101df), # battle stuff
                            (0x10570, 0x1087d)), # error block
-               'ST3.EXE': ((0xb49d, 0xb548),
-                           (0xb58a, 0xbccb), # split at AWAKU0.GDT
-                           (0xbccb, 0xdb3a),    # "string not found" error here
+               'ST3.EXE': ((0xb49d, 0xb548),   # environment
+                           (0xb58a, 0xbccb),    # evo files, dialogue
+                           (0xbccb, 0xbe21),
+                           (0xbe22, 0xc01d),
+                           (0xc046, 0xc5d3),
+                           (0xc607, 0xcfe6),
+                           (0xcfff, 0xdb3a),    
                            (0xdb7e, 0xe2d5),
                            (0xe617, 0xe7f3),
                            (0xeb82, 0xee8e)),
