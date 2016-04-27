@@ -1,5 +1,7 @@
-# Assisted Text Dumper for 46 Okunen Monogatari: The Shinka Ron. Use in a directory with the contents of
-# Disk A (User).FDI, extracted with EditDisk.
+"""Assisted text dumper for 46 Okunen Monogatari: The Shinka Ron. Use with SJIS_Dump.exe."""
+# SJIS_Dump is available at http://www.romhacking.net/utilities/645/
+
+# Far from optimized or presentable; this is a script I'd call "good enough."
 
 # For each file, dump all the discovered pointer tables into a dict "pointers".
 # For each text block in the file (locations found previously), split it into smaller snippets,
@@ -12,7 +14,7 @@
 # Cleanup all the temp files.
 
 # SJIS_Dump on its own messes up any file larger than 0x100 bytes, since its internal buffer is
-# that size. It splits two-byte characters across multiple buffers, and as a result, it mis-encodes them.
+# that size. It splits two-byte characters across multiple buffers, so it mis-encodes them.
 # I didn't know enough C++ to alter the program without causing memory leaks. Messy solution:
 # Split up the source files themselves into 0x100 and smaller chunks by splitting them into the
 # game text lines themselves, which are never longer than the game window (usually like 80 bytes of text).
@@ -20,15 +22,17 @@
 import os
 import subprocess
 import codecs
+from collections import OrderedDict, namedtuple
+
 import xlsxwriter
-import re
-from collections import OrderedDict
 
-from utils import files, file_blocks
+from rominfo import file_blocks, pointer_constants, pointer_separators
+
 from utils import capture_pointers_from_table, capture_pointers_from_function
-from utils import pointer_constants, pointer_separators
-from utils import pack, unpack, location_from_pointer
+from utils import unpack, location_from_pointer
 
+# SJIS_Dump has an option to dump ASCII text as well.
+# Set to False for getting game text, and True for getting pointers too.
 DUMP_ASCII = True
 
 # Nomenclature for different parts of things:
@@ -76,16 +80,12 @@ for file, blocks in file_blocks.iteritems():
 
         pointers = capture_pointers_from_table(first, second, only_hex)
         dialogue_pointers = capture_pointers_from_function(only_hex)
-        # TODO: Why are there duplicates in these lists?
         
         for p in pointers:
-            # pointer_locations[(file, text_location)] = pointer_location
-            # TODO: trying something new. pointer_locations[(file, text_location)] = [pointer1_location, pointer2,...]
+            # pointer_locations[(file, text_location)] = [pointer1_location, pointer2,...]
             # Multiple pointer_locations for the same text_location...
-            # Since we want to take a piece of text from the file and find its pointer.
 
             #pointer_location = only_hex.index(p.group(0))/4  # Where is this pointer found?
-            # TODO: Oh, this is probably why there are so many duplicates - it' s just reporting the first one a lot.
             pointer_location = p.start()/4
 
             pointer_location = '0x%05x' % pointer_location
@@ -101,7 +101,6 @@ for file, blocks in file_blocks.iteritems():
             all_locations = [pointer_location,]
 
             if (file, text_location) in pointer_locations:
-                print "duplicate pointer at", pointer_location, "points to", text_location
                 all_locations = pointer_locations[(file, text_location)]
                 all_locations.append(pointer_location)
 
@@ -146,27 +145,16 @@ for file, blocks in file_blocks.iteritems():
                     last_snippet_offset = snippet_start
 
                     offset = hex(snippet_start)
-                    # TODO: If there's already a snippet file with the same source and offset, recalculate the offset.
                     snippet_filename = "snippet_" + offset  + "_" + file
                     snippet_dump = "dump_" + snippet_filename
                     snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
                     dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
 
-                    # TODO: Could probably make this recalculation a function.
-                    #while snippet_dump in dump_files:
-                    #    truncated_file = whole_file[snippet_start+4:]
-                    #    snippet_start += (whole_file.index(snippet)+4)
-                    #    offset = hex(snippet_start)
-                    #    snippet_filename = "snippet_" + offset + "_" + file
-                    #    snippet_file_path = os.path.join(snippet_folder_path, snippet_filename)
-                    #    snippet_dump = "dump_" + snippet_filename
-                    #    dump_file_path = os.path.join(snippet_folder_path, snippet_dump)
-
                     snippet_file = open(snippet_file_path, 'w')
                     snippet_file.write(snippet.encode('shift_jis'))
                     snippet_file.close()
                     
-                    subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
+                    subprocess.call(r".\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
                     
                     dump_files.append(dump_file_path)
                     #os.remove(snippet_filename)
@@ -176,7 +164,7 @@ for file, blocks in file_blocks.iteritems():
         
             in_file.seek(block_start)
             bytes = in_file.read(block_length)
-            only_hex = ""                      # Text block of all the bloc
+            only_hex = ""                      # Text block of all the block
             for c in bytes:
                 only_hex += "\\x%02x" % ord(c)
                 
@@ -209,9 +197,9 @@ for file, blocks in file_blocks.iteritems():
                     #print dump_file_path
 
                     if DUMP_ASCII: 
-                        subprocess.call(".\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
+                        subprocess.call(r".\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
                     else:
-                        subprocess.call(".\SJIS_Dump %s %s 1 0" % (snippet_file_path, dump_file_path))
+                        subprocess.call(r".\SJIS_Dump %s %s 1 0" % (snippet_file_path, dump_file_path))
                     # Last argument: whether to dump ASCII text as well.
                     # Don't want them for the clean JP text dump, but do want them for dealing with pointers.
                 
@@ -231,7 +219,7 @@ for file in dump_files:
     lines = fo.readlines()
 
     for n in range(0, len(lines)-1, 3):
-        offset_string = lines[n][11:].rstrip()     # first line of three, minus "Position : ", minus "\n"
+        offset_string = lines[n][11:].rstrip()  # first line of three, minus "Position : ", minus "\n"
         offset_within_snippet = hex(int(offset_string, 16))
         
         try:
@@ -274,36 +262,7 @@ pointer_workbook = xlsxwriter.Workbook('shinkaron_pointer_dump.xlsx')
 pointer_sheet = pointer_workbook.add_worksheet()
 excel_row = 0
 
-# I'm not convinced the pointer-pointer thing is worth doing - let's just treat them as any other pointer.
-# Deal with pointer-pointers separately.
-# A pointer-pointer is a pointer whose text_location (the thing it points to) equals another pointer's pointer_location (where it is)
-# Hence, pointer-pointer. It points to a pointer.
-# There's usually a table of pointer-pointers at the top, pointing to a pointer table closer to the text block.
-# Looks like all the pointer-pointers are for menu options and error messages.
-#for (source, text_location), pointer_location in pointer_locations.iteritems():
-#    try:
-#        # a pointer-pointer is a pointer whose text_location equals another pointer's pointer_location.
-#        # They point to the first byte of the (preceding) separator rather than the first byte of the pointer value, unlike the text... weird.
-#        # 565 pointer-pointers matched with -2.
-#        # 606 pointer-pointers matched with +2. (Must be right.)
-#        alternate_pointer_location = '0x%05x' % (int(pointer_location, 16) + 2)
-#        pointer_pointer_location = pointer_locations[(source, alternate_pointer_location)]
-#        text = "[PTR] " + [d[1] for d in dump if d[0] == (source, text_location)][0][1]#
 
-#        pointer_sheet.write(excel_row, 0, source)
-#        pointer_sheet.write(excel_row, 1, alternate_pointer_location)
-#        pointer_sheet.write(excel_row, 2, pointer_pointer_location)
-#        pointer_sheet.write(excel_row, 3, text)
-#        excel_row += 1
-#        del pointer_locations[(source, alternate_pointer_location)]
-#    except KeyError:
-#        continue
-#    except IndexError:
-#        continue
-
-# pointer_locations[(source, text_location)] = pointer_location
-# pointer_locations[(source, text_location)] = [pointer1_location, pointer2_location, ...]
-# dump = ((source, text_location), (pointer_location, text))
 for (source, text_location), pointer_locs in pointer_locations.iteritems():
     for ptr in pointer_locs:
         # What is this try/except loop trying to do? Match up pointers with their text to put them on the sheet?
@@ -315,7 +274,6 @@ for (source, text_location), pointer_locs in pointer_locations.iteritems():
         except IndexError:
             pointer_location = ptr
             text = ''
-            #(pointer_location, text) = (pointer_locations[(source, text_location)], '')
 
         pointer_sheet.write(excel_row, 0, source)           # Source File
         pointer_sheet.write(excel_row, 1, text_location)    # Text Location

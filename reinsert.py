@@ -138,7 +138,7 @@ def edit_pointer(file, text_location, diff, file_string):
     #            print "uh oh, this pointer is in a text block!!"
 
     #    # Check for the status of the problem values...
-        problem_values = [0x4ab7, 0xc8be, 0xd562]
+        problem_values = [0xc034, 0xc038, 0xc03c, 0xc040, 0xc5d4, 0xc5d8, 0xc5dc]
     #
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
@@ -459,7 +459,7 @@ if __name__ == '__main__':
         translation_percent = int(math.floor((translated_strings / total_strings) * 100))
         print file, str(translation_percent), "% complete"
 
-    change_starting_map(204)
+    change_starting_map(101)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
