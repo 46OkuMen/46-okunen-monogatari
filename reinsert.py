@@ -132,7 +132,7 @@ def edit_pointer(file, text_location, diff, file_string):
 
     patched_file_string = file_string
     for ptr in pointer_locations:
-        print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
+        #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
     #    for (blk_start, blk_end) in file_blocks[file]:
     #        if blk_start <= ptr <= blk_end:
     #            print "uh oh, this pointer is in a text block!!"
@@ -149,13 +149,13 @@ def edit_pointer(file, text_location, diff, file_string):
         #assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
 
         #print hex(pointer_location)
-        print "old:", old_value, old_bytes, old_bytestring
+        #print "old:", old_value, old_bytes, old_bytestring
 
         new_value = old_value + diff
 
         new_bytes = pack(new_value)
         new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-        print "new:", new_value, new_bytes, new_bytestring
+        #print "new:", new_value, new_bytes, new_bytestring
 
         # TODO: The problem is that one of the pointers is getting written twice. Why?
         # It may be simpler just to write directly to the location without looking for the old value.
@@ -185,7 +185,7 @@ def edit_pointers_in_range(file, file_string, (start, stop), diff):
         print "start > stop, so something weird happened"
     if diff == 0:
         return file_strings[file]
-    print "searching between", hex(start+1), hex(stop+1)
+    #print "searching between", hex(start+1), hex(stop+1)
     for n in range(start+1, stop+1):
         if n in pointers:
             file_string = file_strings[file]
@@ -325,11 +325,11 @@ def pad_text_blocks(gamefile, block_strings, file_string):
         try:
             j = patched_file_string.index(original_block_strings[i])
         except ValueError:
-            print "looking for:"
-            print original_block_strings[i]
+            #print "looking for:"
+            #print original_block_strings[i]
             start, stop = file_blocks[gamefile][i]
-            print "in:"
-            print patched_file_string[start*2:stop*2]
+            #print "in:"
+            #print patched_file_string[start*2:stop*2]
             for n in compare_strings(original_block_strings[i], patched_file_string[start*2:stop*2]):
                 print "look at offset", hex(n + file_blocks[gamefile][i][0])
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
@@ -350,9 +350,9 @@ def move_overflow(file, file_string, overflow_bytestrings):
         previous_text_location = lo-1
         for i in range(lo, hi):
             if i in translations:
-                print "translating overflow"
-                print "previous_text_location:", hex(previous_text_location)
-                print hex(i), pointer_diff
+                #print "translating overflow"
+                #print "previous_text_location:", hex(previous_text_location)
+                #print hex(i), pointer_diff
                 trans[i] = translations[i]
                 japanese, english = trans[i]
                 print english

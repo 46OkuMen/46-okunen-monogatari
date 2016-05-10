@@ -27,7 +27,6 @@ for sheet in sheets:
 
         translations[japanese] = english
 
-
 for sheet in sheets:
     worksheet = wb.get_sheet_by_name(sheet)
     for row in worksheet.rows[1:]:
