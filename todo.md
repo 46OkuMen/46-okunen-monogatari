@@ -40,8 +40,12 @@
 * See if get_translations() works for the .dat files. If so, we can get rid of get_dat_translations.
 ** If that's the case, I can probably separate the pointer-counting and text-editing parts of edit_text().
 
+* Cheats - changing the starting map currently only works for chapters 1 and 2.
+** Could I change disks while the TITLE1.GDT image is being displayed to get it to load a different chapter map?
+
 ### update_duplicates.py
 * When creature name X is translated, also look for creature names XA, XB, XC, XD, XE.
 
 ### future tools
 * A tool to combine all the %d, %u, %s formatted strings in all sheets.
+** Gotta review the character encoding conversions.

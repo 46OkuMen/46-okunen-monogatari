@@ -3,16 +3,9 @@
 # Environment message pointers aren't getting adjusted correctly.
 # Either way, the spaces in front of the "volcanic currrents" message are unsightly.
 
-# Moving overflow to the error block/spare block.
-    # Done?) Actually figure out where they are
-    # Done) In the rom, replace the jp text with equivalent number of spaces
-    # 2) Replace all of the error block with equivalent number of spaces
-    # 3) Place all the text in the error block (what about control codes???)
-    # 4) Rewrite all the pointer values to point to new locations
-
 from __future__ import division
 import os
-import math
+from math import floor
 from binascii import unhexlify
 from shutil import copyfile
 from collections import OrderedDict
@@ -25,7 +18,7 @@ from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
 
-FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE']
+FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'SINKA.DAT']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -422,6 +415,7 @@ if __name__ == '__main__':
             with open(dest_dat_path, "wb") as output_file:
                 data = unhexlify(patched_dat_file_string)
                 output_file.write(data)
+                print "Writing to %s" % file
             continue
 
         translations = get_translations(file)
@@ -456,7 +450,7 @@ if __name__ == '__main__':
             if eng:
                 translated_strings += 1
 
-        translation_percent = int(math.floor((translated_strings / total_strings) * 100))
+        translation_percent = int(floor((translated_strings / total_strings) * 100))
         print file, str(translation_percent), "% complete"
 
     change_starting_map(101)
