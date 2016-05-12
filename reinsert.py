@@ -453,7 +453,7 @@ if __name__ == '__main__':
         translation_percent = int(floor((translated_strings / total_strings) * 100))
         print file, str(translation_percent), "% complete"
 
-    change_starting_map(401)
+    change_starting_map(101)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right

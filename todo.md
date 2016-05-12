@@ -1,11 +1,7 @@
 ## Crashes
-* Soft lock in chapter 2 on entering first cave. Player character walks to the right on entering and gets lost.
-** Saving and loading in that spot restores the camera. They walk onto a background object and can't walk off.
-** Something in the last few text blocks. Not the names.
-** Found it - this is caused by changing the length of "Yes/No/Cancel". Fixed by padding "Cancel" to 10chars.
-*** Hm, maybe there's something interesting (starting positions? starting movements?) right after these.
-* Chapter 2 crashes on changing maps when stuff in the final dialogue block is changed. Break up the block.
-* Soft lock in chapter 3 on entering the second cave, in Scandinavia. Player never walks to the right place...
+* Crash on entering warp rock in ch4.
+** Delete text blocks to figure out which one is the culprit.
+*** Looks like it's in the last dialogue block.
 
 ## Mistaken Text Replacement
 * "Slime" in ch3 is replacing the "slime" in a character name beginning with "heart... no Slime".
@@ -16,6 +12,7 @@
 * Graphical glitch on the first mountain in chapter 3 - "ghost" of player's right until entering battle.
 ** Plus, on leaving that map, the characcter goes right instead of left... weird.
 ** (Is this also a problem with not padding "Cancel" like above?)
+* Fix MAP100.GDT, which got overwritten.
 
 ## Text Fixes
 * "A Eryops attacked!!"
@@ -33,6 +30,7 @@
 * "Unlucky hit!" is the enemy's critical hit, which the text doesn't convey very well.
 
 * Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
+** Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
 
 ## Tools
 
@@ -59,3 +57,6 @@
 
 ### future tools
 * A tool to combine all the %d, %u, %s formatted strings in all sheets.
+
+### other
+* Fix the excel formulas which disappeared.
