@@ -33,12 +33,15 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                            (0xdb7e, 0xe2d5),
                            (0xe617, 0xe7f3),
                            (0xeb82, 0xee8e)),
-               'ST4.EXE': ((0xe262, 0xe29e),
-                           (0xe2f4, 0x120a0),
-                           (0x12114, 0x149e4),
-                           (0x14a28, 0x15a1e),
-                           (0x16031, 0x1620d),
-                           (0x1659c, 0x168a8)),
+               'ST4.EXE': ((0xe263, 0xe2a3), # enviro
+                           (0xe2f4, 0xe90e), # EVO files, battle text
+                           (0xe90e, 0xea4c), # evolution, menus
+                           (0xea78, 0x120a0), # dialogue... ends at crazy control codes/table
+                           (0x12115, 0x148c1), # dialogue, includes some less crazy control codes
+                           (0x148c1, 0x149e4), # enviro
+                           (0x14a28, 0x15a1e), # creature block
+                           (0x16031, 0x1620d), # yes/no/cancel, battle msgs
+                           (0x1659c, 0x168a8)), # error block
                'ST5.EXE': ((0xcc02, 0xcc5e),
                            (0xccf2, 0xcd2e),
                            (0xcd74, 0xeabe),

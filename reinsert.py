@@ -18,7 +18,7 @@ from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
 
-FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'SINKA.DAT']
+FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'SINKA.DAT']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -453,7 +453,7 @@ if __name__ == '__main__':
         translation_percent = int(floor((translated_strings / total_strings) * 100))
         print file, str(translation_percent), "% complete"
 
-    change_starting_map(101)
+    change_starting_map(401)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right

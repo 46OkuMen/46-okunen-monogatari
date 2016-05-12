@@ -7,6 +7,11 @@
 * Chapter 2 crashes on changing maps when stuff in the final dialogue block is changed. Break up the block.
 * Soft lock in chapter 3 on entering the second cave, in Scandinavia. Player never walks to the right place...
 
+## Mistaken Text Replacement
+* "Slime" in ch3 is replacing the "slime" in a character name beginning with "heart... no Slime".
+** Looks like this messes up some of the dialogue pointers in the rest of their text.
+** Looks like there's no crash due to it. Yay!
+
 ## Non-Crash Glitches
 * Graphical glitch on the first mountain in chapter 3 - "ghost" of player's right until entering battle.
 ** Plus, on leaving that map, the characcter goes right instead of left... weird.
@@ -23,13 +28,17 @@
 ** Same thing for "You evolved into a Eryops!"
 
 * "You can't make a dent..." can also be triggered by the opponent's attack not making a dent.
-** Correction: "Can't make a dent..."?
+** Correction: "Can't make a dent..."? "It won't make a dent..."?
 
 * "Unlucky hit!" is the enemy's critical hit, which the text doesn't convey very well.
+
+* Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
 
 ## Tools
 
 ### reinsert.py
+* SINKA.DAT no longer reinserting?
+
 * I might want to make the overflow checker more flexible.
 ** It doesn't catch non-translated stuff at the ends of blocks.
 ** Or, I could just wait until this stuff is translated...
@@ -42,10 +51,11 @@
 
 * Cheats - changing the starting map currently only works for chapters 1 and 2.
 ** Could I change disks while the TITLE1.GDT image is being displayed to get it to load a different chapter map?
+*** Nah, that doesn't work...
 
 ### update_duplicates.py
 * When creature name X is translated, also look for creature names XA, XB, XC, XD, XE.
+** Gotta review the character encoding conversions.
 
 ### future tools
 * A tool to combine all the %d, %u, %s formatted strings in all sheets.
-** Gotta review the character encoding conversions.
