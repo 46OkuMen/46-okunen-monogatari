@@ -13,7 +13,7 @@ xls_path = path.join(xls_dir, dump_xls)
 
 wb = load_workbook(dump_xls)
 sheets = wb.get_sheet_names()
-ws = wb.get_sheet_by_name('ST1.EXE')
+ws = wb.get_sheet_by_name('SINKA.DAT')
 
 translations = {}
 for sheet in sheets:
