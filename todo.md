@@ -2,17 +2,28 @@
 * Crash on entering warp rock in ch4.
 ** Delete text blocks to figure out which one is the culprit.
 *** Looks like it's in the last dialogue block.
+*** Fixed when breaking up this text block.
+
+* Crash on talking to the elder dino guy at the top of the second warp rock in ch4.
+** This looks like some kind of error with the pointers - displays a "v" text box, then syntax error, then crash.
+** A pointer to character-move control codes is probably getting messed up. Better not include those in the block.
+** Oh, looks like it's the "forest" text replacment listed below that's to blame.
+*** Removed the "forest" replacement, now it works.
 
 ## Mistaken Text Replacement
-* "Slime" in ch3 is replacing the "slime" in a character name beginning with "heart... no Slime".
-** Looks like this messes up some of the dialogue pointers in the rest of their text.
+* "Slime" in ch3 is replacing the "slime" in the nametag for "Anxious Slime".
+** Looks like this messes up some of the dialogue pointers in the rest of the area's text.
 ** Looks like there's no crash due to it. Yay!
 
+* "Forest" in ch4 is replacing the mention of it in some previous dialogue.
+
 ## Non-Crash Glitches
-* Graphical glitch on the first mountain in chapter 3 - "ghost" of player's right until entering battle.
-** Plus, on leaving that map, the characcter goes right instead of left... weird.
-** (Is this also a problem with not padding "Cancel" like above?)
-* Fix MAP100.GDT, which got overwritten.
+* Fix MAP100.GDT, which got overwritten somewhere.
+
+## Dump Problems
+* Duplicate entries in the encyclopedia? エリオセリス has a few entries, etc
+
+* ST2.EXE 0xd1fe nametag gets duplicated, skipping a line of dialogue. The skipped line shows up at 0xd3d3...
 
 ## Text Fixes
 * "A Eryops attacked!!"
@@ -31,11 +42,15 @@
 
 * Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
 ** Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
+** Oh, actually this works fine. DEF looks good, HP could use another space but there's no room.
+
+* "Your turn!" jumps up and down if you enter and leave the "Special" menu. Check if this happens in JP version.
 
 ## Tools
 
 ### reinsert.py
 * SINKA.DAT no longer reinserting?
+** Maybe this is a good time to look at using the same methods for reinserting it as for the EXEs...
 
 * I might want to make the overflow checker more flexible.
 ** It doesn't catch non-translated stuff at the ends of blocks.
@@ -59,4 +74,4 @@
 * A tool to combine all the %d, %u, %s formatted strings in all sheets.
 
 ### other
-* Fix the excel formulas which disappeared.
+* Fix the randomly decaying excel formulas.

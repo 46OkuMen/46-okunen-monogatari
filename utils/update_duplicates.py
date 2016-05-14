@@ -22,10 +22,28 @@ for sheet in sheets:
         japanese = row[2].value
         english = row[4].value
 
-        if not english:
+        if not english or not japanese:
             continue
 
         translations[japanese] = english
+
+        #sjis = japanese.encode('utf-8')
+        #print english
+        #print repr(japanese)
+        # '\xef\xbc\xa1'
+        # \uefbca1
+
+        #for letter in range(1, 7):
+        #    print sjis + u'\xef' + u'\xbc' + u'\xa%s' % letter
+            #print sjis + '\\xef\\xbc\\xa' + str(letter)
+
+
+        #print str(japanese)
+        for letter in ['\uff21', '\uff22', '\uff23', '\uff24', '\uff25', '\uff26']:
+            jp_suffix = (japanese + letter.decode('utf-8'))
+            translations[jp_suffix] = english + " X"
+
+        #print repr(japanese), english
 
 for sheet in sheets:
     worksheet = wb.get_sheet_by_name(sheet)
