@@ -1,5 +1,6 @@
 """Finds the duplicate entries in the dump excel sheet, taking one sheet as the base."""
 
+import sys
 from os import path
 from openpyxl import load_workbook
 
@@ -13,7 +14,7 @@ xls_path = path.join(xls_dir, dump_xls)
 
 wb = load_workbook(dump_xls)
 sheets = wb.get_sheet_names()
-ws = wb.get_sheet_by_name('SINKA.DAT')
+ws = wb.get_sheet_by_name(str(sys.argv[1]))
 
 translations = {}
 for sheet in sheets:

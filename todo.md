@@ -22,6 +22,7 @@
 
 ## Dump Problems
 * Duplicate entries in the encyclopedia? エリオセリス has a few entries, etc
+** Whoops, I'm dumb - it's just the same creature showing up in different chapters.
 
 * ST2.EXE 0xd1fe nametag gets duplicated, skipping a line of dialogue. The skipped line shows up at 0xd3d3...
 
@@ -49,9 +50,6 @@
 ## Tools
 
 ### reinsert.py
-* SINKA.DAT no longer reinserting?
-** Maybe this is a good time to look at using the same methods for reinserting it as for the EXEs...
-
 * I might want to make the overflow checker more flexible.
 ** It doesn't catch non-translated stuff at the ends of blocks.
 ** Or, I could just wait until this stuff is translated...

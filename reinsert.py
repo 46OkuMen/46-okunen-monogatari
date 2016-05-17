@@ -18,7 +18,7 @@ from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
 
-FILES_TO_TRANSLATE = ['ST1.EXE', 'SINKA.DAT', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE']
+FILES_TO_TRANSLATE = ['SINKA.DAT', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -117,18 +117,11 @@ def edit_pointer(file, text_location, diff, file_string):
 
     pointer_constant = pointer_constants[file]
     pointer_locations = pointers[text_location]
-    #print "This text has", len(pointer_locations), "depending on it"
 
     patched_file_string = file_string
     for ptr in pointer_locations:
         #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
-    #    for (blk_start, blk_end) in file_blocks[file]:
-    #        if blk_start <= ptr <= blk_end:
-    #            print "uh oh, this pointer is in a text block!!"
 
-    #    # Check for the status of the problem values...
-        #problem_values = [0xc034, 0xc038, 0xc03c, 0xc040, 0xc5d4, 0xc5d8, 0xc5dc]
-    #
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
         old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
@@ -146,35 +139,20 @@ def edit_pointer(file, text_location, diff, file_string):
         new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
         #print "new:", new_value, new_bytes, new_bytestring
 
-        # TODO: The problem is that one of the pointers is getting written twice. Why?
-        # It may be simpler just to write directly to the location without looking for the old value.
-        # But if the diffs are different, that's weird. Also figure out why it gets written twice...
-
         old_slice = file_string[location_in_string:location_in_string+4]
         j = old_slice.index(old_bytestring)
         if j > 0:
             print j, "is in a weird place"
-        #new_slice = old_slice.replace(old_bytestring, new_bytestring, 1)
 
         patched_file_string = patched_file_string[0:location_in_string] + new_bytestring + patched_file_string[location_in_string+4:]
-
-        #patched_file_string = patched_file_string.replace(old_slice, new_slice, 1)
-
-        #for p in problem_values:
-        #    #print file_string[(p*2):(p*2)+2]
-        #    if file_string[(p*2):(p*2)+2] != patched_file_string[(p*2):(p*2)+2]:
-        #        print hex(p), "got changed right before this!!!!!!!!!"
 
     return patched_file_string
 
 
 def edit_pointers_in_range(file, file_string, (start, stop), diff):
     """Edit all the pointers in the (start, stop) range."""
-    if start > stop:
-        print "start > stop, so something weird happened"
     if diff == 0:
         return file_strings[file]
-    #print "searching between", hex(start+1), hex(stop+1)
     for n in range(start+1, stop+1):
         if n in pointers:
             file_string = file_strings[file]
@@ -210,7 +188,6 @@ def edit_text(file, translations):
         #print hex(original_location), pointer_diff
         current_text_block = get_current_block(original_location, file)
         if current_text_block != previous_text_block:
-            #print "New block!"
             pointer_diff = 0
             previous_replacement_offset = 0
             is_overflowing = False
@@ -231,10 +208,8 @@ def edit_text(file, translations):
             new_text_offset = original_location + len(jp_bytestring)//2 + pointer_diff
 
         if new_text_offset > current_block_end and not is_overflowing:
-            print hex(new_text_offset), "overflows past", hex(current_block_end)
-            print eng
             is_overflowing = True
-            # TODO: Here's the problem. Some pointers point to something a few control codes before the text.
+            # Here's the problem. Some pointers point to something a few control codes before the text.
             # So I need to calculate start_in_block as the pointer right before its current value...
             # Otherwise, the pointers won't get readjusted!
             recent_pointer = most_recent_pointer(previous_text_offset, original_location)
@@ -257,7 +232,6 @@ def edit_text(file, translations):
             continue
 
         if is_overflowing:
-            print hex(original_location), "is part of an overflow"
             eng = ""
 
         # Recalculate this in case eng got erased.
@@ -300,17 +274,13 @@ def pad_text_blocks(gamefile, block_strings, file_string):
     for i, blk in enumerate(block_strings):
         # if block is too short, negative; too long, positive
         block_diff = len(blk) - len(original_block_strings[i])
-        #print len(original_block_strings[i]), len(blk)
-        #print "padding block #", i
-        print block_diff
-        assert block_diff <= 0, 'Block ending in %s is too long' % hex(file_blocks[file][i][1])
+        assert block_diff <= 0, 'Block ending in %s is too long' % hex(file_blocks[gamefile][i][1])
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
             inserted_spaces_index = file_blocks[gamefile][i][1]
             blk += '20' * number_of_spaces       # Fill it up with ascii 20 (space)
-            print number_of_spaces, "added at", hex(inserted_spaces_index)
 
-        j = ORIGINAL_FILE_STRINGS[file].index(original_block_strings[i])
+        j = ORIGINAL_FILE_STRINGS[gamefile].index(original_block_strings[i])
         try:
             j = patched_file_string.index(original_block_strings[i])
         except ValueError:
@@ -344,7 +314,7 @@ def move_overflow(file, file_string, overflow_bytestrings):
                 #print hex(i), pointer_diff
                 trans[i] = translations[i]
                 japanese, english = trans[i]
-                print english
+                #print english
 
                 jp_bytestring = sjis_to_hex_string(japanese)
                 eng_bytestring = ascii_to_hex_string(english)
@@ -371,7 +341,7 @@ def edit_dat_text(gamefile, file_string):
 
     patched_file_string = "" + file_string
 
-    for original_location, (japanese, english) in translations.iteritems():
+    for _, (japanese, english) in trans.iteritems():
         if english == "":
             continue
         jp_bytestring = sjis_to_hex_string(japanese)
@@ -395,45 +365,45 @@ if __name__ == '__main__':
     file_strings = ORIGINAL_FILE_STRINGS.copy()
 
 
-    for file in FILES_TO_TRANSLATE:
-        if file == "SINKA.DAT" or file == 'SEND.DAT':
-            dat_path = os.path.join(SRC_PATH, file)
-            dest_dat_path = os.path.join(DEST_PATH, file)
+    for gamefile in FILES_TO_TRANSLATE:
+        if gamefile in ('SINKA.DAT', 'SEND.DAT'):
+            dat_path = os.path.join(SRC_PATH, gamefile)
+            dest_dat_path = os.path.join(DEST_PATH, gamefile)
             dat_file_string = file_to_hex_string(dat_path)
 
-            patched_dat_file_string = edit_dat_text(file, dat_file_string)
+            translations = get_translations(gamefile)
+
+            patched_dat_file_string = edit_dat_text(gamefile, dat_file_string)
 
             with open(dest_dat_path, "wb") as output_file:
                 data = unhexlify(patched_dat_file_string)
                 output_file.write(data)
-                print "Writing to %s" % file
-            continue
-            # TODO: Use an else statement to print the translation progress for dat files as well.
 
-        translations = get_translations(file)
-        pointers = get_pointers(file)
+        else:
+            translations = get_translations(gamefile)
+            pointers = get_pointers(gamefile)
 
-        # Then get individual strings of each text block, and put them in a list.
-        block_strings = get_block_strings(file)
-        original_block_strings = list(block_strings)   
-        # Needs to be copied - simple assignment would just pass the ref.
+            # Then get individual strings of each text block, and put them in a list.
+            block_strings = get_block_strings(gamefile)
+            original_block_strings = list(block_strings)   
+            # Needs to be copied - simple assignment would just pass the ref.
 
-        patched_file_string = edit_text(file, translations)
+            patched_file_string = edit_text(gamefile, translations)
 
-        i = FULL_ROM_STRING.index(ORIGINAL_FILE_STRINGS[file])
-        FULL_ROM_STRING = FULL_ROM_STRING.replace(ORIGINAL_FILE_STRINGS[file], patched_file_string)
-        # Whoops, allegedly constant FULL_ROM_STRING changes...
+            i = FULL_ROM_STRING.index(ORIGINAL_FILE_STRINGS[gamefile])
+            FULL_ROM_STRING = FULL_ROM_STRING.replace(ORIGINAL_FILE_STRINGS[gamefile], patched_file_string)
+            # Whoops, allegedly constant FULL_ROM_STRING changes...
 
-        # Write the data to the patched file.
-        with open(DEST_ROM_PATH, "wb") as output_file:
-            data = unhexlify(FULL_ROM_STRING)
-            output_file.write(data)
+            # Write the data to the patched file.
+            with open(DEST_ROM_PATH, "wb") as output_file:
+                data = unhexlify(FULL_ROM_STRING)
+                output_file.write(data)
 
-        # Write the translated file alone to the file too.
-        dest_file_path = os.path.join(DEST_PATH, file)
-        with open(dest_file_path, "wb") as output_file:
-            data = unhexlify(patched_file_string)
-            output_file.write(data)
+            # Write the translated file alone to the file too.
+            dest_file_path = os.path.join(DEST_PATH, gamefile)
+            with open(dest_file_path, "wb") as output_file:
+                data = unhexlify(patched_file_string)
+                output_file.write(data)
 
         # Get some quick stats on reinsertion progress.
         translated_strings = 0
@@ -443,7 +413,7 @@ if __name__ == '__main__':
                 translated_strings += 1
 
         translation_percent = int(floor((translated_strings / total_strings) * 100))
-        print file, str(translation_percent), "% complete"
+        print gamefile, str(translation_percent), "% complete"
 
     change_starting_map(101)
 
