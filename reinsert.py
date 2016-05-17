@@ -18,7 +18,7 @@ from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
 
-FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'SINKA.DAT']
+FILES_TO_TRANSLATE = ['ST1.EXE', 'SINKA.DAT', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -30,14 +30,10 @@ def get_translations(gamefile):
     worksheet = workbook.get_sheet_by_name(gamefile)
 
     total_rows = total_replacements = 0
-    overflow_block_lo, overflow_block_hi = spare_block[gamefile]  # Doesn't need translations.
 
     for row in worksheet.rows[1:]:  # Skip the first row, it's just labels
         total_rows += 1
         offset = int(row[0].value, 16)
-
-        if (offset >= overflow_block_lo) and (offset <= overflow_block_hi):
-            continue
 
         japanese = row[2].value
         english = row[4].value
@@ -131,7 +127,7 @@ def edit_pointer(file, text_location, diff, file_string):
     #            print "uh oh, this pointer is in a text block!!"
 
     #    # Check for the status of the problem values...
-        problem_values = [0xc034, 0xc038, 0xc03c, 0xc040, 0xc5d4, 0xc5d8, 0xc5dc]
+        #problem_values = [0xc034, 0xc038, 0xc03c, 0xc040, 0xc5d4, 0xc5d8, 0xc5dc]
     #
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
@@ -164,10 +160,10 @@ def edit_pointer(file, text_location, diff, file_string):
 
         #patched_file_string = patched_file_string.replace(old_slice, new_slice, 1)
 
-        for p in problem_values:
-            #print file_string[(p*2):(p*2)+2]
-            if file_string[(p*2):(p*2)+2] != patched_file_string[(p*2):(p*2)+2]:
-                print hex(p), "got changed right before this!!!!!!!!!"
+        #for p in problem_values:
+        #    #print file_string[(p*2):(p*2)+2]
+        #    if file_string[(p*2):(p*2)+2] != patched_file_string[(p*2):(p*2)+2]:
+        #        print hex(p), "got changed right before this!!!!!!!!!"
 
     return patched_file_string
 
@@ -214,7 +210,7 @@ def edit_text(file, translations):
         #print hex(original_location), pointer_diff
         current_text_block = get_current_block(original_location, file)
         if current_text_block != previous_text_block:
-            print "New block!"
+            #print "New block!"
             pointer_diff = 0
             previous_replacement_offset = 0
             is_overflowing = False
@@ -305,7 +301,7 @@ def pad_text_blocks(gamefile, block_strings, file_string):
         # if block is too short, negative; too long, positive
         block_diff = len(blk) - len(original_block_strings[i])
         #print len(original_block_strings[i]), len(blk)
-        print "padding block #", i
+        #print "padding block #", i
         print block_diff
         assert block_diff <= 0, 'Block ending in %s is too long' % hex(file_blocks[file][i][1])
         if block_diff < 0:
@@ -358,10 +354,6 @@ def move_overflow(file, file_string, overflow_bytestrings):
                 #j = bytestring.index(jp_bytestring)
                 bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
                 edit_pointers_in_range(file, file_string, (previous_text_location-1, i), pointer_diff)
-                # TODO: Pointer adjustments still not correct.
-                # "Be nice to everyone." correct
-                # "Got %u EVO Genes." is 2 too low
-                # "n/a" is 2 too low
                 previous_text_location = i
                 pointer_diff += this_string_diff
 
@@ -375,11 +367,11 @@ def move_overflow(file, file_string, overflow_bytestrings):
 
 def edit_dat_text(gamefile, file_string):
     """Edit text for SINKA.DAT or SEND.DAT. Do not adjust pointers."""
-    trans = get_dat_translations(gamefile)
+    trans = get_translations(gamefile)
 
     patched_file_string = "" + file_string
 
-    for (japanese, english) in trans:
+    for original_location, (japanese, english) in translations.iteritems():
         if english == "":
             continue
         jp_bytestring = sjis_to_hex_string(japanese)
@@ -405,7 +397,6 @@ if __name__ == '__main__':
 
     for file in FILES_TO_TRANSLATE:
         if file == "SINKA.DAT" or file == 'SEND.DAT':
-            # Edit the file separately. That'll have to do for now.
             dat_path = os.path.join(SRC_PATH, file)
             dest_dat_path = os.path.join(DEST_PATH, file)
             dat_file_string = file_to_hex_string(dat_path)
@@ -417,6 +408,7 @@ if __name__ == '__main__':
                 output_file.write(data)
                 print "Writing to %s" % file
             continue
+            # TODO: Use an else statement to print the translation progress for dat files as well.
 
         translations = get_translations(file)
         pointers = get_pointers(file)
