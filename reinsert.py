@@ -17,8 +17,11 @@ from utils import sjis_to_hex_string, ascii_to_hex_string
 from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
+from cheats import change_starting_map
 
-FILES_TO_TRANSLATE = ['ST5.EXE']
+FILES_TO_TRANSLATE = ['SINKA.DAT', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST6.EXE']
+#FILES_TO_TRANSLATE = ['ST5.EXE']
+#FILES_TO_TRANSLATE = []
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -251,14 +254,18 @@ def edit_text(file, translations):
 
         block_string = block_strings[current_text_block]
         old_slice = block_string[previous_replacement_offset*2:]
-        i = old_slice.index(jp_bytestring)//2
+        try:
+            i = old_slice.index(jp_bytestring)//2
+            previous_replacement_offset += i
+        except ValueError:
+            print "Can't find the string at:", hex(original_location)
+            print "It's looking starting at:", hex(previous_replacement_offset + file_blocks[file][current_text_block][0])
+            print "the english string", eng, "is causing problems"
 
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
         j = block_strings[current_text_block].index(old_slice)
         new_block_string = block_strings[current_text_block].replace(old_slice, new_slice, 1)
         block_strings[current_text_block] = new_block_string
-
-        previous_replacement_offset += i
 
     patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
 
@@ -274,6 +281,7 @@ def pad_text_blocks(gamefile, block_strings, file_string):
     for i, blk in enumerate(block_strings):
         # if block is too short, negative; too long, positive
         block_diff = len(blk) - len(original_block_strings[i])
+        print block_diff
         assert block_diff <= 0, 'Block ending in %s is too long' % hex(file_blocks[gamefile][i][1])
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
@@ -351,14 +359,6 @@ def edit_dat_text(gamefile, file_string):
     return patched_file_string
 
 
-def change_starting_map(map_number):
-    """Cheats! Load a different map instead of thelodus sea."""
-    starting_map_number_location = 0xedaa + file_location['ST1.EXE']
-    new_map_bytes = str(map_number).encode()
-    with open(DEST_ROM_PATH, 'rb+') as f:
-        f.seek(starting_map_number_location)
-        f.write(new_map_bytes)
-
 if __name__ == '__main__':
     copyfile(SRC_ROM_PATH, DEST_ROM_PATH)
     ORIGINAL_FILE_STRINGS = get_file_strings()
@@ -415,7 +415,9 @@ if __name__ == '__main__':
         translation_percent = int(floor((translated_strings / total_strings) * 100))
         print gamefile, str(translation_percent), "% complete"
 
-    change_starting_map(101)
+    # Hard to see it, but the cheat calls are outside the "every file" loop.
+    #change_starting_map('ST1.EXE', 101)
+    change_starting_map('ST5.EXE', 600)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
@@ -430,3 +432,17 @@ if __name__ == '__main__':
 # 204: mountain, right near the top! easy access to combat, cut scenes - plus fish equivs of animals
 # goes until 209.
 # 300: black screen. It's on a different disk, of course...
+
+# testing new ch5 starting maps:
+# 501: OOB glitch land
+# 502: doesn't even load
+# 503: OOB glitch land
+# 504: OOB glitch land
+# 505: OOB glitch land
+# 506: doesn't even load
+# 507: OOB glitch land
+# 508: OOB glitch land
+# 509: OOB glitch land
+# 600: ch6 world map; can't use menus?; dying (at imp guy in africa, ch5) sends you to glitch land ch5
+# In glitch land, open the menu, play with some options, save/load - leads to glitch ch6
+# in glitch ch6, go around a lot and eventually you'll be the boat and talk to people!

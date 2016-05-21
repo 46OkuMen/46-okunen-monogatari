@@ -11,11 +11,12 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 * Chapter 4: 21%
 * Chapter 5:
 ** 5: 19%
-** 5-1: 0%
-** 5-2: 0%
-** 5-3: 0%
-* Chapter 6: 0%
+** S1: 0%
+** S2: 0%
+** S3: 0%
+* Chapter 6: 17%
 * Epilogue: 0%
+
 * System: 100%
 * Images: 0%
 * Encyclopedia: 36%

@@ -1,11 +1,17 @@
+"""Tons of constants related to the positions of things within files."""
+
+# A list of all files with text edits during the dump/reinsert process.
 files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE',
          'ST5S3.EXE', 'ST6.EXE', 'ENDING.EXE', 'SINKA.DAT', 'SEND.DAT']
 
-file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
+# How the files themselves get broken up for reinsertion.
+file_blocks = {'OPENING.EXE': ((0x4dda, 0x555f), # cut scene
+                               (0x55e9, 0x5638), # spare block
+                               (0x5657, 0x5869)), # cut scenes
                '46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
                'ST1.EXE': ((0xd873, 0xd934),  # not variable; environment messages
                            (0xd984, 0xe6f9),
-                           (0xe6f9, 0xec4c),  # not variable; battle msgs    # ec4c separation is necessary! (AWAKU0.GDT)
+                           (0xe6f9, 0xec4c),  # not variable; battle msgs
                            (0xec4c, 0xec9e),  # not variable; evolution msgs
                            (0xec9e, 0x10e39),  # variable; dialogue
                            (0x10e39, 0x10f96),  # not variable; environment messages
@@ -45,42 +51,50 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                            (0x14a28, 0x15a1e), # creature block
                            (0x16031, 0x1620d), # yes/no/cancel, battle msgs
                            (0x1659c, 0x168a8)), # error block
-               'ST5.EXE': ((0xcc02, 0xcc60), # dialogue?
-                           (0xccf3, 0xcd30), # enviro
-                           (0xcd74, 0xceda), # EVO files, evolution
+               'ST5.EXE': ((0xcc02, 0xcc62), # dialogue?
+                           (0xccf3, 0xcd32), # enviro
+                           (0xcd74, 0xcedb), # EVO files, evolution
                            (0xcf16, 0xeac2), # dialogue
                            (0xebbe, 0x1061d), # dialogue
                            (0x10682, 0x107a3), # enviro
                            (0x107e6, 0x11466), # creature block
-                           (0x11977, 0x11b53), # y/n/c
+                           (0x11977, 0x11982), # y/n/c
+                           (0x119dd, 0x11b53), # battle msgs
                            (0x11ef2, 0x121fe)), # error block
                'ST5S1.EXE': ((0x24e8, 0x3af1),),
                'ST5S2.EXE': ((0x23f9, 0x3797),),
                'ST5S3.EXE': ((0x3db9, 0x4ed0),),
-               'ST6.EXE': ((0xa4f1, 0xa55b), (0xa59c, 0xccd1), (0xcd14, 0xce25), (0xcede, 0xd0bb), (0xd44a, 0xd756)),
+               'ST6.EXE': ((0xa51b, 0xa55a), # enviro
+                           (0xa59c, 0xa5e9), # evo files
+                           (0xa5e9, 0xaf59), # stats/evolution
+                           (0xaf59, 0xb066), # menu
+                           (0xb072, 0xb457), # dialogue
+                           (0xb489, 0xb8d2), # dialogue
+                           (0xb8ea, 0xccaf), # dialogue 
+                           (0xcd14, 0xce25), # creature block
+                           (0xcedf, 0xcef7), # y/n/c
+                           (0xcf51, 0xd0bb), # enviro, battle text
+                           (0xd44a, 0xd756)), # error block
                'ENDING.EXE': ((0x3c4e, 0x4b1f),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
-               'SEND.DAT': ((0x000, 0x8740),)
-}
+               'SEND.DAT': ((0x000, 0x8740),)}
 
 
 # What is my methodology for deciding when a block starts and ends?
 # The end of a block has to be a place where spaces are okay. My mistake may have been in putting them after filenames.
 # If you end right on top of a filename, the extra spaces will push the filename into the correct position... maybe?
+# Definitely don't end on the last character of a string!! End it one or two after.
 
-spare_block = {#'OPENING.EXE': None,
-               '46.EXE': (0x9cb8, 0xa07a),
-               'ST1.EXE': (0x11d42, 0x1204e),
-               'ST2.EXE': (0x10570, 0x1087b),
-               'ST3.EXE': (0xeb82, 0xee8e),
-               'ST4.EXE': (0x1659c, 0x168a8),
-               'ST5.EXE': (0x11ef2, 0x121fe),
-               #'ENDING.EXE': None,
-               #'SINKA.DAT': None,
-               #'SEND.DAT': None
-               }
+# Some files have an error block, which we can replace with text overflowing from other blocks.
+spare_block = {'OPENING.EXE': (0x55e9, 0x5638),
+    '46.EXE': (0x9cb8, 0xa07a),
+    'ST1.EXE': (0x11d42, 0x1204e),
+    'ST2.EXE': (0x10570, 0x1087b),
+    'ST3.EXE': (0xeb82, 0xee8e),
+    'ST4.EXE': (0x1659c, 0x168a8),
+    'ST5.EXE': (0x11ef2, 0x121fe),
+    'ST6.EXE': (0xd44a, 0xd756)}
  # Usually the last block.
-               # TODO: In progress. Also figure out what to do with the Nones.
 
 creature_block = {'OPENING.EXE': (0, 0),
                   'ST1.EXE': (0x10fca, 0x11595),
@@ -88,6 +102,10 @@ creature_block = {'OPENING.EXE': (0, 0),
                   'ST3.EXE': (0xdb7e, 0xe2d5),
                   'ST4.EXE': (0x14a28, 0x15a1e),
                   'ST5.EXE': (0x107e6, 0x11466),
+                  'ST5S1.EXE': (0, 0),
+                  'ST5S2.EXE': (0, 0),
+                  'ST5S3.EXE': (0, 0),
+                  'ST6.EXE': (0xcd14, 0xce25),
                   'ENDING.EXE': (0, 0),
                   'SINKA.DAT': (0, 0),
                   'SEND.DAT': (0, 0)}
@@ -123,32 +141,40 @@ file_length = {'OPENING.EXE': 0x5e4b,
                'ENDING.EXE': 0x4f55,
                'SINKA.DAT': 0x69a4}
 
+# Pointer tables have two bytes, determined by the file, which separate their values.
 pointer_separators = {
-        'OPENING.EXE': ("68", "04"), # Sep: 68-04
-        'ST1.EXE': ("5e", "0d"), # 5e-0d
-        'ST2.EXE': ("f7", "0b"), # fc-0b
-        'ST3.EXE': ("20", "0b"),
-        'ST4.EXE': ("f4", "0d"),
-        'ST5.EXE': ("96", "0c"),
-        'ST6.EXE': ("26", "0a"),
-        'ST5S1.EXE': ("24", "02"),
-        'ST5S2.EXE': ('00', '00'), # Wrong; no pointer tables
-        'ST5S3.EXE': ("ae", "03"),
-        'ENDING.EXE': ("5a", "03"),
-        '46.EXE': ('0a', '0c')
+    'OPENING.EXE': ("68", "04"),
+    'ST1.EXE': ("5e", "0d"),
+    'ST2.EXE': ("f7", "0b"),
+    'ST3.EXE': ("20", "0b"),
+    'ST4.EXE': ("f4", "0d"),
+    'ST5.EXE': ("96", "0c"),
+    'ST6.EXE': ("26", "0a"),
+    'ST5S1.EXE': ("24", "02"),
+    'ST5S2.EXE': ('00', '00'), # Not really; this file has no pointer tables
+    'ST5S3.EXE': ("ae", "03"),
+    'ENDING.EXE': ("5a", "03"),
+    '46.EXE': ('0a', '0c')
 }
 
+# Add this constant to the little-endian pointer value to find its destination.
 pointer_constants = {
-        'OPENING.EXE': 0x4a80,
-        'ST1.EXE': 0xd7e0,
-        'ST2.EXE': 0xc170,
-        'ST3.EXE': 0xb400,
-        'ST4.EXE': 0xe140,
-        'ST5.EXE': 0xcb60,
-        'ST6.EXE': 0xa460,
-        'ST5S1.EXE': 0x2440,
-        'ST5S2.EXE': 0x2360,
-        'ST5S3.EXE': 0x3ce0,
-        'ENDING.EXE': 0x39a0,
-        '46.EXE': 0x92c0,
+    'OPENING.EXE': 0x4a80,
+    'ST1.EXE': 0xd7e0,
+    'ST2.EXE': 0xc170,
+    'ST3.EXE': 0xb400,
+    'ST4.EXE': 0xe140,
+    'ST5.EXE': 0xcb60,
+    'ST6.EXE': 0xa460,
+    'ST5S1.EXE': 0x2440,
+    'ST5S2.EXE': 0x2360,
+    'ST5S3.EXE': 0x3ce0,
+    'ENDING.EXE': 0x39a0,
+    '46.EXE': 0x92c0,
+}
+
+# For cheating!
+STARTING_MAP_NUMBER_LOCATION = {
+    'ST1.EXE': 0xedaa,
+    'ST5.EXE': 0xcf04,
 }
