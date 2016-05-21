@@ -104,5 +104,6 @@
 * A tool to combine all the %d, %u, %s formatted strings in all sheets.
 
 ### other
+* Actually make a patch!
 * Fix the randomly decaying excel formulas.
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
