@@ -45,13 +45,15 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x5868),),
                            (0x14a28, 0x15a1e), # creature block
                            (0x16031, 0x1620d), # yes/no/cancel, battle msgs
                            (0x1659c, 0x168a8)), # error block
-               'ST5.EXE': ((0xcc02, 0xcc5e),
-                           (0xccf2, 0xcd2e),
-                           (0xcd74, 0xeabe),
-                           (0xebc3, 0x107a3),
-                           (0x107e6, 0x11466),
-                           (0x11976, 0x11b53),
-                           (0x11ef2, 0x121fe)),
+               'ST5.EXE': ((0xcc02, 0xcc60), # dialogue?
+                           (0xccf3, 0xcd30), # enviro
+                           (0xcd74, 0xceda), # EVO files, evolution
+                           (0xcf16, 0xeac2), # dialogue
+                           (0xebbe, 0x1061d), # dialogue
+                           (0x10682, 0x107a3), # enviro
+                           (0x107e6, 0x11466), # creature block
+                           (0x11977, 0x11b53), # y/n/c
+                           (0x11ef2, 0x121fe)), # error block
                'ST5S1.EXE': ((0x24e8, 0x3af1),),
                'ST5S2.EXE': ((0x23f9, 0x3797),),
                'ST5S3.EXE': ((0x3db9, 0x4ed0),),

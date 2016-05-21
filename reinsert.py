@@ -18,7 +18,7 @@ from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
 
-FILES_TO_TRANSLATE = ['SINKA.DAT', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE']
+FILES_TO_TRANSLATE = ['ST5.EXE']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
