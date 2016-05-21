@@ -1,4 +1,7 @@
 ## Crashes
+* Possible soft lock: Can't advance beyond the Euparkeria in the cave in ch4 because the wrong dialogue is loaded??
+** Removing that block of text prior to the text in question and seeing what happens.
+
 * Crash on entering warp rock in ch4.
 ** Delete text blocks to figure out which one is the culprit.
 *** Looks like it's in the last dialogue block.
