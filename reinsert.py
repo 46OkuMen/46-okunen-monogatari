@@ -20,7 +20,7 @@ from rominfo import creature_block, spare_block
 from cheats import change_starting_map
 
 FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
-                       'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'SINKA.DAT']
+                      'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'SINKA.DAT']
 #FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
@@ -416,7 +416,8 @@ if __name__ == '__main__':
                 translated_strings += 1
 
         translation_percent = int(floor((translated_strings / total_strings) * 100))
-        print gamefile, str(translation_percent), "% complete"
+        print gamefile, str(translation_percent), "% complete",
+        print "(%s / %s)" % (translated_strings, total_strings)
 
     # Hard to see it, but the cheat calls are outside the "every file" loop.
     #change_starting_map('ST1.EXE', 101)

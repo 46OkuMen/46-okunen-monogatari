@@ -8,45 +8,19 @@
 **** (maybe I'm having trouble changing the options string length because I'm not updating the pointer??)
 *** ST5S1.EXE has some repeated text but no pointer. yay
 *** Batte options that are duplicates... hmm. How do they get adjusted if the pointer diff between them is different?
+** Oh actually this doesn't matter! I just read from the pointer sheet anyway and ignore the pointer in the dump. Nevermind then.
 
 ## Crashes
-* Soft lock when changing maps in ch5.
-** All the cancels are fine, though...
-** Not in the dialogue block...
-** It's in the final normal-combat-messages block...
-** Looks like it's having trouble replacing the string "iie"/"no    "??? Why???
-*** Also having trouble replacing "Received %d EVO Genes."
-*** It points out both of these in a "not found" error. Let's see where it's trying to look for them...
-
-* Crash on entering menu in ch5.
-** Nothing wrong with the menu items themselves...
-** Not a y/n/c error either.
-** Not battle text or creature names.
-** It's nothing to do with any of the text I have inserted...
-** The only changes to the file are overflow changes... why are they being changed?
-*** One is a menu item, I think it's the text speed!
-*** Why are these treated as overflowing in the first place? They are the normal text. The block ends must be wrong.
-
-* Crash on talking to the elder dino guy at the top of the second warp rock in ch4.
-** This looks like some kind of error with the pointers - displays a "v" text box, then syntax error, then crash.
-** A pointer to character-move control codes is probably getting messed up. Better not include those in the block.
-** Oh, looks like it's the "forest" text replacment listed below that's to blame.
-*** Removed the "forest" replacement, now it works.
 
 ## Mistaken Text Replacement
-* "Slime" in ch3 is replacing the "slime" in the nametag for "Anxious Slime".
-** Looks like this messes up some of the dialogue pointers in the rest of the area's text.
-** Looks like there's no crash due to it. Yay!
-
-* "Forest" in ch4 is replacing the mention of it in some previous dialogue.
 
 ## Non-Crash Glitches
-* Fix MAP100.GDT, which got overwritten somewhere.
 
 ## Dump Problems
 * Carnivorous Dino Person has a missing piece of dialogue between 0xcf16 and 0xcf64.
 
 * ST2.EXE 0xd1fe nametag gets duplicated, skipping a line of dialogue. The skipped line shows up at 0xd3d3...
+** Fixed this. Not sure why it happened, unfortunately.
 
 ## Text Fixes
 * Why isn't "Escape" getting translated in 5-S3?
@@ -68,6 +42,9 @@
 * Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
 ** Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
 ** Oh, actually this works fine. DEF looks good, HP could use another space but there's no room.
+*** Can I subtract a space from the preivous stat?
+
+* Also, any way to get an extra character in "TextSpeed:"? There's gotta be something I can rearrange.
 
 * "Your turn!" jumps up and down if you enter and leave the "Special" menu. Check if this happens in JP version.
 
@@ -76,7 +53,7 @@
 ### reinsert.py
 * Better progress reporting.
 ** Get a combined percentage for ch5 files (ST5, ST5S1, ST5S2, ST5S3)
-** Get a (translations/rows) breakdown as well.
+** Get a (translations/rows) breakdown as well. (done)
 
 * I've got serious problems reinserting into OPENING.EXE...
 ** Maybe I should try again using the original JP strings that have spaces in them? It's having trouble finding all the credits names.
@@ -88,17 +65,12 @@
 
 * PEP8 stuff. Shiny new Pylint extension will annoy me into fixing a lot of it.
 ** Definitely look for ways to break up edit_text(). It's way too big now.
-
-* See if get_translations() works for the .dat files. If so, we can get rid of get_dat_translations.
-** If that's the case, I can probably separate the pointer-counting and text-editing parts of edit_text().
+** Ehh. It's a little late to try and make it OOP. But I have learned my lesson - "why OOP is useful in preventing spaghettification of code"
 
 ### cheats.py
+* Are stats stored in memory during chapter changes? Can I find and edit them?
 
-* Cheats - changing the starting map currently only works for chapters 1 and 2.
-** Could I change disks while the TITLE1.GDT image is being displayed to get it to load a different chapter map?
-*** Nah, that doesn't work...
-** Although with the save states I have, I can just change the first map of individual chapters!
-*** Done, and moved cheats to their own module cheats.py.
+* I'd love to figrue out where the position of the character is loaded, so I can warp to more maps.
 
 * Can I replace OPENING.EXE with ENDING.EXE for testing?
 ** No, it just skips it...
@@ -118,3 +90,7 @@
 
 * Fix the randomly decaying excel formulas.
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
+
+### common problems
+* If a "&" appears before a string when it gets replaced:
+** There's probably an 81-40 sjis space in front of it. Add it to the JP part of the dump so it gets replaced.
