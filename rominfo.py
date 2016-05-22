@@ -61,9 +61,13 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x555f), # cut scene
                            (0x11977, 0x11982), # y/n/c
                            (0x119dd, 0x11b53), # battle msgs
                            (0x11ef2, 0x121fe)), # error block
-               'ST5S1.EXE': ((0x24e8, 0x3af1),),
+               'ST5S1.EXE': ((0x24e8, 0x39b9),
+                             (0x39cc, 0x3af0),),
                'ST5S2.EXE': ((0x23f9, 0x3797),),
-               'ST5S3.EXE': ((0x3db9, 0x4ed0),),
+               'ST5S3.EXE': ((0x3db9, 0x3dc5),
+                             (0x3e30, 0x3f64),
+                             (0x3f97, 0x4da9),
+                             (0x4dba, 0x4edf),),
                'ST6.EXE': ((0xa51b, 0xa55a), # enviro
                            (0xa59c, 0xa5e9), # evo files
                            (0xa5e9, 0xaf59), # stats/evolution
@@ -93,7 +97,7 @@ spare_block = {'OPENING.EXE': (0x55e9, 0x5638),
     'ST3.EXE': (0xeb82, 0xee8e),
     'ST4.EXE': (0x1659c, 0x168a8),
     'ST5.EXE': (0x11ef2, 0x121fe),
-    'ST6.EXE': (0xd44a, 0xd756)}
+    'ST6.EXE': (0xd44a, 0xd756),}
  # Usually the last block.
 
 creature_block = {'OPENING.EXE': (0, 0),

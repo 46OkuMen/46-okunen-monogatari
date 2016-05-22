@@ -7,6 +7,7 @@
 *** "Text Speed:"'s pointer is "Text Speed".
 **** (maybe I'm having trouble changing the options string length because I'm not updating the pointer??)
 *** ST5S1.EXE has some repeated text but no pointer. yay
+*** Batte options that are duplicates... hmm. How do they get adjusted if the pointer diff between them is different?
 
 ## Crashes
 * Soft lock when changing maps in ch5.
@@ -48,6 +49,8 @@
 * ST2.EXE 0xd1fe nametag gets duplicated, skipping a line of dialogue. The skipped line shows up at 0xd3d3...
 
 ## Text Fixes
+* Why isn't "Escape" getting translated in 5-S3?
+
 * "A Eryops attacked!!"
 ** Is there a non-articled way of phrasing this that still sounds like English?
 *** "A wild Eryops attacked!!"
@@ -71,6 +74,10 @@
 ## Tools
 
 ### reinsert.py
+* Better progress reporting.
+** Get a combined percentage for ch5 files (ST5, ST5S1, ST5S2, ST5S3)
+** Get a (translations/rows) breakdown as well.
+
 * I've got serious problems reinserting into OPENING.EXE...
 ** Maybe I should try again using the original JP strings that have spaces in them? It's having trouble finding all the credits names.
 ** Also, crashing for some reason, maybe I shouldn't treat the errors as a spare block???
@@ -105,5 +112,9 @@
 
 ### other
 * Actually make a patch!
+** It'd be nice to generate a patch immediately during the reinsert process.
+*** Look into Travis CI or whatever standard windows build tools there are.
+** Any good python modules for creating ips patches or maybe Lunar or Ninja ones?
+
 * Fix the randomly decaying excel formulas.
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?

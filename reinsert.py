@@ -19,9 +19,9 @@ from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block
 from cheats import change_starting_map
 
-FILES_TO_TRANSLATE = ['SINKA.DAT', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST6.EXE']
-#FILES_TO_TRANSLATE = ['ST5.EXE']
-#FILES_TO_TRANSLATE = []
+FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
+                       'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'SINKA.DAT']
+#FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -143,6 +143,7 @@ def edit_pointer(file, text_location, diff, file_string):
         #print "new:", new_value, new_bytes, new_bytestring
 
         old_slice = file_string[location_in_string:location_in_string+4]
+        #print location_in_string
         j = old_slice.index(old_bytestring)
         if j > 0:
             print j, "is in a weird place"
@@ -267,7 +268,8 @@ def edit_text(file, translations):
         new_block_string = block_strings[current_text_block].replace(old_slice, new_slice, 1)
         block_strings[current_text_block] = new_block_string
 
-    patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
+    if file in spare_block:
+        patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
 
     patched_file_string = pad_text_blocks(file, block_strings, file_strings[file])
     # Should this take patched_file_string as an argument instead?
@@ -281,7 +283,8 @@ def pad_text_blocks(gamefile, block_strings, file_string):
     for i, blk in enumerate(block_strings):
         # if block is too short, negative; too long, positive
         block_diff = len(blk) - len(original_block_strings[i])
-        print block_diff
+        if block_diff > 0:
+            print block_diff
         assert block_diff <= 0, 'Block ending in %s is too long' % hex(file_blocks[gamefile][i][1])
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
@@ -298,7 +301,7 @@ def pad_text_blocks(gamefile, block_strings, file_string):
             #print "in:"
             #print patched_file_string[start*2:stop*2]
             for n in compare_strings(original_block_strings[i], patched_file_string[start*2:stop*2]):
-                print "look at offset", hex(n + file_blocks[gamefile][i][0])
+                print "look at offset", hex(n + file_blocks[gamefile][i][0]), "probably treated control codes as text"
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
 
     return patched_file_string
@@ -417,7 +420,7 @@ if __name__ == '__main__':
 
     # Hard to see it, but the cheat calls are outside the "every file" loop.
     #change_starting_map('ST1.EXE', 101)
-    change_starting_map('ST5.EXE', 600)
+    #change_starting_map('ST5.EXE', 600)
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
