@@ -16,7 +16,7 @@ from utils import pack, get_current_block, file_to_hex_string
 from utils import sjis_to_hex_string, ascii_to_hex_string
 from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
-from rominfo import creature_block, spare_block
+from rominfo import creature_block, spare_block, CHAPTER_FIVE_FILES
 from cheats import change_starting_map
 
 FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
@@ -369,6 +369,9 @@ if __name__ == '__main__':
     ORIGINAL_FILE_STRINGS = get_file_strings()
     file_strings = ORIGINAL_FILE_STRINGS.copy()
 
+    chapter_five_total_strings = 0
+    chapter_five_translated_strings = 0
+
 
     for gamefile in FILES_TO_TRANSLATE:
         if gamefile in ('SINKA.DAT', 'SEND.DAT'):
@@ -417,9 +420,16 @@ if __name__ == '__main__':
             if eng:
                 translated_strings += 1
 
+        if gamefile in CHAPTER_FIVE_FILES:
+            chapter_five_total_strings += total_strings
+            chapter_five_translated_strings += translated_strings
+
         translation_percent = int(floor((translated_strings / total_strings) * 100))
         print gamefile, str(translation_percent), "% complete",
         print "(%s / %s)" % (translated_strings, total_strings)
+
+        if gamefile == "ST5S3.EXE":
+            print "CH5 Total:", str(int(floor((chapter_five_translated_strings / chapter_five_total_strings)))), "(%s / %s)" % (chapter_five_translated_strings, chapter_five_total_strings)
 
     # Hard to see it, but the cheat calls are outside the "every file" loop.
     change_starting_map('ST1.EXE', 101)
