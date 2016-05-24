@@ -4,6 +4,8 @@
 files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE',
          'ST5S3.EXE', 'ST6.EXE', 'ENDING.EXE', 'SINKA.DAT', 'SEND.DAT']
 
+CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
+
 # How the files themselves get broken up for reinsertion.
 file_blocks = {'OPENING.EXE': ((0x4dda, 0x555f), # cut scene
                                (0x55e9, 0x5638), # spare block

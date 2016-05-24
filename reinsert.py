@@ -319,7 +319,7 @@ def move_overflow(file, file_string, overflow_bytestrings):
         pointer_diff = (spare_block_lo - lo) + len(spare_block_string)//2 + diff_between_pointer_and_text
         # Find all the translations that need to be applied.
         trans = OrderedDict()
-        previous_text_location = lo-2
+        previous_text_location = lo-1
         for i in range(lo, hi):
             if i in translations:
                 print "translating overflow"
