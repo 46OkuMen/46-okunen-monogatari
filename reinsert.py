@@ -22,6 +22,7 @@ from cheats import change_starting_map
 FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
                       'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'SINKA.DAT']
 #FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
+#FILES_TO_TRANSLATE = ['ST2.EXE']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -123,7 +124,7 @@ def edit_pointer(file, text_location, diff, file_string):
 
     patched_file_string = file_string
     for ptr in pointer_locations:
-        #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
+        print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
 
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
@@ -134,13 +135,13 @@ def edit_pointer(file, text_location, diff, file_string):
         #assert old_bytestring == rom_bytestring, 'Pointer bytestring not equal to value in rom'
 
         #print hex(pointer_location)
-        #print "old:", old_value, old_bytes, old_bytestring
+        print "old:", old_value, old_bytes, old_bytestring
 
         new_value = old_value + diff
 
         new_bytes = pack(new_value)
         new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-        #print "new:", new_value, new_bytes, new_bytestring
+        print "new:", new_value, new_bytes, new_bytestring
 
         old_slice = file_string[location_in_string:location_in_string+4]
         #print location_in_string
@@ -216,6 +217,7 @@ def edit_text(file, translations):
             # Here's the problem. Some pointers point to something a few control codes before the text.
             # So I need to calculate start_in_block as the pointer right before its current value...
             # Otherwise, the pointers won't get readjusted!
+            print "It's overflowing"
             recent_pointer = most_recent_pointer(previous_text_offset, original_location)
             diff_between_pointer_and_text = original_location - recent_pointer
             start_in_block = (recent_pointer - current_block_start)*2
@@ -317,22 +319,22 @@ def move_overflow(file, file_string, overflow_bytestrings):
         pointer_diff = (spare_block_lo - lo) + len(spare_block_string)//2 + diff_between_pointer_and_text
         # Find all the translations that need to be applied.
         trans = OrderedDict()
-        previous_text_location = lo-1
+        previous_text_location = lo-2
         for i in range(lo, hi):
             if i in translations:
-                #print "translating overflow"
-                #print "previous_text_location:", hex(previous_text_location)
-                #print hex(i), pointer_diff
+                print "translating overflow"
+                print "previous_text_location:", hex(previous_text_location)
+                print hex(i), pointer_diff
                 trans[i] = translations[i]
                 japanese, english = trans[i]
-                #print english
+                print english
 
                 jp_bytestring = sjis_to_hex_string(japanese)
                 eng_bytestring = ascii_to_hex_string(english)
 
                 this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
 
-                #j = bytestring.index(jp_bytestring)
+                j = bytestring.index(jp_bytestring)
                 bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
                 edit_pointers_in_range(file, file_string, (previous_text_location-1, i), pointer_diff)
                 previous_text_location = i
@@ -420,7 +422,7 @@ if __name__ == '__main__':
         print "(%s / %s)" % (translated_strings, total_strings)
 
     # Hard to see it, but the cheat calls are outside the "every file" loop.
-    #change_starting_map('ST1.EXE', 101)
+    change_starting_map('ST1.EXE', 101)
     #change_starting_map('ST5.EXE', 600)
 
 # 100: open water, volcano cutscene immediately, combat

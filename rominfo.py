@@ -25,7 +25,7 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x555f), # cut scene
                            (0xd757, 0xd894),   # evolution, menu
                            (0xd8c6, 0xdd50),   # battle stuff
                            (0xde35, 0xf948),   # dialogue
-                           (0xf980, 0xfaa2),   # environment (probably needs additional splits)
+                           (0xf980, 0xfaa2),   # enviro
                            (0xfae4, 0xfe50),   # creature block
                            (0x10004, 0x101df), # battle stuff
                            (0x10570, 0x1087d)), # error block

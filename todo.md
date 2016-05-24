@@ -1,20 +1,9 @@
-# Oh shit I really gotta fix this one
-* I have been updating the offsets, but not the pointers, of the duplicate text in fix_order.py.
-** And when I fix them, they go away from fix_order.py. So I can't find them again.
-*** (Well, I could go back to the original...)
-** Hm. How bad is this? What kinds of text is a duplicate?
-*** Nametags
-*** "Text Speed:"'s pointer is "Text Speed".
-**** (maybe I'm having trouble changing the options string length because I'm not updating the pointer??)
-*** ST5S1.EXE has some repeated text but no pointer. yay
-*** Batte options that are duplicates... hmm. How do they get adjusted if the pointer diff between them is different?
-** Oh actually this doesn't matter! I just read from the pointer sheet anyway and ignore the pointer in the dump. Nevermind then.
-
 ## Crashes
 
 ## Mistaken Text Replacement
 
 ## Non-Crash Glitches
+* Two menu items have disappeared in Ch2.
 
 ## Dump Problems
 * Carnivorous Dino Person has a missing piece of dialogue between 0xcf16 and 0xcf64.
@@ -24,18 +13,6 @@
 
 ## Text Fixes
 * Why isn't "Escape" getting translated in 5-S3?
-
-* "A Eryops attacked!!"
-** Is there a non-articled way of phrasing this that still sounds like English?
-*** "A wild Eryops attacked!!"
-*** "The Eryops attacked!"
-** Or is there a way of calling "A" or "An" appropriately?
-*** Look at what text is called when fighting Lucifer - probably a different bit of text is called.
-*** Hope this doesn't involve ASM hacking.
-** Same thing for "You evolved into a Eryops!"
-
-* "You can't make a dent..." can also be triggered by the opponent's attack not making a dent.
-** Correction: "Can't make a dent..."? "It won't make a dent..."?
 
 * "Unlucky hit!" is the enemy's critical hit, which the text doesn't convey very well.
 
@@ -47,10 +24,24 @@
 * Also, any way to get an extra character in "TextSpeed:"? There's gotta be something I can rearrange.
 
 * "Your turn!" jumps up and down if you enter and leave the "Special" menu. Check if this happens in JP version.
+** Yeah, it happens there too.
 
 ## Tools
 
 ### reinsert.py
+* I think either the overflow checker or the text padder is not working, or they don't work well together.
+** Too many "block ending in X is too long" messages for them to be working correctly, which creates too much work for me.
+
+* Investigate why the length of evnrionment messages can't be adjusted.
+** Testing out ST2.EXE; 0x0f980 is 3 longer, 0x0f99d is 6 longer.
+** Yeah, the pointers for %d evo pts isn't getting adjusted correctly. Everything else is fine, including "you took %d dmg"
+** The evo pts pointer doesn't get adjusted at all. Let's see why not.
+** Ah, it's overflow text. But the other two pieces of oveflow text seem to have been adjusted fine.
+*** Does it have something to do with the fact that it and another (later) piece of overrflow text are identical?
+** Noticed that the overflow inserter was checking for pointers at a certain address -1. Tried -2, that worked.
+** Ch2 enviro messages with changed lengths work now.
+*** Gotta fix the overflow/padder thing to check for the full ch1 enviro messages.
+
 * Better progress reporting.
 ** Get a combined percentage for ch5 files (ST5, ST5S1, ST5S2, ST5S3)
 ** Get a (translations/rows) breakdown as well. (done)
