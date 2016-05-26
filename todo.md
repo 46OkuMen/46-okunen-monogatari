@@ -29,9 +29,8 @@
 ## Tools
 
 ### reinsert.py
-* I think either the overflow checker or the text padder is not working, or they don't work well together.
-** Too many "block ending in X is too long" messages for them to be working correctly, which creates too much work for me.
-** It's the overflow checker; the text padder doesn't do anything yet, it just says the block is too long.
+* Overflow checking doesn't work if multiple strings are overflowing past the end of a block.
+** Try a "while the block is too long, add the most recent pointer to the overflow bytestring" approach.
 
 * ST1.EXE trying to double-edit an overflow pointer with text at 0x10def? "This sea is now your sea!"
 
@@ -46,7 +45,8 @@
 *** Gotta fix the overflow/padder thing to check for the full ch1 enviro messages.
 
 * Better progress reporting.
-** Get a combined percentage for ch5 files (ST5, ST5S1, ST5S2, ST5S3)
+** Separate the reporting into a different function. Build a dict of file, progress and process it in a function.
+** Get a combined percentage for ch5 files (ST5, ST5S1, ST5S2, ST5S3) (done but ugly)
 ** Get a (translations/rows) breakdown as well. (done)
 
 * I've got serious problems reinserting into OPENING.EXE...
