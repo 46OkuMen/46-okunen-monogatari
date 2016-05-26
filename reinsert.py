@@ -237,8 +237,6 @@ def edit_text(file, translations):
             print "original location:", hex(original_location)
             print "recent pointer:", hex(recent_pointer)
 
-            diff_between_pointer_and_text = original_location - recent_pointer
-            print "diff pointer text =", diff_between_pointer_and_text
             start_in_block = (recent_pointer - current_block_start)*2    # start position in the blockstring.
             overflow_bytestring = original_block_strings[current_text_block][start_in_block:]
             # Store the start and end of the overflow bytestring, 
@@ -249,7 +247,7 @@ def edit_text(file, translations):
             #assert overflow_lo < current_block_end
             #assert len(original_block_strings[current_text_block])//2 > (overflow_lo - current_block_start)
 
-            overflow_bytestrings[((overflow_lo, overflow_hi), diff_between_pointer_and_text)] = overflow_bytestring
+            overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
 
         if not is_overflowing:
             file_strings[file] = edit_pointers_in_range(file, file_strings[file], 
@@ -354,9 +352,9 @@ def move_overflow(file, file_string, overflow_bytestrings):
     spare_length = spare_block_hi - spare_block_lo
     spare_block_string = ''
     #location_in_spare_block = 0
-    for ((lo, hi), diff_between_pointer_and_text), bytestring in overflow_bytestrings.iteritems():
+    for (lo, hi), bytestring in overflow_bytestrings.iteritems():
         # The first pointer must be adjusted to point to the beginning of the spare block.
-        pointer_diff = (spare_block_lo - lo) + len(spare_block_string)//2# + diff_between_pointer_and_text
+        pointer_diff = (spare_block_lo - lo) + len(spare_block_string)//2
         # Find all the translations that need to be applied.
         trans = OrderedDict()
         previous_text_location = lo
@@ -383,6 +381,7 @@ def move_overflow(file, file_string, overflow_bytestrings):
         spare_block_string += bytestring
 
     # TODO: This isn't quite the sapre block, it's just the last block... just as a note.
+    # That's probably at least one of the problems for OPENING.EXE...
     assert len(spare_block_string)//2 <= spare_length
     block_strings[-1] = spare_block_string
     original_block_string = original_block_strings[-1]
@@ -391,7 +390,7 @@ def move_overflow(file, file_string, overflow_bytestrings):
 
 
 def edit_dat_text(gamefile, file_string):
-    """Edit text for SINKA.DAT or SEND.DAT. Do not adjust pointers."""
+    """Edit text for SINKA.DAT or SEND.DAT. Does not adjust pointers."""
     trans = get_translations(gamefile)
 
     patched_file_string = "" + file_string
@@ -484,28 +483,9 @@ if __name__ == '__main__':
 
 # 100: open water, volcano cutscene immediately, combat
 # 101: caves, hidden hemicyclapsis, Gaia's Heart in upper right
-# 102: OOB cladoselache cave
-# 103: OOB ???
-# 104: OOB Gaia portal
-# 105: (default) thelodus sea
-# 200: chapter 2 world map
-# 201: super glitchy salamander cave
 # 202: useful! take one step, die from fresh water, respawn as an Ichthyostega!
-# 203: OOB lava cave
 # 204: mountain, right near the top! easy access to combat, cut scenes - plus fish equivs of animals
-# goes until 209.
 # 300: black screen. It's on a different disk, of course...
 
 # testing new ch5 starting maps:
-# 501: OOB glitch land
-# 502: doesn't even load
-# 503: OOB glitch land
-# 504: OOB glitch land
-# 505: OOB glitch land
-# 506: doesn't even load
-# 507: OOB glitch land
-# 508: OOB glitch land
-# 509: OOB glitch land
 # 600: ch6 world map; can't use menus?; dying (at imp guy in africa, ch5) sends you to glitch land ch5
-# In glitch land, open the menu, play with some options, save/load - leads to glitch ch6
-# in glitch ch6, go around a lot and eventually you'll be the boat and talk to people!
