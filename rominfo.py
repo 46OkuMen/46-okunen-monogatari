@@ -16,9 +16,9 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x555f), # cut scene
                            (0xe6f9, 0xec4c),  # not variable; battle msgs
                            (0xec4c, 0xec9e),  # not variable; evolution msgs
                            (0xec9e, 0x10e39),  # variable; dialogue
-                           (0x10e39, 0x10f96),  # not variable; environment messages
+                           (0x10e39, 0x10f86),  # not variable; environment messages
                            (0x10fca, 0x117c7),  # variable; creature names
-                           (0x117c7, 0x117df),  # not variable; yes/no/cancel    # iffy ending
+                           (0x117c7, 0x117e0),  # not variable; yes/no/cancel    # iffy ending
                            (0x11839, 0x11857),  # not variable; "evolved too far" message
                            (0x11893, 0x119a4),  # not variable; battle msgs      # iffy ending
                            (0x11d42, 0x1204e)),  # error block
@@ -90,6 +90,7 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x555f), # cut scene
 # The end of a block has to be a place where spaces are okay. My mistake may have been in putting them after filenames.
 # If you end right on top of a filename, the extra spaces will push the filename into the correct position... maybe?
 # Definitely don't end on the last character of a string!! End it one or two after.
+# Need to end blocks one after an "<END>" byte. This helps one overflow not spill into the next.
 
 # Some files have an error block, which we can replace with text overflowing from other blocks.
 spare_block = {'OPENING.EXE': (0x55e9, 0x5638),

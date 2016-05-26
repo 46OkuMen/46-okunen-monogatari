@@ -31,6 +31,9 @@
 ### reinsert.py
 * I think either the overflow checker or the text padder is not working, or they don't work well together.
 ** Too many "block ending in X is too long" messages for them to be working correctly, which creates too much work for me.
+** It's the overflow checker; the text padder doesn't do anything yet, it just says the block is too long.
+
+* ST1.EXE trying to double-edit an overflow pointer with text at 0x10def? "This sea is now your sea!"
 
 * Investigate why the length of evnrionment messages can't be adjusted.
 ** Testing out ST2.EXE; 0x0f980 is 3 longer, 0x0f99d is 6 longer.
