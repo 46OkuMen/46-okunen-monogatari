@@ -22,6 +22,7 @@
 *** Can I subtract a space from the preivous stat?
 
 * Also, any way to get an extra character in "TextSpeed:"? There's gotta be something I can rearrange.
+** Looks like the message box size is fixed! The numnber appears as the last two characters of the box, overwriting whatever's there...
 
 * "Your turn!" jumps up and down if you enter and leave the "Special" menu. Check if this happens in JP version.
 ** Yeah, it happens there too.
@@ -29,21 +30,6 @@
 ## Tools
 
 ### reinsert.py
-* Overflow checking doesn't work if multiple strings are overflowing past the end of a block.
-** Try a "while the block is too long, add the most recent pointer to the overflow bytestring" approach.
-
-* ST1.EXE trying to double-edit an overflow pointer with text at 0x10def? "This sea is now your sea!"
-
-* Investigate why the length of evnrionment messages can't be adjusted.
-** Testing out ST2.EXE; 0x0f980 is 3 longer, 0x0f99d is 6 longer.
-** Yeah, the pointers for %d evo pts isn't getting adjusted correctly. Everything else is fine, including "you took %d dmg"
-** The evo pts pointer doesn't get adjusted at all. Let's see why not.
-** Ah, it's overflow text. But the other two pieces of oveflow text seem to have been adjusted fine.
-*** Does it have something to do with the fact that it and another (later) piece of overrflow text are identical?
-** Noticed that the overflow inserter was checking for pointers at a certain address -1. Tried -2, that worked.
-** Ch2 enviro messages with changed lengths work now.
-*** Gotta fix the overflow/padder thing to check for the full ch1 enviro messages.
-
 * Better progress reporting.
 ** Separate the reporting into a different function. Build a dict of file, progress and process it in a function.
 ** Get a combined percentage for ch5 files (ST5, ST5S1, ST5S2, ST5S3) (done but ugly)
@@ -52,10 +38,6 @@
 * I've got serious problems reinserting into OPENING.EXE...
 ** Maybe I should try again using the original JP strings that have spaces in them? It's having trouble finding all the credits names.
 ** Also, crashing for some reason, maybe I shouldn't treat the errors as a spare block???
-
-* I might want to make the overflow checker more flexible.
-** It doesn't catch non-translated stuff at the ends of blocks.
-** Or, I could just wait until this stuff is translated...
 
 * PEP8 stuff. Shiny new Pylint extension will annoy me into fixing a lot of it.
 ** Definitely look for ways to break up edit_text(). It's way too big now.
@@ -88,3 +70,6 @@
 ### common problems
 * If a "&" appears before a string when it gets replaced:
 ** There's probably an 81-40 sjis space in front of it. Add it to the JP part of the dump so it gets replaced.
+
+* If something in the overflow text overflows into another string:
+** Make sure you split up the block of the first overflow string AFTER an <END> tag.

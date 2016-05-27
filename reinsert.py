@@ -169,6 +169,8 @@ def most_recent_pointer(lo, hi):
     for n in reversed(range(lo, hi+1)):
         if n in pointers:
             return n
+    # If there are no other pointers, just return the hi value.
+    return hi
 
 
 def edit_text(file, translations):
@@ -233,7 +235,10 @@ def edit_text(file, translations):
             current_block_length = len(block_strings[current_text_block])//2
             print "block length now:", current_block_length
 
-            recent_pointer = most_recent_pointer(previous_text_offset, original_location)
+            # A lot of times the overflow text will be preceded by a <LN> which has a different pointer offset.
+            # Backtrack to the most recent offset with a pointer.
+            # But don't backtrack as far as previous_text_offset, it may have already been translated...
+            recent_pointer = most_recent_pointer(previous_text_offset+1, original_location)
             print "original location:", hex(original_location)
             print "recent pointer:", hex(recent_pointer)
 
@@ -287,11 +292,12 @@ def edit_text(file, translations):
         # TODO: Why are wrong replacements still happening?
         try:
             i = old_slice.index(jp_bytestring)//2
-            previous_replacement_offset += i
+            previous_replacement_offset += i//2
         except ValueError:
+            print jp_bytestring
             print old_slice
-            #print "Can't find the string at:", hex(original_location)
-            #print "It's looking starting at:", hex((block_string.index(old_slice)//2 + ((current_block_start)*2)))
+            print "Can't find the string at:", hex(original_location)
+            print "It's looking starting at:", hex((block_string.index(old_slice)//2 + ((current_block_start))))
             print "the english string", eng, "is causing problems"
 
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
@@ -478,7 +484,7 @@ if __name__ == '__main__':
             print "CH5 Total:", str(int(floor((chapter_five_translated_strings / chapter_five_total_strings)))), "(%s / %s)" % (chapter_five_translated_strings, chapter_five_total_strings)
 
     # Hard to see it, but the cheat calls are outside the "every file" loop.
-    change_starting_map('ST1.EXE', 100)
+    #change_starting_map('ST1.EXE', 100)
     #change_starting_map('ST5.EXE', 600)
 
 # 100: open water, volcano cutscene immediately, combat
