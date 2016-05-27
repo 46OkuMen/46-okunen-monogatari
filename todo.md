@@ -12,6 +12,13 @@
 ** Fixed this. Not sure why it happened, unfortunately.
 
 ## Text Fixes
+* I'm still not entirely sure how I fixed the Save/Load Game spacing in ch2, other than "trial and error with inserting spaces before and after the string"...
+** Oh, I think I at least understand why it's that way:
+*** You have multiple pointers to "Save Game" in ch2, called once for the menu item and once for the header text box of actually saving your game.
+*** In the header, it's offset from the left by one space to make it more centered in the box.
+*** So in the string "  Save Game", the menu item is a pointer to the third character and the header is a pointer to the first character.
+*** Sometimes the game has multiple "Save Game" or "Load Game" strings with spaces/no spaces, sometimes they are combined in this way.
+
 * Why isn't "Escape" getting translated in 5-S3?
 
 * "Unlucky hit!" is the enemy's critical hit, which the text doesn't convey very well.
@@ -20,9 +27,12 @@
 ** Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
 ** Oh, actually this works fine. DEF looks good, HP could use another space but there's no room.
 *** Can I subtract a space from the preivous stat?
+**** Yes.
+** Check to see if larger INT values run into the stat name later.
 
 * Also, any way to get an extra character in "TextSpeed:"? There's gotta be something I can rearrange.
 ** Looks like the message box size is fixed! The numnber appears as the last two characters of the box, overwriting whatever's there...
+** ...But in ST2 I was able to add an SJIS space before it! That gives me room.
 
 * "Your turn!" jumps up and down if you enter and leave the "Special" menu. Check if this happens in JP version.
 ** Yeah, it happens there too.
@@ -34,6 +44,7 @@
 ** Separate the reporting into a different function. Build a dict of file, progress and process it in a function.
 ** Get a combined percentage for ch5 files (ST5, ST5S1, ST5S2, ST5S3) (done but ugly)
 ** Get a (translations/rows) breakdown as well. (done)
+** How to think about progress reporting for strings that don't need translation? (numbers in .DATs, etc)
 
 * I've got serious problems reinserting into OPENING.EXE...
 ** Maybe I should try again using the original JP strings that have spaces in them? It's having trouble finding all the credits names.
