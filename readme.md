@@ -18,5 +18,5 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 
 * System: 100% (5 / 5)
 * Images: 0% (0 / 9)
-* Encyclopedia: 39% (363 / 923)
-* Alternate Endings: 0% ( 0 / 779)
+* Encyclopedia: 48% (363 / 741)
+* Alternate Endings: 0%

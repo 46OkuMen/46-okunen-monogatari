@@ -19,7 +19,7 @@ from cheats import change_starting_map
 #FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
 #                      'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'SINKA.DAT']
 #FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
-FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE',]
+FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'SINKA.DAT']
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -424,7 +424,7 @@ if __name__ == '__main__':
         except IOError:
             print "Looks like the game is open. Close it press enter to continue."
             raw_input()
-            
+
     ORIGINAL_FILE_STRINGS = get_file_strings()
     file_strings = ORIGINAL_FILE_STRINGS.copy()
 
@@ -458,7 +458,8 @@ if __name__ == '__main__':
             patched_file_string = edit_text(gamefile, translations)
 
             i = FULL_ROM_STRING.index(ORIGINAL_FILE_STRINGS[gamefile])
-            FULL_ROM_STRING = FULL_ROM_STRING.replace(ORIGINAL_FILE_STRINGS[gamefile], patched_file_string)
+            FULL_ROM_STRING = FULL_ROM_STRING.replace(ORIGINAL_FILE_STRINGS[gamefile], 
+                                                      patched_file_string)
 
             # Write the data to the patched file.
             with open(DEST_ROM_PATH, "wb") as output_file:
@@ -472,8 +473,16 @@ if __name__ == '__main__':
                 output_file.write(data)
 
         # Get some quick stats on reinsertion progress.
+        total_strings = 0
         translated_strings = 0
-        total_strings = len(translations)
+        for (_, (jp, _)) in translations.iteritems():
+            if isinstance(jp, long):
+                # .DAT encyclopedia indexes; don't get translated
+                pass
+            else:
+                total_strings += 1
+
+        #total_strings = len(translations)
         for _, eng in translations.itervalues():
             if eng:
                 translated_strings += 1
