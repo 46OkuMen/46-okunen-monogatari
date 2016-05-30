@@ -1,9 +1,16 @@
 ## Crashes
+* Try to realign the final dialogue block in ch4 - filling it in causes soft locks on menu changes.
+** Lucifersaurus, Accept/Decline, Lucifer is fine.
+** Uh, it all seems fine to me...
+
+* Menu crash in ch5 has returned.
+** Looks like something is beting treated as overflowing when it shouldn't be...?
+** Ah. Gotta end every block AFTER an <END> tag, not on the first one.
+** It would be useful to have a test that sees if any file has overflow when it's passed a blank translation sheet...
 
 ## Mistaken Text Replacement
 
 ## Non-Crash Glitches
-* Two menu items have disappeared in Ch2.
 
 ## Dump Problems
 * Carnivorous Dino Person has a missing piece of dialogue between 0xcf16 and 0xcf64.
@@ -33,9 +40,6 @@
 * Also, any way to get an extra character in "TextSpeed:"? There's gotta be something I can rearrange.
 ** Looks like the message box size is fixed! The numnber appears as the last two characters of the box, overwriting whatever's there...
 ** ...But in ST2 I was able to add an SJIS space before it! That gives me room.
-
-* "Your turn!" jumps up and down if you enter and leave the "Special" menu. Check if this happens in JP version.
-** Yeah, it happens there too.
 
 ## Tools
 
