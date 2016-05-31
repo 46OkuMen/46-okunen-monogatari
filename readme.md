@@ -9,10 +9,7 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 * Chapter 2: 28% (124 / 435)
 * Chapter 3: 26% (89 / 340)
 * Chapter 4: 22% (165 / 747)
-* Chapter 5: 23% (110 / 464)
-- Chapter 5-S1: 11% (15 / 135)
-- Chapter 5-S2: 14% (18 / 125)
-- Chapter 5-S3: 25% (43 / 167)
+* Chapter 5: 21% (189 / 890)
 * Chapter 6: 17% (55 / 319)
 * Epilogue: 0%
 

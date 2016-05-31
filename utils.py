@@ -117,3 +117,12 @@ def sjis_to_hex_string(jp):
             hx = '8140'
         jp_bytestring += hx
     return jp_bytestring
+
+def sjis_to_hex_string_preserve_spaces(jp):
+    """On rare occasions, the space replacing in the above method is a mistake."""
+    jp_bytestring = ""
+    sjis = jp.encode('shift-jis')
+    for c in sjis:
+        hx = "%02x" % ord(c)
+        jp_bytestring += hx
+    return jp_bytestring

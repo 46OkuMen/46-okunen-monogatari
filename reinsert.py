@@ -10,7 +10,8 @@ from openpyxl import load_workbook
 
 from utils import DUMP_XLS, POINTER_XLS, SRC_PATH, DEST_PATH, SRC_ROM_PATH, DEST_ROM_PATH
 from utils import pack, get_current_block, file_to_hex_string
-from utils import sjis_to_hex_string, ascii_to_hex_string
+from utils import sjis_to_hex_string, sjis_to_hex_string_preserve_spaces 
+from utils import ascii_to_hex_string
 from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block, CHAPTER_FIVE_FILES
@@ -18,8 +19,8 @@ from cheats import change_starting_map
 
 #FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
 #                      'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'SINKA.DAT']
-#FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
-FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'SINKA.DAT']
+FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
+#FILES_TO_TRANSLATE = ['ST5S1.EXE', ]
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -121,7 +122,7 @@ def edit_pointer(file, text_location, diff, file_string):
 
     patched_file_string = file_string
     for ptr in pointer_locations:
-        print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
+        #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
 
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
@@ -213,16 +214,23 @@ def edit_text(file, translations):
         jp_bytestring = sjis_to_hex_string(jp)
         eng_bytestring = ascii_to_hex_string(eng)
 
+        # If the jp string includes ASCII spaces, it will not be found.
+        # So use the different hex string-producing method.
+        try:
+            j = block_strings[current_text_block].index(jp_bytestring)
+        except ValueError: # substring not found
+            jp_bytestring = sjis_to_hex_string_preserve_spaces(jp)
+
         if eng_bytestring:
             new_text_offset = original_location + len(eng_bytestring)//2 + pointer_diff
         else:
             new_text_offset = original_location + len(jp_bytestring)//2 + pointer_diff
 
-        if eng:
-            try:
-                print eng, "ends at", hex(new_text_offset)
-            except UnicodeEncodeError:
-                print "unicode error, but it ends at", hex(new_text_offset)
+        #if eng:
+        #    try:
+        #        print eng, "ends at", hex(new_text_offset)
+        #    except UnicodeEncodeError:
+        #        print "unicode error, but it ends at", hex(new_text_offset)
 
 
         if new_text_offset >= current_block_end:
@@ -231,16 +239,15 @@ def edit_text(file, translations):
             # So I need to calculate start_in_block as the pointer right before its current value...
             # Otherwise, the other pointers won't get adjusted.
 
-            print "It's overflowing"
+            #print "It's overflowing"
             current_block_length = len(block_strings[current_text_block])//2
-            print "block length now:", current_block_length
 
             # A lot of times the overflow text will be preceded by a <LN> which has a different pointer offset.
             # Backtrack to the most recent offset with a pointer.
             # But don't backtrack as far as previous_text_offset, it may have already been translated...
             recent_pointer = most_recent_pointer(previous_text_offset+1, original_location)
-            print "original location:", hex(original_location)
-            print "recent pointer:", hex(recent_pointer)
+            #print "original location:", hex(original_location)
+            #print "recent pointer:", hex(recent_pointer)
 
             start_in_block = (recent_pointer - current_block_start)*2    # start position in the blockstring.
             overflow_bytestring = original_block_strings[current_text_block][start_in_block:]
@@ -307,8 +314,6 @@ def edit_text(file, translations):
         new_block_string = block_strings[current_text_block].replace(old_slice, new_slice, 1)
         block_strings[current_text_block] = new_block_string
         #print "after replacement, block length is", len(new_block_string)//2
-
-        print "\n"
 
     if file in spare_block:
         patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
@@ -422,7 +427,7 @@ if __name__ == '__main__':
             copyfile(SRC_ROM_PATH, DEST_ROM_PATH)
             break
         except IOError:
-            print "Looks like the game is open. Close it press enter to continue."
+            print "Looks like the game is open. Close it and press enter to continue."
             raw_input()
 
     ORIGINAL_FILE_STRINGS = get_file_strings()
@@ -496,7 +501,8 @@ if __name__ == '__main__':
         print "(%s / %s)" % (translated_strings, total_strings)
 
         if gamefile == "ST5S3.EXE":
-            print "CH5 Total:", str(int(floor((chapter_five_translated_strings / chapter_five_total_strings)))), "(%s / %s)" % (chapter_five_translated_strings, chapter_five_total_strings)
+            print "CH5 Total:", int(floor((chapter_five_translated_strings / chapter_five_total_strings) * 100)), "% complete",
+            print "(%s / %s)" % (chapter_five_translated_strings, chapter_five_total_strings)
 
     # Hard to see it, but the cheat calls are outside the "every file" loop.
     #change_starting_map('ST1.EXE', 100)

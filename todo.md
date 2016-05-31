@@ -27,8 +27,12 @@
 *** Sometimes the game has multiple "Save Game" or "Load Game" strings with spaces/no spaces, sometimes they are combined in this way.
 
 * Why isn't "Escape" getting translated in 5-S3?
-
-* "Unlucky hit!" is the enemy's critical hit, which the text doesn't convey very well.
+** It is; there are some weird ASCII spaces at the end of "Fight" and "Special" though in the original japanese...?
+** Ooh, looks like one of my old tricks is backfiring - it truly is an ASCII space (20) and my script is replacing all those with SJIS spaces, so it can't find it in the original text.
+** How about if I just add a space to the end of the english?
+*** Uh, that just adds another space to the one that's there...
+** Hm. I fixed the space problem but I think this is something else - mistaken text replacement?
+*** Some battle message gets repeatedly messed up. It involves the kanji for "power".
 
 * Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
 ** Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
