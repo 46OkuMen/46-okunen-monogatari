@@ -7,9 +7,9 @@ files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'S
 CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 
 # How the files themselves get broken up for reinsertion.
-file_blocks = {'OPENING.EXE': ((0x4dda, 0x555f), # cut scene
-                               (0x55e9, 0x5638), # spare block
-                               (0x5657, 0x5869)), # cut scenes
+file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
+                               (0x55e9, 0x5639), # spare block
+                               (0x5657, 0x586a)), # cut scenes
                '46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
                'ST1.EXE': ((0xd873, 0xd934),  # not variable; environment messages
                            (0xd984, 0xe6f9),
@@ -66,8 +66,8 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x555f), # cut scene
                'ST5S1.EXE': ((0x24e8, 0x39b9),
                              (0x39cc, 0x3af0),),
                'ST5S2.EXE': ((0x23f9, 0x3797),),
-               'ST5S3.EXE': ((0x3db9, 0x3dc5),
-                             (0x3e30, 0x3f64),
+               'ST5S3.EXE': ((0x3db9, 0x3dc6),
+                             (0x3e30, 0x3f65),
                              (0x3f97, 0x4da9),
                              (0x4dba, 0x4edf),),
                'ST6.EXE': ((0xa51b, 0xa55a), # enviro
@@ -93,10 +93,10 @@ file_blocks = {'OPENING.EXE': ((0x4dda, 0x555f), # cut scene
 # Need to end blocks one after an "<END>" byte. This helps one overflow not spill into the next.
 
 # Some files have an error block, which we can replace with text overflowing from other blocks.
-spare_block = {'OPENING.EXE': (0x55e9, 0x5638),
+spare_block = {'OPENING.EXE': (0x55e9, 0x5639),
     '46.EXE': (0x9cb8, 0xa07a),
     'ST1.EXE': (0x11d42, 0x1204e),
-    'ST2.EXE': (0x10570, 0x1087b),
+    'ST2.EXE': (0x10570, 0x1087d),
     'ST3.EXE': (0xeb82, 0xee8e),
     'ST4.EXE': (0x1659c, 0x168a8),
     'ST5.EXE': (0x11ef2, 0x121fe),
@@ -147,6 +147,7 @@ file_length = {'OPENING.EXE': 0x5e4b,
                'ST6.EXE': 0xd8af,
                'ENDING.EXE': 0x4f55,
                'SINKA.DAT': 0x69a4}
+               # TODO add SEND.DAT
 
 # Pointer tables have two bytes, determined by the file, which separate their values.
 pointer_separators = {

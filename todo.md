@@ -1,7 +1,5 @@
 ## Crashes
-* Try to realign the final dialogue block in ch4 - filling it in causes soft locks on menu changes.
-** Lucifersaurus, Accept/Decline, Lucifer is fine.
-** Uh, it all seems fine to me...
+* Crash upon leaving austrolepithecus village in ch5.
 
 * Menu crash in ch5 has returned.
 ** Looks like something is beting treated as overflowing when it shouldn't be...?
@@ -9,11 +7,17 @@
 ** It would be useful to have a test that sees if any file has overflow when it's passed a blank translation sheet...
 
 ## Mistaken Text Replacement
+* Lots of pointer oddities/mistaken replacement in ch5...
+** Pliopithecus 2nd dialogue, "Ancient Mammoth" nametag instead rewrites a mention of it in dialogue...
+
+* One cause of mistaken text replacement is when the string appears twice after the last translated text - of course it'll translate the first one it finds after the last translated thing, regardless of whether it's in dialogue or whatever.
 
 ## Non-Crash Glitches
 
 ## Dump Problems
 * Carnivorous Dino Person has a missing piece of dialogue between 0xcf16 and 0xcf64.
+** Same as below. Used sjis-dump to dump st5 again...
+** Should I be nervous whenever I see two nametags in a row?
 
 * ST2.EXE 0xd1fe nametag gets duplicated, skipping a line of dialogue. The skipped line shows up at 0xd3d3...
 ** Fixed this. Not sure why it happened, unfortunately.
@@ -37,6 +41,7 @@
 ** Remove everything in the block before the first "escape": menu item becoems "pe"
 *** Remove the space in the jp text: remains "pe"
 ** Hey, so this is the second "Escape" that's the issue.
+*** Or maybe it's the first, and mistaken text replacement makes it hard to spot....
 
 * Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
 ** Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
@@ -90,9 +95,17 @@
 * Fix the randomly decaying excel formulas.
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
 
+* Can I insert the team name into the credits? 
+** Probably quite difficult unless I take some guy out of the credits.
+** Also there is no "team name."
+
 ### common problems
 * If a "&" appears before a string when it gets replaced:
 ** There's probably an 81-40 sjis space in front of it. Add it to the JP part of the dump so it gets replaced.
 
 * If something in the overflow text overflows into another string:
 ** Make sure you split up the block of the first overflow string AFTER an <END> tag.
+
+* If the reinserter can't find the original jp string:
+** Look in the dump that includes ASCII text, there's probably some wonky spaces or something.
+** Especially if it's in OPENING or ENDING.

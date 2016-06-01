@@ -17,10 +17,10 @@ from rominfo import file_blocks, file_location, file_length, pointer_constants
 from rominfo import creature_block, spare_block, CHAPTER_FIVE_FILES
 from cheats import change_starting_map
 
-#FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
-#                      'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'SINKA.DAT']
-FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
-#FILES_TO_TRANSLATE = ['ST5S1.EXE', ]
+FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
+                      'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'OPENING.EXE', 'SINKA.DAT']
+#FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
+#FILES_TO_TRANSLATE = ['OPENING.EXE', ]
 
 FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
 
@@ -382,7 +382,7 @@ def move_overflow(file, file_string, overflow_bytestrings):
                 eng_bytestring = ascii_to_hex_string(english)
 
                 this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
-
+                print english
                 j = bytestring.index(jp_bytestring)
                 bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
                 edit_pointers_in_range(file, file_string, (previous_text_location-1, i), pointer_diff)
@@ -394,7 +394,9 @@ def move_overflow(file, file_string, overflow_bytestrings):
     # TODO: This isn't quite the sapre block, it's just the last block... just as a note.
     # That's probably at least one of the problems for OPENING.EXE...
     assert len(spare_block_string)//2 <= spare_length
-    block_strings[-1] = spare_block_string
+    # trying to fix this this time.
+    spare_block_index = file_blocks[file].index(spare_block[file])
+    block_strings[spare_block_index] = spare_block_string
     original_block_string = original_block_strings[-1]
     file_string = file_string.replace(original_block_string, spare_block_string)
     return file_string
