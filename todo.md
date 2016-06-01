@@ -33,6 +33,10 @@
 *** Uh, that just adds another space to the one that's there...
 ** Hm. I fixed the space problem but I think this is something else - mistaken text replacement?
 *** Some battle message gets repeatedly messed up. It involves the kanji for "power".
+** Some problem with the latter half of the skills block?
+** Remove everything in the block before the first "escape": menu item becoems "pe"
+*** Remove the space in the jp text: remains "pe"
+** Hey, so this is the second "Escape" that's the issue.
 
 * Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
 ** Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
