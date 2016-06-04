@@ -14,7 +14,7 @@ from utils import sjis_to_hex_string, sjis_to_hex_string_preserve_spaces
 from utils import ascii_to_hex_string
 from utils import compare_strings
 from rominfo import file_blocks, file_location, file_length, pointer_constants
-from rominfo import creature_block, spare_block, CHAPTER_FIVE_FILES
+from rominfo import CREATURE_BLOCK, spare_block, CHAPTER_FIVE_FILES
 from cheats import change_starting_map
 
 FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
@@ -122,7 +122,7 @@ def edit_pointer(file, text_location, diff, file_string):
 
     patched_file_string = file_string
     for ptr in pointer_locations:
-        print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
+        #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
 
         old_value = text_location - pointer_constant
         old_bytes = pack(old_value)
@@ -177,7 +177,7 @@ def most_recent_pointer(lo, hi):
 def edit_text(file, translations):
     """Replace each japanese string with the translated english string."""
 
-    creature_block_lo, creature_block_hi = creature_block[file]
+    creature_block_lo, creature_block_hi = CREATURE_BLOCK[file]
 
     pointer_diff = 0
     previous_text_offset = file_blocks[file][0][0]
@@ -191,7 +191,6 @@ def edit_text(file, translations):
     overflow_bytestrings = OrderedDict()
 
     for original_location, (jp, eng) in translations.iteritems():
-        #print hex(original_location), pointer_diff
         current_text_block = get_current_block(original_location, file)
         if current_text_block != previous_text_block:
             pointer_diff = 0

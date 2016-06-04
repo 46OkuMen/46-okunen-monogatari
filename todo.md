@@ -44,11 +44,13 @@
 *** Uh, that just adds another space to the one that's there...
 ** Hm. I fixed the space problem but I think this is something else - mistaken text replacement?
 *** Some battle message gets repeatedly messed up. It involves the kanji for "power".
+**** I removed the translations of "enemy"; no artifacts this time.
 ** Some problem with the latter half of the skills block?
 ** Remove everything in the block before the first "escape": menu item becoems "pe"
 *** Remove the space in the jp text: remains "pe"
 ** Hey, so this is the second "Escape" that's the issue.
 *** Or maybe it's the first, and mistaken text replacement makes it hard to spot....
+** I think I can solve this by spacing the first several things cleverly...
 
 * Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
 ** Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
@@ -66,38 +68,24 @@
 ### reinsert.py
 * Better progress reporting.
 ** Separate the reporting into a different function. Build a dict of file, progress and process it in a function.
-** Get a combined percentage for ch5 files (ST5, ST5S1, ST5S2, ST5S3) (done but ugly)
-** Get a (translations/rows) breakdown as well. (done)
-** How to think about progress reporting for strings that don't need translation? (numbers in .DATs, etc)
 
-* I've got serious problems reinserting into OPENING.EXE...
-** Maybe I should try again using the original JP strings that have spaces in them? It's having trouble finding all the credits names.
-** Also, crashing for some reason, maybe I shouldn't treat the errors as a spare block???
-
-* PEP8 stuff. Shiny new Pylint extension will annoy me into fixing a lot of it.
-** Definitely look for ways to break up edit_text(). It's way too big now.
-** Ehh. It's a little late to try and make it OOP. But I have learned my lesson - "why OOP is useful in preventing spaghettification of code"
 
 ### cheats.py
-* Are stats stored in memory during chapter changes? Can I find and edit them?
-
-* I'd love to figrue out where the position of the character is loaded, so I can warp to more maps.
-
-* Can I replace OPENING.EXE with ENDING.EXE for testing?
-** No, it just skips it...
 
 ### update_duplicates.py
 * When creature name X is translated, also look for creature names XA, XB, XC, XD, XE.
 ** Gotta review the character encoding conversions.
-
-### future tools
-* A tool to combine all the %d, %u, %s formatted strings in all sheets.
 
 ### other
 * Actually make a patch!
 ** It'd be nice to generate a patch immediately during the reinsert process.
 *** Look into Travis CI or whatever standard windows build tools there are.
 ** Any good python modules for creating ips patches or maybe Lunar or Ninja ones?
+
+* I wonder if the dump has grown more complicated and might need a database.
+** SQL queries insetad of loading the data from the xls sheet and manipulating it in memory.
+** DB validations instead of 'unit' tests.
+** Easier to categorize blocks a certain way, just have a 'block type' column.
 
 * What is the best way to do editing for line lengths and such?
 ** The simplest is that all strings definitely can't be over 76. (max for bottom narration)
@@ -106,11 +94,11 @@
 ** Strings in battle block < 43.
 
 * Fix the randomly decaying excel formulas.
+
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
 
 * Can I insert the team name into the credits? 
 ** Probably quite difficult unless I take some guy out of the credits.
-** Also there is no "team name."
 
 ### common problems
 * If a "&" appears before a string when it gets replaced:
