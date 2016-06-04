@@ -1,5 +1,6 @@
 ## Crashes
 * Crash upon leaving austrolepithecus village in ch5.
+** Mistaken text replacement? One of the choices you select is filled in and the other is not...
 
 * Menu crash in ch5 has returned.
 ** Looks like something is beting treated as overflowing when it shouldn't be...?
@@ -11,10 +12,13 @@
 ** Pliopithecus 2nd dialogue, "Ancient Mammoth" nametag instead rewrites a mention of it in dialogue...
 
 * One cause of mistaken text replacement is when the string appears twice after the last translated text - of course it'll translate the first one it finds after the last translated thing, regardless of whether it's in dialogue or whatever.
+** Maybe I'll use something else instead of last_replacement_offset in the reinserter.
 
 ## Non-Crash Glitches
 
 ## Dump Problems
+* Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump at all?
+
 * Carnivorous Dino Person has a missing piece of dialogue between 0xcf16 and 0xcf64.
 ** Same as below. Used sjis-dump to dump st5 again...
 ** Should I be nervous whenever I see two nametags in a row?
@@ -23,6 +27,9 @@
 ** Fixed this. Not sure why it happened, unfortunately.
 
 ## Text Fixes
+* Why are various humanoid creatures in ch5 showing up with different names in their nametag and HP bar?
+** "Vegetarian Monkey People" show up as creature type "Neanderthal".
+
 * I'm still not entirely sure how I fixed the Save/Load Game spacing in ch2, other than "trial and error with inserting spaces before and after the string"...
 ** Oh, I think I at least understand why it's that way:
 *** You have multiple pointers to "Save Game" in ch2, called once for the menu item and once for the header text box of actually saving your game.
@@ -91,6 +98,12 @@
 ** It'd be nice to generate a patch immediately during the reinsert process.
 *** Look into Travis CI or whatever standard windows build tools there are.
 ** Any good python modules for creating ips patches or maybe Lunar or Ninja ones?
+
+* What is the best way to do editing for line lengths and such?
+** The simplest is that all strings definitely can't be over 76. (max for bottom narration)
+*** All strings in SINKA.DAT and SEND.DAT must be below 68. (bottom narration - indent)
+** Strings in creature block < 21.
+** Strings in battle block < 43.
 
 * Fix the randomly decaying excel formulas.
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?

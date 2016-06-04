@@ -53,23 +53,23 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x14a28, 0x15a1e), # creature block
                            (0x16031, 0x1620d), # yes/no/cancel, battle msgs
                            (0x1659c, 0x168a8)), # error block
-               'ST5.EXE': ((0xcc02, 0xcc62), # dialogue?
-                           (0xccf3, 0xcd32), # enviro
+               'ST5.EXE': ((0xcc02, 0xcc63), # dialogue?
+                           (0xccf3, 0xcd34), # enviro
                            (0xcd74, 0xcedc), # EVO files, evolution
-                           (0xcf16, 0xeac2), # dialogue
-                           (0xebbe, 0x1061d), # dialogue
-                           (0x10682, 0x107a3), # enviro
+                           (0xcf16, 0xeac4), # dialogue
+                           (0xebbe, 0x1061e), # dialogue
+                           (0x10682, 0x107a4), # enviro
                            (0x107e6, 0x11467), # creature block
                            (0x11977, 0x11983), # y/n/c
-                           (0x119dd, 0x11b53), # battle msgs
+                           (0x119dd, 0x11b54), # battle msgs
                            (0x11ef2, 0x121fe)), # error block
-               'ST5S1.EXE': ((0x24e8, 0x39b9),
-                             (0x39cc, 0x3af0),),
-               'ST5S2.EXE': ((0x23f9, 0x3797),),
+               'ST5S1.EXE': ((0x24e8, 0x39bb),
+                             (0x39cc, 0x3af2),),
+               'ST5S2.EXE': ((0x23f9, 0x3798),),
                'ST5S3.EXE': ((0x3db9, 0x3dc6),
                              (0x3e30, 0x3f65),
-                             (0x3f97, 0x4da9),
-                             (0x4dba, 0x4edf),),
+                             (0x3f97, 0x4daa),
+                             (0x4dba, 0x4ee0),),
                'ST6.EXE': ((0xa51b, 0xa55a), # enviro
                            (0xa59c, 0xa5e9), # evo files
                            (0xa5e9, 0xaf59), # stats/evolution
