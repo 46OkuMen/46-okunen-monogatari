@@ -66,9 +66,11 @@
 ## Tools
 
 ### reinsert.py
+* Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.
+** This is tricky with length stuff, I think - the ln is only one character, so make sure the diff is still calculated correctly.
+
 * Better progress reporting.
 ** Separate the reporting into a different function. Build a dict of file, progress and process it in a function.
-
 
 ### cheats.py
 
@@ -92,6 +94,19 @@
 *** All strings in SINKA.DAT and SEND.DAT must be below 68. (bottom narration - indent)
 ** Strings in creature block < 21.
 ** Strings in battle block < 43.
+** Strings in the menu block < 43. (Since evolution messages, etc.)
+
+* Is there any way to programmatically check which strings are part of fullscreen narration events?
+** One clue: it comes right after an AV***.GDT file (in the full dump).
+*** (But how many strings in a row?? Doesn't it swtich to dialogue at some point?)
+**** (Could I recognize nametags as they come up?)
+***** (Not really useful, sometimes dialogue is fullscreen (ex. Gaia ch1))
+** I probably can't do the whole thing programmatically, but I can get a list of strings after AV.GDTs and mark them manually from there.
+*** I can probably just use a column in the dump sheet to specify if it's fullscreen or not.
+**** I was thinking I'd have to label every string with some category, but I really just need to distinguish dialogue and fullscreen, I think - the rest are easy enough to tell.
+
+* Looks like even ASCII numbers are displayed as fullwidth SJIS numbers, which are 2 half-width chars wide.
+** Account for this in calculating screenspace.
 
 * Fix the randomly decaying excel formulas.
 

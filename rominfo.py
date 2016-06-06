@@ -6,6 +6,11 @@ files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'S
 
 CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 
+CREATURE_MAX_LENGTH = 21
+DIALOGUE_MAX_LENGTH = 46
+FULLSCREEN_MAX_LENGTH = 76
+DAT_MAX_LENGTH = 68   # TODO: Check on SEND.DAT, see if they're indented.
+
 # How the files themselves get broken up for reinsertion.
 file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                                (0x55e9, 0x5639), # spare block
@@ -146,8 +151,8 @@ file_length = {'OPENING.EXE': 0x5e4b,
                'ST5S3.EXE': 0x50ef,
                'ST6.EXE': 0xd8af,
                'ENDING.EXE': 0x4f55,
-               'SINKA.DAT': 0x69a4}
-               # TODO add SEND.DAT
+               'SINKA.DAT': 0x69a4,
+               'SEND.DAT': 0x874a}
 
 # Pointer tables have two bytes, determined by the file, which separate their values.
 pointer_separators = {
