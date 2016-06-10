@@ -78,17 +78,7 @@
 * When creature name X is translated, also look for creature names XA, XB, XC, XD, XE.
 ** Gotta review the character encoding conversions.
 
-### other
-* Actually make a patch!
-** It'd be nice to generate a patch immediately during the reinsert process.
-*** Look into Travis CI or whatever standard windows build tools there are.
-** Any good python modules for creating ips patches or maybe Lunar or Ninja ones?
-
-* I wonder if the dump has grown more complicated and might need a database.
-** SQL queries insetad of loading the data from the xls sheet and manipulating it in memory.
-** DB validations instead of 'unit' tests.
-** Easier to categorize blocks a certain way, just have a 'block type' column.
-
+### length rules
 * What is the best way to do editing for line lengths and such?
 ** The simplest is that all strings definitely can't be over 76. (max for bottom narration)
 *** All strings in SINKA.DAT and SEND.DAT must be below 68. (bottom narration - indent)
@@ -105,10 +95,26 @@
 *** I can probably just use a column in the dump sheet to specify if it's fullscreen or not.
 **** I was thinking I'd have to label every string with some category, but I really just need to distinguish dialogue and fullscreen, I think - the rest are easy enough to tell.
 
-* Looks like even ASCII numbers are displayed as fullwidth SJIS numbers, which are 2 half-width chars wide.
-** Account for this in calculating screenspace.
+* Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
+** No more than 3 lines between <WAIT>s?
+** I really do need some version of the dump where I can see these control codes. At this point it may be worth it to write my own SJIS-Dump that 1) lacks the bug, and 2) can use a custom .tbl file.
+** table-dump. Y'know, like table flipping.
+
+### other
+* Actually make a patch!
+** It'd be nice to generate a patch immediately during the reinsert process.
+*** Look into Travis CI or whatever standard windows build tools there are.
+** Looks like the best option is floating ips, or flips. I can make a batch file to make multiple patches.
+
+* I wonder if the dump has grown more complicated and might need a database.
+** SQL queries insetad of loading the data from the xls sheet and manipulating it in memory.
+** DB validations instead of 'unit' tests.
+** Easier to categorize blocks a certain way, just have a 'block type' column.
+
+* Remind myself what the "intermediate roms" folder is for.
 
 * Fix the randomly decaying excel formulas.
+** I am very incompetent at excel, it seems.
 
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
 
