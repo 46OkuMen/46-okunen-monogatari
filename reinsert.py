@@ -4,7 +4,6 @@ from __future__ import division
 import os
 from math import floor
 from binascii import unhexlify
-from shutil import copyfile
 from collections import OrderedDict
 from openpyxl import load_workbook
 
@@ -13,60 +12,15 @@ from utils import pack, get_current_block, file_to_hex_string
 from utils import sjis_to_hex_string, sjis_to_hex_string_preserve_spaces 
 from utils import ascii_to_hex_string
 from utils import compare_strings
-from rominfo import file_blocks, file_location, file_length, pointer_constants
+from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
 from rominfo import CREATURE_BLOCK, spare_block, CHAPTER_FIVE_FILES
 from cheats import change_starting_map
+
+from disk import Disk, EXEFile, DATFile
 
 FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
                       'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'OPENING.EXE', 'SINKA.DAT', 'ENDING.EXE', 'SEND.DAT']
 #FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
-#FILES_TO_TRANSLATE = ['OPENING.EXE', ]
-
-FULL_ROM_STRING = file_to_hex_string(SRC_ROM_PATH)
-
-def get_translations(gamefile):
-    """For the given file, return a diciotnary of its translations from the dump."""
-    trans = OrderedDict()    # translations[offset] = (japanese, english)
-    
-    workbook = load_workbook(DUMP_XLS)
-    worksheet = workbook.get_sheet_by_name(gamefile)
-
-    total_rows = total_replacements = 0
-
-    for row in worksheet.rows[1:]:  # Skip the first row, it's just labels
-        total_rows += 1
-        offset = int(row[0].value, 16)
-
-        japanese = row[2].value
-        english = row[4].value
-
-        if english:
-            total_replacements += 1
-        else:
-            english = ""
-
-        trans[offset] = (japanese, english)
-
-    return trans
-
-
-def get_dat_translations(gamefile):
-    """Return a translation dict for the SINKA.DAT or SEND.DAT files."""
-    trans = []
-    workbook = load_workbook(DUMP_XLS)
-    worksheet = workbook.get_sheet_by_name(gamefile)
-
-    total_rows = total_replacements = 0
-    for row in worksheet.rows[1:]:
-        total_rows += 1
-        japanese = row[2].value
-        english = row[4].value
-        if english:
-            total_replacements += 1
-        else:
-            english = ""
-        trans.append((japanese, english))
-    return trans
 
 
 def get_pointers(gamefile):
@@ -89,38 +43,15 @@ def get_pointers(gamefile):
 
     return ptrs
 
-
-def get_file_strings():
-    """Grab file strings for each gamefile."""
-    file_strings = {}
-    for gamefile in FILES_TO_TRANSLATE:
-        start = file_location[gamefile]
-        length = file_length[gamefile]
-        file_strings[gamefile] = file_to_hex_string(SRC_ROM_PATH, start, length)
-    return file_strings
-
-
-def get_block_strings(gamefile):
-    """For a certain gamefile, grab bytestrings for each block."""
-    blocks = []
-    for block in file_blocks[gamefile]:
-        lo, hi = block
-        block_length = hi - lo
-        block_start = file_location[gamefile] + lo
-
-        blocks.append(file_to_hex_string(SRC_ROM_PATH, block_start, block_length))
-    return blocks
-
-
-def edit_pointer(file, text_location, diff, file_string):
+def edit_pointer(file, text_location, diff):
     """Increment or decrement all pointers pointing to a single text location."""
     if diff == 0:
-        return file_string
+        return file.filestring
 
-    pointer_constant = pointer_constants[file]
+    pointer_constant = POINTER_CONSTANT[file.filename]
     pointer_locations = pointers[text_location]
 
-    patched_file_string = file_string
+    patched_file_string = file.filestring
     for ptr in pointer_locations:
         #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
 
@@ -129,10 +60,9 @@ def edit_pointer(file, text_location, diff, file_string):
         old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
 
         location_in_string = ptr*2
-        rom_bytestring = file_string[location_in_string:location_in_string+4]
+        rom_bytestring = file.filestring[location_in_string:location_in_string+4]
         if old_bytestring != rom_bytestring:
             print "This one got edited before; make sure it's right"
-        #assert old_bytestring == rom_bytestring, 'Pointer bytestring %s not equal to value in rom %s' % (old_bytestring, rom_bytestring)
 
         #print hex(pointer_location)
         #print "old:", old_value, old_bytes, old_bytestring
@@ -153,16 +83,14 @@ def edit_pointer(file, text_location, diff, file_string):
     return patched_file_string
 
 
-def edit_pointers_in_range(gamefile, file_string, (start, stop), diff):
+def edit_pointers_in_range(gamefile, (start, stop), diff):
     """Edit all the pointers in the (start, stop) range."""
     if diff == 0:
-        return file_strings[gamefile]
+        return gamefile.filestring
     for n in range(start+1, stop+1):
         if n in pointers:
-            file_string = file_strings[gamefile]
-            patched_file_string = edit_pointer(gamefile, n, diff, file_string)
-            file_strings[gamefile] = patched_file_string
-    return file_strings[gamefile]
+            gamefile.filestring = edit_pointer(gamefile, n, diff)
+    return gamefile.filestring
 
 
 def most_recent_pointer(lo, hi):
@@ -174,36 +102,43 @@ def most_recent_pointer(lo, hi):
     return hi
 
 
-def edit_text(file, translations):
+def edit_text(file):
     """Replace each japanese string with the translated english string."""
 
-    creature_block_lo, creature_block_hi = CREATURE_BLOCK[file]
+    creature_block_lo, creature_block_hi = CREATURE_BLOCK[gamefile.filename]
 
     pointer_diff = 0
-    previous_text_offset = file_blocks[file][0][0]
+    previous_text_offset = file_blocks[gamefile.filename][0][0]
     previous_replacement_offset = 0
-    block_string = file_blocks[file][0]
+
+    current_block = file.blocks[0]
+    block_string = file.blocks[0].blockstring
+    #block_index = 0
+
     previous_text_block = 0
-    current_text_block = 0
-    current_block_start, current_block_end = file_blocks[file][0]
+    #current_text_block = 0
+    current_block_start, current_block_end = current_block.location
     is_overflowing = False
 
     overflow_bytestrings = OrderedDict()
 
-    for original_location, (jp, eng) in translations.iteritems():
-        current_text_block = get_current_block(original_location, file)
-        if current_text_block != previous_text_block:
+    for original_location, (jp, eng) in file.translations.iteritems():
+        block_index = get_current_block(original_location, file)
+        if block_index != previous_text_block:
+            # Reset all relevant variables.
             pointer_diff = 0
             previous_replacement_offset = 0
             is_overflowing = False
-            block_string = block_strings[current_text_block]
-            current_block_start, current_block_end = file_blocks[file][current_text_block]
-        if current_text_block:
+            block_string = file.blocks[block_index].blockstring
+
+            current_block_start, current_block_end = file.blocks[block_index].location
+
+        if block_index:
             # Does not update if the current_block is 0... since 0 is falsy.
             # Can't do "or if current_text_block == 0", since that's "true or false" (always true)
-            previous_text_block = current_text_block
+            previous_text_block = block_index
 
-        # This is new. If I'm rewriting the whole overflow bytestring at once,
+        # If I'm rewriting the whole overflow bytestring at once,
         # skip the rest of the translations in the overflow bytestring since it already got rewritten.
         # All we need to do is check if we're in a new block yet.
         if is_overflowing:
@@ -216,7 +151,7 @@ def edit_text(file, translations):
         # If the jp string includes ASCII spaces, it will not be found.
         # So use the different hex string-producing method.
         try:
-            j = block_strings[current_text_block].index(jp_bytestring)
+            j = file.blocks[block_index].blockstring.index(jp_bytestring)
         except ValueError: # substring not found
             jp_bytestring = sjis_to_hex_string_preserve_spaces(jp)
 
@@ -225,44 +160,28 @@ def edit_text(file, translations):
         else:
             new_text_offset = original_location + len(jp_bytestring)//2 + pointer_diff
 
-        #if eng:
-        #    try:
-        #        print eng, "ends at", hex(new_text_offset)
-        #    except UnicodeEncodeError:
-        #        print "unicode error, but it ends at", hex(new_text_offset)
-
-
         if new_text_offset >= current_block_end:
             is_overflowing = True
             # Here's the problem. Some pointers point to something a few control codes before the text.
             # So I need to calculate start_in_block as the pointer right before its current value...
             # Otherwise, the other pointers won't get adjusted.
 
-            #print "It's overflowing"
-            current_block_length = len(block_strings[current_text_block])//2
-
             # A lot of times the overflow text will be preceded by a <LN> which has a different pointer offset.
             # Backtrack to the most recent offset with a pointer.
             # But don't backtrack as far as previous_text_offset, it may have already been translated...
             recent_pointer = most_recent_pointer(previous_text_offset+1, original_location)
-            #print "original location:", hex(original_location)
-            #print "recent pointer:", hex(recent_pointer)
 
             start_in_block = (recent_pointer - current_block_start)*2    # start position in the blockstring.
-            overflow_bytestring = original_block_strings[current_text_block][start_in_block:]
+            overflow_bytestring = file.blocks[block_index].original_blockstring[start_in_block:]
             # Store the start and end of the overflow bytestring, 
             # to make sure all pointers are adjusted in the range.
-            #overflow_lo, overflow_hi = original_location, current_block_end
             overflow_lo, overflow_hi = recent_pointer, current_block_end
-            #print "%s < %s" % ((overflow_lo - current_block_start), len(original_block_strings[current_text_block])//2)
-            #assert overflow_lo < current_block_end
-            #assert len(original_block_strings[current_text_block])//2 > (overflow_lo - current_block_start)
-
+           
             overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
 
         if not is_overflowing:
-            file_strings[file] = edit_pointers_in_range(file, file_strings[file], 
-                    (previous_text_offset, original_location), pointer_diff)
+            file.filestring = edit_pointers_in_range(file, (previous_text_offset, original_location),
+                                                    pointer_diff)
 
         previous_text_offset = original_location
 
@@ -274,9 +193,7 @@ def edit_text(file, translations):
             # Then we want to blank the entire overflow bytestring.
             # So use the rest of the function already there to do that.
             eng = ""
-            #jp = overflow_bytestring
             jp_bytestring = overflow_bytestring
-            #previous_text_offset = recent_pointer-1
 
         # Recalculate in case it got altered due to overflow.
         eng_bytestring = ascii_to_hex_string(eng)
@@ -289,42 +206,49 @@ def edit_text(file, translations):
             else:
                 jp_bytestring += "00"*(this_string_diff)
 
-            this_string_diff = ((len(eng_bytestring) - len(jp_bytestring)) // 2)
+            this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
 
         pointer_diff += this_string_diff
 
-        block_string = block_strings[current_text_block]
+        block_string = file.blocks[block_index].blockstring
+        #print jp_bytestring
+        #print block_string
         old_slice = block_string[previous_replacement_offset*2:]
-        # TODO: Why are wrong replacements still happening?
+
         try:
             i = old_slice.index(jp_bytestring)//2
             previous_replacement_offset += i//2
         except ValueError:
-            print jp_bytestring
-            print old_slice
             print "Can't find the string at:", hex(original_location)
             print "It's looking starting at:", hex((block_string.index(old_slice)//2 + ((current_block_start))))
             print "the english string", eng, "is causing problems"
 
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
-        #print "diff between slices:", (len(new_slice) - len(old_slice))//2
 
-        j = block_strings[current_text_block].index(old_slice)
-        new_block_string = block_strings[current_text_block].replace(old_slice, new_slice, 1)
-        block_strings[current_text_block] = new_block_string
-        #print "after replacement, block length is", len(new_block_string)//2
+        j = file.blocks[block_index].blockstring.index(old_slice)
+        #new_block_string = block_strings[current_text_block].replace(old_slice, new_slice, 1)
+        block_string = file.blocks[block_index].blockstring.replace(old_slice, new_slice, 1)
+        #block_strings[current_text_block] = new_block_string
+        file.blocks[block_index].blockstring = block_string
+        # TODO replace this with a write() method.
 
-    if file in spare_block:
-        patched_file_string = move_overflow(file, file_strings[file], overflow_bytestrings)
+    # If there's a spare block, fill that shit up.
+    if file.filename in spare_block:
+        file.filestring = move_overflow(file, overflow_bytestrings)
+    else:
+        print overflow_bytestrings
+        # TODO: This is important. Activate it again later!!
+        #assert not overflow_bytestrings, "Things are overflowing but there's no room for them!'"
 
-    patched_file_string = pad_text_blocks(file, block_strings, file_strings[file])
+    #patched_file_string = pad_text_blocks(file, block_strings)
+    for blk in file.blocks:
+        blk.incorporate()
     # Should this take patched_file_string as an argument instead?
 
-    return patched_file_string
+    return file.filestring
 
-
+"""
 def pad_text_blocks(gamefile, block_strings, file_string):
-    """Add ascii spaces to the end of each block to preserve the function code."""
     patched_file_string = file_string
     for i, blk in enumerate(block_strings):
         # if block is too short, negative; too long, positive
@@ -354,156 +278,160 @@ def pad_text_blocks(gamefile, block_strings, file_string):
         patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
 
     return patched_file_string
+"""
 
-
-def move_overflow(file, file_string, overflow_bytestrings):
+def move_overflow(file, overflow_bytestrings):
     """Insert the overflow strings in the spare block, and reroute their pointers."""
-    spare_block_lo, spare_block_hi = spare_block[file]
+    spare_block_lo, spare_block_hi = spare_block[file.filename]
     spare_length = spare_block_hi - spare_block_lo
     spare_block_string = ''
-    #location_in_spare_block = 0
+
     for (lo, hi), bytestring in overflow_bytestrings.iteritems():
+        # TODO: Surely this is a large repetition of functionality????
         # The first pointer must be adjusted to point to the beginning of the spare block.
         pointer_diff = (spare_block_lo - lo) + len(spare_block_string)//2
         # Find all the translations that need to be applied.
         trans = OrderedDict()
         previous_text_location = lo
-        for i in range(lo, hi):
-            if i in translations:
-                print "translating overflow"
-                print "previous_text_location:", hex(previous_text_location)
-                print hex(i), pointer_diff
-                trans[i] = translations[i]
-                japanese, english = trans[i]
-                print english
+        for i in [i for i in range(lo, hi) if i in file.translations]:    # TODO: This is... vile
+            print "translating overflow"
+            print "previous_text_location:", hex(previous_text_location)
+            print hex(i), pointer_diff
+            trans[i] = file.translations[i]
+            japanese, english = trans[i]
+            print english
 
-                jp_bytestring = sjis_to_hex_string(japanese)
-                eng_bytestring = ascii_to_hex_string(english)
+            jp_bytestring = sjis_to_hex_string(japanese)
+            eng_bytestring = ascii_to_hex_string(english)
 
-                this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
-                print english
-                j = bytestring.index(jp_bytestring)
-                bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
-                edit_pointers_in_range(file, file_string, (previous_text_location-1, i), pointer_diff)
-                previous_text_location = i
-                pointer_diff += this_string_diff
+            this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
+            print english
+            j = bytestring.index(jp_bytestring)
+            bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
+            edit_pointers_in_range(file, (previous_text_location-1, i), pointer_diff)
+            previous_text_location = i
+            pointer_diff += this_string_diff
 
         spare_block_string += bytestring
 
-    # TODO: This isn't quite the sapre block, it's just the last block... just as a note.
-    # That's probably at least one of the problems for OPENING.EXE...
     assert len(spare_block_string)//2 <= spare_length
-    # trying to fix this this time.
-    spare_block_index = file_blocks[file].index(spare_block[file])
-    block_strings[spare_block_index] = spare_block_string
-    original_block_string = original_block_strings[-1]
-    file_string = file_string.replace(original_block_string, spare_block_string)
-    return file_string
+    spare = file.blocks[-1]
+    spare.blockstring = spare_block_string
+    spare.incorporate()
+
+    return file.filestring
 
 
-def edit_dat_text(gamefile, file_string):
+def edit_dat_text(gamefile):
     """Edit text for SINKA.DAT or SEND.DAT. Does not adjust pointers."""
-    trans = get_translations(gamefile)
-
-    patched_file_string = "" + file_string
-
-    for _, (japanese, english) in trans.iteritems():
+    for (japanese, english) in gamefile.translations:
         if english == "":
             continue
         jp_bytestring = sjis_to_hex_string(japanese)
         eng_bytestring = ascii_to_hex_string(english)
 
-        patched_file_string = patched_file_string.replace(jp_bytestring, eng_bytestring, 1)
-    return patched_file_string
-
-#def print_progress_stats(progress):
-#    """Report on reinsertion progress."""
-    #for file, (n, d) in progress.iteritems():
-        # print 
+        gamefile.filestring = gamefile.filestring.replace(jp_bytestring, eng_bytestring, 1)
+    return gamefile.filestring
 
 
 if __name__ == '__main__':
-    while True:
-        try:
-            copyfile(SRC_ROM_PATH, DEST_ROM_PATH)
-            break
-        except IOError:
-            print "Looks like the game is open. Close it and press enter to continue."
-            raw_input()
+    DiskA = Disk(SRC_ROM_PATH, DEST_ROM_PATH)
 
-    ORIGINAL_FILE_STRINGS = get_file_strings()
-    file_strings = ORIGINAL_FILE_STRINGS.copy()
+    #while True:
+    #    try:
+    ##        DiskA.write()
+     #       break
+    #    except IOError:
+    #        print "Looks like the game is open. Close it and press enter to continue."
+    #        raw_input()
 
-    chapter_five_total_strings = 0
-    chapter_five_translated_strings = 0
+    #ORIGINAL_FILE_STRINGS = get_file_strings()
+    #file_strings = ORIGINAL_FILE_STRINGS.copy()
+
+    #chapter_five_total_strings = 0
+    #chapter_five_translated_strings = 0
 
 
-    for gamefile in FILES_TO_TRANSLATE:
-        if gamefile in ('SINKA.DAT', 'SEND.DAT'):
-            dat_path = os.path.join(SRC_PATH, gamefile)
-            dest_dat_path = os.path.join(DEST_PATH, gamefile)
-            dat_file_string = file_to_hex_string(dat_path)
+    for filename in FILES_TO_TRANSLATE:
+        print filename
+        if filename in ('SINKA.DAT', 'SEND.DAT'):
+            gamefile = DATFile(DiskA, filename)
 
-            translations = get_translations(gamefile)
+            #dat_path = os.path.join(SRC_PATH, gamefile)
+            #dest_dat_path = os.path.join(DEST_PATH, gamefile)
+            #dat_file_string = file_to_hex_string(dat_path)
 
-            patched_dat_file_string = edit_dat_text(gamefile, dat_file_string)
+            # !!use gamefile.src_path, gamefile.dest_path, and gamefile.filestring.
 
-            with open(dest_dat_path, "wb") as output_file:
-                data = unhexlify(patched_dat_file_string)
-                output_file.write(data)
+            translations = gamefile.translations
+
+            #patched_dat_file_string = edit_dat_text(gamefile, dat_file_string)
+            gamefile.filestring = edit_dat_text(gamefile)
+
+            gamefile.write()
+
+            #with open(gamefile.dest_path, "wb") as output_file:
+            #    data = unhexlify(gamefile.filestring)
+            #    output_file.write(data)
+
+            # TODO: Whoops, I still need a method to write the file as well, not just to the FDI...
 
         else:
-            translations = get_translations(gamefile)
-            pointers = get_pointers(gamefile)
+            gamefile = EXEFile(DiskA, filename)
+
+            pointers = get_pointers(filename)
 
             # Then get individual strings of each text block, and put them in a list.
-            block_strings = get_block_strings(gamefile)
+            #block_strings = get_block_strings(gamefile)
+            block_strings = gamefile.blocks
             original_block_strings = list(block_strings)
             # Needs to be copied like this - simple assignment would just pass the ref.
 
-            patched_file_string = edit_text(gamefile, translations)
+            patched_file_string = edit_text(gamefile)
 
-            i = FULL_ROM_STRING.index(ORIGINAL_FILE_STRINGS[gamefile])
-            FULL_ROM_STRING = FULL_ROM_STRING.replace(ORIGINAL_FILE_STRINGS[gamefile], 
-                                                      patched_file_string)
+            # Replace the original file string with the patched one.
+            #i = DiskA.romstring.index(ORIGINAL_FILE_STRINGS[gamefile])
+            #DiskA.romstring = DiskA.romstring.replace(ORIGINAL_FILE_STRINGS[gamefile],
+            #                                          patched_file_string)
 
-            # Write the data to the patched file.
-            with open(DEST_ROM_PATH, "wb") as output_file:
-                data = unhexlify(FULL_ROM_STRING)
-                output_file.write(data)
+            gamefile.incorporate()
+            # Write the changes to the patched disk file.
+            DiskA.write()
 
             # Write the translated file alone to a new file too.
-            dest_file_path = os.path.join(DEST_PATH, gamefile)
-            with open(dest_file_path, "wb") as output_file:
-                data = unhexlify(patched_file_string)
-                output_file.write(data)
+            gamefile.write()
+
+            #dest_file_path = os.path.join(DEST_PATH, gamefile)
+            #with open(dest_file_path, "wb") as output_file:
+            #    data = unhexlify(patched_file_string)
+            #    output_file.write(data)
 
         # Get some quick stats on reinsertion progress.
-        total_strings = 0
-        translated_strings = 0
-        for (_, (jp, _)) in translations.iteritems():
-            if isinstance(jp, long):
-                # .DAT encyclopedia indexes; don't get translated
-                pass
-            else:
-                total_strings += 1
+        #total_strings = 0
+        #translated_strings = 0
+        #for (_, (jp, _)) in translations.iteritems():
+        #    if isinstance(jp, long):
+        #        # .DAT encyclopedia indexes; don't get translated
+        #        pass
+        #    else:
+        #        total_strings += 1#
 
         #total_strings = len(translations)
-        for _, eng in translations.itervalues():
-            if eng:
-                translated_strings += 1
+        #for _, eng in translations.itervalues():
+        #    if eng:
+        #        translated_strings += 1
 
-        if gamefile in CHAPTER_FIVE_FILES:
-            chapter_five_total_strings += total_strings
-            chapter_five_translated_strings += translated_strings
+        #if gamefile in CHAPTER_FIVE_FILES:
+        #    chapter_five_total_strings += total_strings
+        #    chapter_five_translated_strings += translated_strings
 
-        translation_percent = int(floor((translated_strings / total_strings) * 100))
-        print gamefile, str(translation_percent), "% complete",
-        print "(%s / %s)" % (translated_strings, total_strings)
+        #translation_percent = int(floor((translated_strings / total_strings) * 100))
+        #print gamefile, str(translation_percent), "% complete",
+        #print "(%s / %s)" % (translated_strings, total_strings)
 
-        if gamefile == "ST5S3.EXE":
-            print "CH5 Total:", int(floor((chapter_five_translated_strings / chapter_five_total_strings) * 100)), "% complete",
-            print "(%s / %s)" % (chapter_five_translated_strings, chapter_five_total_strings)
+        #if gamefile == "ST5S3.EXE":
+        #    print "CH5 Total:", int(floor((chapter_five_translated_strings / chapter_five_total_strings) * 100)), "% complete",
+        #    print "(%s / %s)" % (chapter_five_translated_strings, chapter_five_total_strings)
 
     # Hard to see it, but the cheat calls are outside the "every file" loop.
     #change_starting_map('ST1.EXE', 100)

@@ -35,6 +35,7 @@
 *** You have multiple pointers to "Save Game" in ch2, called once for the menu item and once for the header text box of actually saving your game.
 *** In the header, it's offset from the left by one space to make it more centered in the box.
 *** So in the string "  Save Game", the menu item is a pointer to the third character and the header is a pointer to the first character.
+**** (I read about this later in one of Gideon Zhi's tutorials: http://agtp.romhack.net/docs/pointers.html )
 *** Sometimes the game has multiple "Save Game" or "Load Game" strings with spaces/no spaces, sometimes they are combined in this way.
 
 * Why isn't "Escape" getting translated in 5-S3?
@@ -78,7 +79,7 @@
 * When creature name X is translated, also look for creature names XA, XB, XC, XD, XE.
 ** Gotta review the character encoding conversions.
 
-### length rules
+### length validation
 * What is the best way to do editing for line lengths and such?
 ** The simplest is that all strings definitely can't be over 76. (max for bottom narration)
 *** All strings in SINKA.DAT and SEND.DAT must be below 68. (bottom narration - indent)
@@ -97,6 +98,7 @@
 
 * Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
 ** No more than 3 lines between <WAIT>s?
+*** I can insert new <LN>s in the middle of lines, but that means I should remove the later one.
 ** I really do need some version of the dump where I can see these control codes. At this point it may be worth it to write my own SJIS-Dump that 1) lacks the bug, and 2) can use a custom .tbl file.
 ** table-dump. Y'know, like table flipping.
 

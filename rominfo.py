@@ -15,7 +15,7 @@ DAT_MAX_LENGTH = 68   # TODO: Check on SEND.DAT, see if they're indented.
 file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                                (0x55e9, 0x5639), # spare block
                                (0x5657, 0x586a)), # cut scenes
-               '46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
+               #'46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
                'ST1.EXE': ((0xd873, 0xd934),  # not variable; environment messages
                            (0xd984, 0xe6f9),
                            (0xe6f9, 0xec4c),  # not variable; battle msgs
@@ -171,7 +171,7 @@ pointer_separators = {
 }
 
 # Add this constant to the little-endian pointer value to find its destination.
-pointer_constants = {
+POINTER_CONSTANT = {
     'OPENING.EXE': 0x4a80,
     'ST1.EXE': 0xd7e0,
     'ST2.EXE': 0xc170,
