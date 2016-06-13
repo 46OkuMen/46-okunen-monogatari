@@ -1,8 +1,10 @@
 """Classes for the 46 Okunen Monogatari translation patch."""
 
+from __future__ import division
 import os
 from binascii import unhexlify
 from collections import OrderedDict
+from math import floor
 
 from openpyxl import load_workbook
 
@@ -94,6 +96,22 @@ class Gamefile(object):
         with open(self.dest_path, 'wb') as f:
             f.write(data)
 
+    def report_progress(self):
+        """Calculate and print the progress made in translating this file."""
+        strings = 0
+        replacements = 0
+
+        for (jp, eng) in self.translations.itervalues():
+            if isinstance(jp, float):
+                # Skip the numbers in .DAT files, they're boring
+                continue
+            strings += 1
+            if eng:
+                replacements += 1
+        percentage = int(floor((replacements / strings) * 100))
+        print self.filename, str(percentage), "% complete",
+        print "(%s / %s)" % (replacements, strings)
+
 
 class EXEFile(Gamefile):
     """An executable gamefile."""
@@ -130,6 +148,7 @@ class DATFile(Gamefile):
                 english = ""
             trans.append((japanese, english))
         return trans
+
 
 class Block(object):
     """A text block."""
@@ -169,24 +188,6 @@ class Block(object):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))
 
 
-
-"""
-        j = ORIGINAL_FILE_STRINGS[gamefile].index(original_block_strings[i])
-        try:
-            j = patched_file_string.index(original_block_strings[i])
-        except ValueError:
-            #print "looking for:"
-            #print original_block_strings[i]
-            start, stop = file_blocks[gamefile][i]
-            #print "in:"
-            #print patched_file_string[start*2:stop*2]
-            for n in compare_strings(original_block_strings[i], patched_file_string[start*2:stop*2]):
-                print "look at offset", hex(n + file_blocks[gamefile][i][0]), "probably treated control codes as text"
-        patched_file_string = patched_file_string.replace(original_block_strings[i], blk, 1)
-
-    return patched_file_string
-    """
-
 class CreatureBlock(Block):
     """A block with creature names."""
 
@@ -194,4 +195,8 @@ class CreatureBlock(Block):
 
 class SpareBlock(Block):
     """A block to be erased for holding overflow strings."""
+    pass
+
+class ExcelReader(object):
+    """Something to take care of opening/closing the spreadsheets."""
     pass
