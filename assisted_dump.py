@@ -22,14 +22,14 @@
 import os
 import subprocess
 import codecs
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 
 import xlsxwriter
 
-from rominfo import file_blocks, pointer_constants, pointer_separators
+from rominfo import file_blocks, pointer_constants
 
 from utils import capture_pointers_from_table, capture_pointers_from_function
-from utils import unpack, location_from_pointer
+from utils import location_from_pointer
 
 # SJIS_Dump has an option to dump ASCII text as well.
 # Set to False for getting game text, and True for getting pointers too.

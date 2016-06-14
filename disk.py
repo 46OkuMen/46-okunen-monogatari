@@ -8,7 +8,7 @@ from math import floor
 
 from openpyxl import load_workbook
 
-from utils import file_to_hex_string, DUMP_XLS
+from utils import file_to_hex_string, DUMP_XLS, sjis_to_hex_string, ascii_to_hex_string
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
 
 class Disk(object):
@@ -129,7 +129,7 @@ class DATFile(Gamefile):
 
     def __init__(self, disk, filename):
         Gamefile.__init__(self, disk, filename)
-        #self.src_path = os.path.join(self.disk.src_path, filename)
+        self.src_path = os.path.join(self.disk.src_path, filename)
 
     def get_translations(self):
         # TODO: How does this differ from the method it's overriding, exactly?
@@ -148,6 +148,15 @@ class DATFile(Gamefile):
                 english = ""
             trans.append((japanese, english))
         return trans
+
+    def translate(self):
+        for (japanese, english) in self.get_translations():
+            if english == "":
+                continue
+            jp_bytestring = sjis_to_hex_string(japanese)
+            eng_bytestring = ascii_to_hex_string(english)
+
+            self.filestring = self.filestring.replace(jp_bytestring, eng_bytestring, 1)
 
 
 class Block(object):
@@ -197,6 +206,27 @@ class SpareBlock(Block):
     """A block to be erased for holding overflow strings."""
     pass
 
+"""
 class ExcelReader(object):
-    """Something to take care of opening/closing the spreadsheets."""
-    pass
+    def __init__(self, path):
+        self.path = path
+
+
+class DumpExcel(object):
+    def __init__(self, path):
+        self.path = path
+
+    def get_translations(self, gamefile):
+        trans = OrderedDict()    # translations[offset] = (japanese, english)
+        
+        workbook = load_workbook(self.path)
+        worksheet = workbook.get_sheet_by_name(gamefile.filename)
+
+        for row in worksheet.rows[1:]:  # Skip the first row, it's just labels
+            offset = int(row[0].value, 16)
+            japanese = row[2].value
+            english = row[4].value
+
+            trans[offset] = (japanese, english)
+        return trans
+        """

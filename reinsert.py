@@ -13,8 +13,8 @@ from cheats import change_starting_map
 from disk import Disk, EXEFile, DATFile
 
 FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
-                      'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'OPENING.EXE', 'SINKA.DAT', 
-                      'ENDING.EXE', 'SEND.DAT']
+                      'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'OPENING.EXE'] #'SINKA.DAT', 
+                      #'ENDING.EXE', 'SEND.DAT']
 #FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
 
 
@@ -99,10 +99,9 @@ def edit_text(file):
     previous_replacement_offset = 0
 
     current_block = file.blocks[0]
-    block_string = file.blocks[0].blockstring
 
     previous_block_index = 0
-    current_block_start, current_block_end = current_block.location
+
     is_overflowing = False
 
     overflow_bytestrings = OrderedDict()
@@ -113,7 +112,7 @@ def edit_text(file):
             # Reset all relevant variables.
             pointer_diff, previous_replacement_offset = 0, 0
             is_overflowing = False
-            current_block_start, current_block_end = file.blocks[block_index].location
+            current_block = file.blocks[block_index]
 
         previous_block_index = block_index
 
@@ -127,7 +126,7 @@ def edit_text(file):
 
         # jp_bytestring might include ASCII; if it's not found, try the ascii preserving method.
         try:
-            j = file.blocks[block_index].blockstring.index(jp_bytestring)
+            j = current_block.blockstring.index(jp_bytestring)
         except ValueError: # substring not found
             jp_bytestring = sjis_to_hex_string_preserve_spaces(jp)
 
@@ -136,17 +135,17 @@ def edit_text(file):
         else:
             new_text_offset = original_location + len(jp_bytestring)//2 + pointer_diff
 
-        if new_text_offset >= current_block_end:
+        if new_text_offset >= current_block.stop:
             is_overflowing = True
             # Pointers usually point to control codes before the text. So look for a recent pointer.
             # But don't backtrack as far as previous_text_offset (maybe already translated)
             recent_pointer = most_recent_pointer(previous_text_offset+1, original_location)
 
-            start_in_block = (recent_pointer - current_block_start)*2
-            overflow_bytestring = file.blocks[block_index].original_blockstring[start_in_block:]
+            start_in_block = (recent_pointer - current_block.start)*2
+            overflow_bytestring = current_block.original_blockstring[start_in_block:]
             # Store the start and end of the overflow bytestring, 
             # to make sure all pointers are adjusted in the range.
-            overflow_lo, overflow_hi = recent_pointer, current_block_end
+            overflow_lo, overflow_hi = recent_pointer, current_block.stop
            
             overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
 
@@ -179,15 +178,13 @@ def edit_text(file):
 
         pointer_diff += this_string_diff
 
-        block_string = file.blocks[block_index].blockstring
-
-        old_slice = block_string[previous_replacement_offset*2:]
+        old_slice = current_block.blockstring[previous_replacement_offset*2:]
         i = old_slice.index(jp_bytestring)//2
         previous_replacement_offset += i//2
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
 
         j = file.blocks[block_index].blockstring.index(old_slice)
-        file.blocks[block_index].blockstring = file.blocks[block_index].blockstring.replace(old_slice, new_slice, 1)
+        current_block.blockstring = current_block.blockstring.replace(old_slice, new_slice, 1)
 
     # If there's a spare block, fill that shit up.
     if file.filename in spare_block:
@@ -205,48 +202,35 @@ def edit_text(file):
 
 def move_overflow(file, overflow_bytestrings):
     """Insert the overflow strings in the spare block, and reroute their pointers."""
-    spare_block_lo, spare_block_hi = spare_block[file.filename]
-    spare_length = spare_block_hi - spare_block_lo
-    spare_block_string = ''
+    spare_block = file.blocks[-1]
+    spare_block.blockstring = ""
 
     for (lo, hi), bytestring in overflow_bytestrings.iteritems():
-        # TODO: Surely this is a large repetition of functionality????
+        # (How much functionality is this repeating??)
         # The first pointer must be adjusted to point to the beginning of the spare block.
-        pointer_diff = (spare_block_lo - lo) + len(spare_block_string)//2
+        pointer_diff = (spare_block.start - lo) + len(spare_block.blockstring)//2
         # Find all the translations that need to be applied.
         previous_text_location = lo
-        for i in [i for i in range(lo, hi) if i in file.translations]:    # TODO: This is... vile
+        for i in [i for i in range(lo, hi) if i in file.translations]:
             japanese, english = file.translations[i]
 
             jp_bytestring = sjis_to_hex_string(japanese)
             eng_bytestring = ascii_to_hex_string(english)
 
-            this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
+            this_string_diff = len(eng_bytestring) - len(jp_bytestring) // 2
             j = bytestring.index(jp_bytestring)
             bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
             edit_pointers_in_range(file, (previous_text_location-1, i), pointer_diff)
             previous_text_location = i
             pointer_diff += this_string_diff
 
-        spare_block_string += bytestring
+        spare_block.blockstring += bytestring
 
-    assert len(spare_block_string)//2 <= spare_length
+    assert len(spare_block.blockstring)//2 <= spare_block.stop - spare_block.start
 
-    spare = file.blocks[-1]
-    spare.blockstring = spare_block_string
-    spare.incorporate()
+    spare_block.incorporate()
 
     return file.filestring
-
-def edit_dat_text(gamefile):
-    """Edit text for SINKA.DAT or SEND.DAT. Does not adjust pointers."""
-    for (japanese, english) in gamefile.translations:
-        if english == "":
-            continue
-        jp_bytestring = sjis_to_hex_string(japanese)
-        eng_bytestring = ascii_to_hex_string(english)
-
-        gamefile.filestring = gamefile.filestring.replace(jp_bytestring, eng_bytestring, 1)
 
 
 if __name__ == '__main__':
@@ -255,7 +239,7 @@ if __name__ == '__main__':
     for filename in FILES_TO_TRANSLATE:
         if filename in ('SINKA.DAT', 'SEND.DAT'):
             gamefile = DATFile(DiskA, filename)
-            edit_dat_text(gamefile)
+            gamefile.translate()
             gamefile.write()
 
         else:

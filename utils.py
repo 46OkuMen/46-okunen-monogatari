@@ -10,6 +10,7 @@ DEST_PATH = os.path.join(SCRIPT_DIR, 'patched_roms')
 SRC_ROM_PATH = os.path.join(SRC_PATH, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
 DEST_ROM_PATH = os.path.join(DEST_PATH, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
 
+RAW_DUMP_XLS = 'shinkaron_dump.xlsx'
 DUMP_XLS = "shinkaron_dump_test.xlsx"
 POINTER_XLS = "shinkaron_pointer_dump.xlsx"
 
@@ -70,7 +71,6 @@ def first_offset_in_block(file, block_index, offsets):
     for o in offsets:
         if (o >= block_lo) and (o <= block_hi):
             return o
-
 
 def compare_strings(a, b):
     try:
