@@ -94,29 +94,38 @@ def file_to_hex_string(file_path, start=0, length=0):
 
 
 def ascii_to_hex_string(eng):
+    """Returns a hex string of the ascii bytes of a given english (translated) string."""
     eng_bytestring = ""
-    for c in eng:
-        eng_bytestring += "%02x" % ord(c)
-    return eng_bytestring
+    if not eng:
+        return ""
+    else:
+        for char in eng:
+            eng_bytestring += "%02x" % ord(char)
+        return eng_bytestring
 
 
 def sjis_to_hex_string(jp):
+    """Returns a hex string of the Shift JIS bytes of a given japanese string."""
     jp_bytestring = ""
     sjis = jp.encode('shift-jis')
-    for c in sjis:
-        hx = "%02x" % ord(c)
-        if hx == '20': # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
-            hx = '8140'
-        jp_bytestring += hx
+    for char in sjis:
+        hexchar = "%02x" % ord(char)
+        # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
+        if hexchar == '20': 
+            hexchar = '8140'
+        jp_bytestring += hexchar
     return jp_bytestring
 
 def sjis_to_hex_string_preserve_spaces(jp):
-    """On rare occasions, the space replacing in the above method is a mistake."""
+    """On rare occasions, the space replacing in sji_to_hex_string is a mistake.
+    Sometimes there are also ASCII spaces in a SJIS string for whatever reason.
+    So if we try to use that method, they won't get found in the original text and
+    everything will be broken on reinsertion. So use this instead when something isn't found."""
     jp_bytestring = ""
     sjis = jp.encode('shift-jis')
-    for c in sjis:
-        hx = "%02x" % ord(c)
-        jp_bytestring += hx
+    for char in sjis:
+        hexchar = "%02x" % ord(char)
+        jp_bytestring += hexchar
     return jp_bytestring
 
 def onscreen_length(eng):
@@ -128,3 +137,4 @@ def onscreen_length(eng):
         else:
             result += 1
     return result
+    

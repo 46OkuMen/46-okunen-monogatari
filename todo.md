@@ -16,6 +16,8 @@
 
 ## Non-Crash Glitches
 * OPENING.EXE isn't very happy after the refactoring... wonder what went wrong?
+	* Ah. It's blanking last block again because it thinks the spare is always the last one...
+	* Fixed it, added an EXEFile.spare_block attribute.
 
 ## Dump Problems
 * Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump at all??

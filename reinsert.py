@@ -1,13 +1,11 @@
 """ Reinsertion script for 46 Okunen Monogatari: The Shinka Ron."""
 
 from collections import OrderedDict
-from openpyxl import load_workbook
 
-from utils import POINTER_XLS, SRC_ROM_PATH, DEST_ROM_PATH
+from utils import SRC_ROM_PATH, DEST_ROM_PATH
 from utils import pack, get_current_block
 from utils import sjis_to_hex_string, sjis_to_hex_string_preserve_spaces 
 from utils import ascii_to_hex_string
-from rominfo import CREATURE_BLOCK, spare_block
 from cheats import change_starting_map
 
 from disk import Disk, EXEFile, DATFile
@@ -15,85 +13,45 @@ from disk import Disk, EXEFile, DATFile
 FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
                       'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'OPENING.EXE'] #'SINKA.DAT', 
                       #'ENDING.EXE', 'SEND.DAT']
-#FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE', 'SINKA.DAT']
 
-
-def get_pointers(gamefile):
-    """For the file, return a dict of all the pointers."""
-    ptrs = OrderedDict()              # text_offset: pointer_offset
-
-    pointer_wb = load_workbook(POINTER_XLS)
-    pointer_sheet = pointer_wb.get_sheet_by_name("Sheet1") 
-
-    for row in pointer_sheet.rows:
-        if row[0].value != gamefile:
-            continue                          # Access ptrs for the current file only.
-
-        text_offset = int(row[1].value, 16)
-        pointer_offset = int(row[2].value, 16)
-        if text_offset in ptrs:
-            ptrs[text_offset].append(pointer_offset)
-        else:
-            ptrs[text_offset] = [pointer_offset]
-
-    return ptrs
+# for testing the oh-so-problematic Ch5:
+#FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE']
 
 def edit_pointer(file, text_location, diff):
     """Increment or decrement all pointers pointing to a single text location."""
-    if diff == 0:
-        return file.filestring
+    if diff != 0:
+        for ptr in file.pointers[text_location]:
+            old_value = text_location - file.pointer_constant
+            old_bytes = pack(old_value)
+            old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
 
-    pointer_locations = pointers[text_location]
+            location_in_string = ptr*2
+            rom_bytestring = file.filestring[location_in_string:location_in_string+4]
+            if old_bytestring != rom_bytestring:
+                print "This one got edited before; make sure it's right"
 
-    patched_file_string = file.filestring
-    for ptr in pointer_locations:
-        #print "text is at", hex(text_location), "so edit pointer at", hex(ptr), "with diff", diff
+            new_value = old_value + diff
 
-        old_value = text_location - file.pointer_constant
-        old_bytes = pack(old_value)
-        old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
+            new_bytes = pack(new_value)
+            new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
 
-        location_in_string = ptr*2
-        rom_bytestring = file.filestring[location_in_string:location_in_string+4]
-        if old_bytestring != rom_bytestring:
-            print "This one got edited before; make sure it's right"
+            string_before = file.filestring[0:location_in_string]
+            string_after = file.filestring[location_in_string+4:]
 
-        #print hex(pointer_location)
-        #print "old:", old_value, old_bytes, old_bytestring
+            file.filestring = string_before + new_bytestring + string_after
+            # Can't use incorporate() because pointers are outside of blocks (necessarily).
 
-        new_value = old_value + diff
-
-        new_bytes = pack(new_value)
-        new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-        #print "new:", new_value, new_bytes, new_bytestring
-
-        patched_file_string = patched_file_string[0:location_in_string] + new_bytestring + patched_file_string[location_in_string+4:]
-
-    return patched_file_string
-
-
-def edit_pointers_in_range(gamefile, (start, stop), diff):
+def edit_pointers_in_range(exefile, (start, stop), diff):
     """Edit all the pointers in the (start, stop) range."""
     if diff == 0:
-        return gamefile.filestring
-    for n in range(start+1, stop+1):
-        if n in pointers:
-            gamefile.filestring = edit_pointer(gamefile, n, diff)
-    return gamefile.filestring
+        return exefile.filestring
+    for offset in range(start+1, stop+1):
+        if offset in exefile.pointers:
+            edit_pointer(exefile, offset, diff)
 
-def most_recent_pointer(lo, hi):
-    """Return the highest offset with a pointer in the given range."""
-    for n in reversed(range(lo, hi+1)):
-        if n in pointers:
-            return n
-    # If there are no other pointers, just return the hi value.
-    return hi
 
 def edit_text(file):
     """Replace each japanese string with the translated english string."""
-
-    creature_block_lo, creature_block_hi = CREATURE_BLOCK[gamefile.filename]
-
     pointer_diff = 0
     previous_text_offset = file.blocks[0].start
     previous_replacement_offset = 0
@@ -139,7 +97,7 @@ def edit_text(file):
             is_overflowing = True
             # Pointers usually point to control codes before the text. So look for a recent pointer.
             # But don't backtrack as far as previous_text_offset (maybe already translated)
-            recent_pointer = most_recent_pointer(previous_text_offset+1, original_location)
+            recent_pointer = file.most_recent_pointer(previous_text_offset, original_location)
 
             start_in_block = (recent_pointer - current_block.start)*2
             overflow_bytestring = current_block.original_blockstring[start_in_block:]
@@ -150,7 +108,7 @@ def edit_text(file):
             overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
 
         if not is_overflowing:
-            file.filestring = edit_pointers_in_range(file, (previous_text_offset, original_location), pointer_diff)
+            edit_pointers_in_range(file, (previous_text_offset, original_location), pointer_diff)
 
         previous_text_offset = original_location
 
@@ -169,12 +127,13 @@ def edit_text(file):
         this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
 
         # Pad creature name strings.
-        if (original_location >= creature_block_lo) and (original_location <= creature_block_hi):
-            if this_string_diff <= 0:
-                eng_bytestring += "00"*(this_string_diff*(-1))
-            else:
-                jp_bytestring += "00"*(this_string_diff)
-            this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
+        if file.creature_block:
+            if file.creature_block.start <= original_location <= file.creature_block.stop:
+                if this_string_diff <= 0:
+                    eng_bytestring += "00"*(this_string_diff*(-1))
+                else:
+                    jp_bytestring += "00"*(this_string_diff)
+                this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
 
         pointer_diff += this_string_diff
 
@@ -187,9 +146,9 @@ def edit_text(file):
         current_block.blockstring = current_block.blockstring.replace(old_slice, new_slice, 1)
 
     # If there's a spare block, fill that shit up.
-    if file.filename in spare_block:
+    if file.spare_block:
         file.filestring = move_overflow(file, overflow_bytestrings)
-    else:
+    elif overflow_bytestrings:
         print overflow_bytestrings
         # TODO: This is important. Activate it again later!!!!
         #assert not overflow_bytestrings, "Things are overflowing but there's no room for them!'"
@@ -202,15 +161,14 @@ def edit_text(file):
 
 def move_overflow(file, overflow_bytestrings):
     """Insert the overflow strings in the spare block, and reroute their pointers."""
-    spare_block = file.blocks[-1]
-    spare_block.blockstring = ""
+    file.spare_block.blockstring = ""
 
     for (lo, hi), bytestring in overflow_bytestrings.iteritems():
         # (How much functionality is this repeating??)
         # The first pointer must be adjusted to point to the beginning of the spare block.
-        pointer_diff = (spare_block.start - lo) + len(spare_block.blockstring)//2
-        # Find all the translations that need to be applied.
+        pointer_diff = (file.spare_block.start - lo) + len(file.spare_block.blockstring)//2
         previous_text_location = lo
+        # Find all the translations that need to be applied.
         for i in [i for i in range(lo, hi) if i in file.translations]:
             japanese, english = file.translations[i]
 
@@ -224,11 +182,10 @@ def move_overflow(file, overflow_bytestrings):
             previous_text_location = i
             pointer_diff += this_string_diff
 
-        spare_block.blockstring += bytestring
+        file.spare_block.blockstring += bytestring
 
-    assert len(spare_block.blockstring)//2 <= spare_block.stop - spare_block.start
-
-    spare_block.incorporate()
+    assert len(file.spare_block.blockstring)//2 <= file.spare_block.stop - file.spare_block.start
+    file.spare_block.incorporate()
 
     return file.filestring
 
@@ -245,7 +202,7 @@ if __name__ == '__main__':
         else:
             gamefile = EXEFile(DiskA, filename)
 
-            pointers = get_pointers(filename)
+            #pointers = get_pointers(filename)
 
             # Then get individual strings of each text block, and put them in a list.
             block_strings = gamefile.blocks
@@ -259,7 +216,6 @@ if __name__ == '__main__':
 
     DiskA.write()
 
-    # Hard to see it, but the cheat calls are outside the "every file" loop.
     #change_starting_map('ST1.EXE', 100)
     #change_starting_map('ST5.EXE', 600)
 

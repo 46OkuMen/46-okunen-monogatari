@@ -98,7 +98,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
 # Need to end blocks one after an "<END>" byte. This helps one overflow not spill into the next.
 
 # Some files have an error block, which we can replace with text overflowing from other blocks.
-spare_block = {'OPENING.EXE': (0x55e9, 0x5639),
+SPARE_BLOCK = {'OPENING.EXE': (0x55e9, 0x5639),
     '46.EXE': (0x9cb8, 0xa07a),
     'ST1.EXE': (0x11d42, 0x1204e),
     'ST2.EXE': (0x10570, 0x1087d),
@@ -108,20 +108,12 @@ spare_block = {'OPENING.EXE': (0x55e9, 0x5639),
     'ST6.EXE': (0xd44a, 0xd756),}
  # Usually the last block.
 
-CREATURE_BLOCK = {'OPENING.EXE': (0, 0),
-                  'ST1.EXE': (0x10fca, 0x11595),
+CREATURE_BLOCK = {'ST1.EXE': (0x10fca, 0x11595),
                   'ST2.EXE': (0xfae4, 0xfe50),
                   'ST3.EXE': (0xdb7e, 0xe2d5),
                   'ST4.EXE': (0x14a28, 0x15a1e),
                   'ST5.EXE': (0x107e6, 0x11466),
-                  'ST5S1.EXE': (0, 0),
-                  'ST5S2.EXE': (0, 0),
-                  'ST5S3.EXE': (0, 0),
-                  'ST6.EXE': (0xcd14, 0xce25),
-                  'ENDING.EXE': (0, 0),
-                  'SINKA.DAT': (0, 0),
-                  'SEND.DAT': (0, 0)}
-               # TODO: Even more in progress than the last one.
+                  'ST6.EXE': (0xcd14, 0xce25)}
 # Usually the third-to-last block.
 
 # Starting position, in bytes, of each file within the Disk 1 rom.
