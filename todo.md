@@ -15,11 +15,10 @@
     * Maybe I'll use something else instead of last_replacement_offset in the reinserter.
 
 ## Non-Crash Glitches
-* OPENING.EXE isn't very happy after the refactoring... wonder what went wrong?
-	* Ah. It's blanking last block again because it thinks the spare is always the last one...
-	* Fixed it, added an EXEFile.spare_block attribute.
 
 ## Dump Problems
+* Should I consider dumping/getting translations for INST.EXE as well?
+
 * Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump at all??
 
 * Carnivorous Dino Person has a missing piece of dialogue between 0xcf16 and 0xcf64.
@@ -89,7 +88,7 @@
     * Strings in the menu block < 43. (Since evolution messages, etc.)
 
 * Is there any way to programmatically check which strings are part of fullscreen narration events?
-    * One clue: it comes right after an AV        *.GDT file (in the full dump).
+    * One clue: it comes right after an AV*.GDT file (in the full dump).
         * (But how many strings in a row?? Doesn't it swtich to dialogue at some point?)
             * (Could I recognize nametags as they come up?)
                 * (Not really useful, sometimes dialogue is fullscreen (ex. Gaia ch1))
@@ -102,6 +101,7 @@
         * I can insert new <LN>s in the middle of lines, but that means I should remove the later one.
     * I really do need some version of the dump where I can see these control codes. At this point it may be worth it to write my own SJIS-Dump that 1) lacks the bug, and 2) can use a custom .tbl file.
     * table-dump. Y'know, like table flipping.
+        * Uh this is pretty difficult. I think I will wait til I study some more string algorithms to know what I'm doing here.
 
 ### other
 * Actually make a patch!

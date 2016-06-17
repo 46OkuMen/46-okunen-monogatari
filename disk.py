@@ -8,7 +8,7 @@ from math import floor
 
 from openpyxl import load_workbook
 
-from utils import file_to_hex_string, DUMP_XLS, POINTER_XLS, sjis_to_hex_string, ascii_to_hex_string
+from utils import pack, file_to_hex_string, DUMP_XLS, POINTER_XLS, sjis_to_hex_string, ascii_to_hex_string
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, SPARE_BLOCK, CREATURE_BLOCK
 
 class Disk(object):
@@ -143,10 +143,7 @@ class EXEFile(Gamefile):
 
 
 class DATFile(Gamefile):
-    """A data gamefile.
-
-    Attributes:
-        #src_path: A string for the orgiinal location of the standalone file. DAT files"""
+    """A data gamefile. Doesn't have pointers or a fixed length, so it's much simpler."""
 
     def __init__(self, disk, filename):
         Gamefile.__init__(self, disk, filename)
@@ -157,6 +154,7 @@ class DATFile(Gamefile):
         return excel.get_dat_translations(self)
 
     def translate(self):
+        """Replace all japanese strings with english ones."""
         for (japanese, english) in self.get_translations():
             if english == "":
                 continue
@@ -181,8 +179,6 @@ class Block(object):
                                                        start_in_disk, self.length)
         self.blockstring = "" + self.original_blockstring
 
-        assert len(self.blockstring) == (stop - start)*2
-
     def incorporate(self):
         """Write the new block to the source gamefile."""
         self.pad()
@@ -203,14 +199,35 @@ class Block(object):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))
 
 
-class CreatureBlock(Block):
-    """A block with creature names."""
+class Pointer(object):
+    def __init__(self, gamefile, pointer_location, text_location):
+        self.gamefile = gamefile
+        self.location = pointer_location
+        self.text_location = text_location
 
-    pass
+        self.old_value = text_location - gamefile.pointer_constant
+        old_bytes = pack(self.old_value)
+        self.old_bytestring = "{:02x}".format(old_bytes[0]) + "{:02x}".format(old_bytes[1])
 
-class SpareBlock(Block):
-    """A block to be erased for holding overflow strings."""
-    pass
+    def edit(self, diff):
+        """Adjusts the pointer by diff, and writes the new value to the gamefile."""
+        if diff != 0:
+            location_in_string = self.location*2
+            new_value = self.old_value + diff
+            new_bytes = pack(new_value)
+            new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
+
+            string_before = self.gamefile.filestring[0:location_in_string]
+            string_after = self.gamefile.filestring[location_in_string+4:]
+
+            rom_bytestring = self.gamefile.filestring[location_in_string:location_in_string+4]
+            if self.old_bytestring != rom_bytestring:
+                print "This one got edited before; make sure it's right"
+
+            self.gamefile.filestring = string_before + new_bytestring + string_after
+
+    def __repr__(self):
+        return hex(self.location), "pointing to", hex(self.text_location)
 
 
 class DumpExcel(object):
@@ -259,13 +276,15 @@ class PointerExcel(object):
 
     def get_pointers(self, gamefile):
         """Retrieve all relevant pointers from the pointer sheet."""
-        ptrs = OrderedDict()
+        ptrs = {}
 
         for row in [r for r in self.pointer_sheet.rows if r[0].value == gamefile.filename]:
             text_offset = int(row[1].value, 16)
             pointer_offset = int(row[2].value, 16)
+            ptr = Pointer(gamefile, pointer_offset, text_offset)
+
             if text_offset in ptrs:
-                ptrs[text_offset].append(pointer_offset)
+                ptrs[text_offset].append(ptr)
             else:
-                ptrs[text_offset] = [pointer_offset]
+                ptrs[text_offset] = [ptr]
         return ptrs

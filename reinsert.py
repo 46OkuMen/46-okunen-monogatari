@@ -17,37 +17,15 @@ FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST
 # for testing the oh-so-problematic Ch5:
 #FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE']
 
-def edit_pointer(file, text_location, diff):
-    """Increment or decrement all pointers pointing to a single text location."""
-    if diff != 0:
-        for ptr in file.pointers[text_location]:
-            old_value = text_location - file.pointer_constant
-            old_bytes = pack(old_value)
-            old_bytestring = "{:02x}".format(old_bytes[0]) +"{:02x}".format(old_bytes[1])
-
-            location_in_string = ptr*2
-            rom_bytestring = file.filestring[location_in_string:location_in_string+4]
-            if old_bytestring != rom_bytestring:
-                print "This one got edited before; make sure it's right"
-
-            new_value = old_value + diff
-
-            new_bytes = pack(new_value)
-            new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-
-            string_before = file.filestring[0:location_in_string]
-            string_after = file.filestring[location_in_string+4:]
-
-            file.filestring = string_before + new_bytestring + string_after
-            # Can't use incorporate() because pointers are outside of blocks (necessarily).
-
 def edit_pointers_in_range(exefile, (start, stop), diff):
     """Edit all the pointers in the (start, stop) range."""
     if diff == 0:
         return exefile.filestring
+    # TODO: Try a list comp here.
     for offset in range(start+1, stop+1):
         if offset in exefile.pointers:
-            edit_pointer(exefile, offset, diff)
+            for ptr in exefile.pointers[offset]:
+                ptr.edit(diff)
 
 
 def edit_text(file):
@@ -55,27 +33,24 @@ def edit_text(file):
     pointer_diff = 0
     previous_text_offset = file.blocks[0].start
     previous_replacement_offset = 0
-
     current_block = file.blocks[0]
-
     previous_block_index = 0
-
     is_overflowing = False
-
     overflow_bytestrings = OrderedDict()
 
     for original_location, (jp, eng) in file.translations.iteritems():
+        # Check if we've changed blocks yet.
         block_index = get_current_block(original_location, file)
         if block_index != previous_block_index:
             # Reset all relevant variables.
+            current_block = file.blocks[block_index]
             pointer_diff, previous_replacement_offset = 0, 0
             is_overflowing = False
-            current_block = file.blocks[block_index]
 
         previous_block_index = block_index
 
-        # If it's overflowing already, all the following strings get replaced anyway,
-        # so all we need to do is to check if we're in a new block yet.
+        # If it's overflowing already, all the following strings get replaced anyway.
+        # Skip strings until reaching the next block.
         if is_overflowing:
             continue
 
@@ -145,18 +120,16 @@ def edit_text(file):
         j = file.blocks[block_index].blockstring.index(old_slice)
         current_block.blockstring = current_block.blockstring.replace(old_slice, new_slice, 1)
 
-    # If there's a spare block, fill that shit up.
+    # If there's a spare block, fill it with the overflow.
     if file.spare_block:
-        file.filestring = move_overflow(file, overflow_bytestrings)
+        move_overflow(file, overflow_bytestrings)
     elif overflow_bytestrings:
         print overflow_bytestrings
-        # TODO: This is important. Activate it again later!!!!
+        # TODO: This is important, since it appears to be overflowing in ST5S2. Activate later!
         #assert not overflow_bytestrings, "Things are overflowing but there's no room for them!'"
 
     for block in file.blocks:
         block.incorporate()
-
-    return file.filestring
 
 
 def move_overflow(file, overflow_bytestrings):
@@ -187,8 +160,6 @@ def move_overflow(file, overflow_bytestrings):
     assert len(file.spare_block.blockstring)//2 <= file.spare_block.stop - file.spare_block.start
     file.spare_block.incorporate()
 
-    return file.filestring
-
 
 if __name__ == '__main__':
     DiskA = Disk(SRC_ROM_PATH, DEST_ROM_PATH)
@@ -202,13 +173,11 @@ if __name__ == '__main__':
         else:
             gamefile = EXEFile(DiskA, filename)
 
-            #pointers = get_pointers(filename)
-
             # Then get individual strings of each text block, and put them in a list.
             block_strings = gamefile.blocks
             original_block_strings = list(block_strings)
 
-            patched_file_string = edit_text(gamefile)
+            edit_text(gamefile)
 
             gamefile.incorporate()
             gamefile.write()
