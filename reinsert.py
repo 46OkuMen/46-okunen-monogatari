@@ -14,26 +14,8 @@ FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST
 
 
 if __name__ == '__main__':
-    DiskA = Disk(SRC_ROM_PATH, DEST_ROM_PATH)
-
-    for filename in FILES_TO_TRANSLATE:
-        if filename in ('SINKA.DAT', 'SEND.DAT'):
-            gamefile = DATFile(DiskA, filename)
-            gamefile.translate()
-            gamefile.write()
-
-        else:
-            gamefile = EXEFile(DiskA, filename)
-
-            for block in gamefile.blocks:
-                block.edit_text()
-
-            gamefile.move_overflow()
-            gamefile.incorporate()
-            gamefile.write()
-            gamefile.report_progress()
-
-    DiskA.write()
+    DiskA = Disk(SRC_ROM_PATH, DEST_ROM_PATH, FILES_TO_TRANSLATE)
+    DiskA.translate()
 
     #change_starting_map('ST1.EXE', 100)
     #change_starting_map('ST5.EXE', 600)

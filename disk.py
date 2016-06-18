@@ -9,7 +9,7 @@ from math import floor
 from openpyxl import load_workbook
 
 from utils import pack, get_current_block, file_to_hex_string, DUMP_XLS, POINTER_XLS, sjis_to_hex_string, ascii_to_hex_string
-from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, SPARE_BLOCK, CREATURE_BLOCK
+from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, STARTING_MAP_NUMBER_LOCATION, SPARE_BLOCK, CREATURE_BLOCK
 
 class Disk(object):
     """The main .FDI file for a PC-98 game. Disks have the properties:
@@ -25,7 +25,7 @@ class Disk(object):
 
         """ 
 
-    def __init__(self, src_path, dest_path):
+    def __init__(self, src_path, dest_path, files_to_translate):
         self.src_path = src_path
         self.dest_path = dest_path
 
@@ -34,9 +34,27 @@ class Disk(object):
         self.original_romstring = file_to_hex_string(src_path)
         self.romstring = "" + self.original_romstring
 
-        #self.gamefiles = []
-        #for gf in file_blocks.iterkeys():
-        #    self.gamefiles.append(Gamefile(self, gf))
+        self.gamefiles = []
+        for filename in files_to_translate:
+            if filename.endswith('.EXE'):
+                self.gamefiles.append(EXEFile(self, filename))
+            elif filename.endswith('.DAT'):
+                self.gamefiles.append(DATFile(self, filename))
+
+    def translate(self):
+        """Perform translation and reinsertion."""
+        for gamefile in self.gamefiles:
+            if gamefile.filename.endswith('DAT'):
+                gamefile.translate()
+                gamefile.write()
+            else:
+                for block in gamefile.blocks:
+                    block.edit_text()
+                gamefile.move_overflow()
+                gamefile.incorporate()
+                gamefile.write()
+                gamefile.report_progress()
+        self.write()
 
     def write(self):
         """Write the patched bytes to a new FDI."""
@@ -174,7 +192,8 @@ class EXEFile(Gamefile):
                             j = ov_bytestring.index(jp_bytestring)
                             ov_bytestring = ov_bytestring.replace(jp_bytestring, en_bytestring)
 
-                            self.edit_pointers_in_range((previous_text_location-1, trans.location), pointer_diff)
+                            self.edit_pointers_in_range((previous_text_location-1, trans.location),
+                                                        pointer_diff)
                             previous_text_location = trans.location
                             pointer_diff += this_string_diff
 
@@ -183,6 +202,14 @@ class EXEFile(Gamefile):
 
         assert len(self.spare_block.blockstring)//2 <= self.spare_block.stop - self.spare_block.start
         self.spare_block.incorporate()
+
+    def change_starting_map(self, map_number):
+        """Cheats! Load a different map instead of thelodus sea."""
+        offset_in_rom = STARTING_MAP_NUMBER_LOCATION[self.filename] + self.location
+        new_map_bytes = str(map_number).encode()
+        with open(DEST_ROM_PATH, 'rb+') as f:
+            f.seek(offset_in_rom)
+            f.write(new_map_bytes)
 
 
 class DATFile(Gamefile):
