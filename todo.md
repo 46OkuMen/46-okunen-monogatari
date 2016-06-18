@@ -119,6 +119,7 @@
 	* It has an edited 46.EXE, so I don't need to change that every time. Anything else?
 	* .DAT files are also pre-inserted in Intermediate.
 		* This is dumb - it tries to re-do the changes it's already done, and fails silently! Better way?
+    * If I put the patched images in the intermediate roms, will it break the reinsertion by changing file locations???
 
 * Fix the randomly decaying excel formulas.
     * I am very incompetent at excel, it seems.

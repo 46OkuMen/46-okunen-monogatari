@@ -3,7 +3,7 @@
 from collections import OrderedDict
 
 from utils import SRC_ROM_PATH, DEST_ROM_PATH
-from utils import pack, get_current_block
+from utils import get_current_block
 from utils import sjis_to_hex_string, sjis_to_hex_string_preserve_spaces 
 from utils import ascii_to_hex_string
 from cheats import change_starting_map
@@ -17,67 +17,55 @@ FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST
 # for testing the oh-so-problematic Ch5:
 #FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE']
 
-def edit_text(file):
+def edit_text(block):
     """Replace each japanese string with the translated english string."""
-    # TODO: If I can make this iterate through blocks instead of strings in translations,
-    # it'd be a bit simpler! No more checking what block we're in constantly.
     pointer_diff = 0
-    previous_text_offset = file.blocks[0].start
+    previous_text_offset = block.start
     previous_replacement_offset = 0
-    current_block = file.blocks[0]
-    previous_block_index = 0
     is_overflowing = False
-    overflow_bytestrings = OrderedDict()
 
-    for original_location, (jp, eng) in file.translations.iteritems():
-        # Check if we've changed blocks yet.
-        block_index = get_current_block(original_location, file)
-        if block_index != previous_block_index:
-            # Reset all relevant variables.
-            current_block = file.blocks[block_index]
-            pointer_diff, previous_replacement_offset = 0, 0
-            is_overflowing = False
-
-        previous_block_index = block_index
-
-        # If it's overflowing already, all the following strings get replaced anyway.
-        # Skip strings until reaching the next block.
+    for trans in block.translations:
         if is_overflowing:
-            continue
+            # Leave immediately; the rest of this string is in gamefile.overflow_bytestrings now.
+            break
 
-        jp_bytestring = sjis_to_hex_string(jp)
-        eng_bytestring = ascii_to_hex_string(eng)
+        jp_bytestring = sjis_to_hex_string(trans.japanese)
+        eng_bytestring = ascii_to_hex_string(trans.english)
 
         # jp_bytestring might include ASCII; if it's not found, try the ascii preserving method.
         try:
-            j = current_block.blockstring.index(jp_bytestring)
+            j = block.blockstring.index(jp_bytestring)
         except ValueError: # substring not found
-            jp_bytestring = sjis_to_hex_string_preserve_spaces(jp)
+            jp_bytestring = sjis_to_hex_string_preserve_spaces(trans.japanese)
 
         if eng_bytestring:
-            new_text_offset = original_location + len(eng_bytestring)//2 + pointer_diff
+            new_text_offset = trans.location + len(eng_bytestring)//2 + pointer_diff
         else:
-            new_text_offset = original_location + len(jp_bytestring)//2 + pointer_diff
+            new_text_offset = trans.location + len(jp_bytestring)//2 + pointer_diff
 
-        if new_text_offset >= current_block.stop:
+        if new_text_offset >= block.stop:
             is_overflowing = True
             # Pointers usually point to control codes before the text. So look for a recent pointer.
             # But don't backtrack as far as previous_text_offset (maybe already translated)
-            recent_pointer = file.most_recent_pointer(previous_text_offset, original_location)
+            recent_pointer = block.gamefile.most_recent_pointer(previous_text_offset, trans.location)
 
-            start_in_block = (recent_pointer - current_block.start)*2
-            overflow_bytestring = current_block.original_blockstring[start_in_block:]
+            start_in_block = (recent_pointer - block.start)*2
+            overflow_bytestring = block.original_blockstring[start_in_block:]
             # Store the start and end of the overflow bytestring, 
             # to make sure all pointers are adjusted in the range.
-            overflow_lo, overflow_hi = recent_pointer, current_block.stop
+            overflow_lo, overflow_hi = recent_pointer, block.stop
            
-            overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
+            block.gamefile.overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
 
-        if not is_overflowing:
-            file.edit_pointers_in_range((previous_text_offset, original_location), pointer_diff)
+        block.gamefile.edit_pointers_in_range((previous_text_offset, trans.location), pointer_diff)
 
-        previous_text_offset = original_location
+        previous_text_offset = trans.location
 
+        # "eng" is an ugly way of doing this. But we want to be able to do the thing where, if
+        # it's overflowing, do a "translation" of the overflow bytestring into "".
+        # If we set trans.english to "", it wouldn't get translated later.
+        # So use a separate "eng" variable which can be english or blank, but don't lose data.
+        eng = trans.english
         if eng == "":
             # No replacement necessary - pointers are edited, so we're done here.
             continue
@@ -93,64 +81,26 @@ def edit_text(file):
         this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
 
         # Pad creature name strings.
-        if file.creature_block:
-            if file.creature_block.start <= original_location <= file.creature_block.stop:
+        if block.is_creature:
+            if block.start <= trans.location <= block.stop:
                 if this_string_diff <= 0:
                     eng_bytestring += "00"*(this_string_diff*(-1))
                 else:
                     jp_bytestring += "00"*(this_string_diff)
                 this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
+                assert this_string_diff == 0, 'creature diff not 0'
 
         pointer_diff += this_string_diff
 
-        old_slice = current_block.blockstring[previous_replacement_offset*2:]
+        old_slice = block.blockstring[previous_replacement_offset*2:]
         i = old_slice.index(jp_bytestring)//2
         previous_replacement_offset += i//2
         new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
 
-        j = file.blocks[block_index].blockstring.index(old_slice)
-        current_block.blockstring = current_block.blockstring.replace(old_slice, new_slice, 1)
+        #j = block.blockstring.index(old_slice)
+        block.blockstring = block.blockstring.replace(old_slice, new_slice, 1)
 
-    # If there's a spare block, fill it with the overflow.
-    if file.spare_block:
-        move_overflow(file, overflow_bytestrings)
-    elif overflow_bytestrings:
-        print overflow_bytestrings
-        # TODO: This is important, since it appears to be overflowing in ST5S2. Activate later!
-        #assert not overflow_bytestrings, "Things are overflowing but there's no room for them!'"
-
-    for block in file.blocks:
-        block.incorporate()
-
-
-def move_overflow(file, overflow_bytestrings):
-    """Insert the overflow strings in the spare block, and reroute their pointers."""
-    file.spare_block.blockstring = ""
-
-    for (lo, hi), bytestring in overflow_bytestrings.iteritems():
-        # (How much functionality is this repeating??)
-        # The first pointer must be adjusted to point to the beginning of the spare block.
-        pointer_diff = (file.spare_block.start - lo) + len(file.spare_block.blockstring)//2
-        previous_text_location = lo
-        # Find all the translations that need to be applied.
-        for i in [i for i in range(lo, hi) if i in file.translations]:
-            japanese, english = file.translations[i]
-
-            jp_bytestring = sjis_to_hex_string(japanese)
-            eng_bytestring = ascii_to_hex_string(english)
-
-            this_string_diff = len(eng_bytestring) - len(jp_bytestring) // 2
-            j = bytestring.index(jp_bytestring)
-            bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
-            # TODO: Again, why -1? Gotta justify magic numbers.
-            file.edit_pointers_in_range((previous_text_location-1, i), pointer_diff)
-            previous_text_location = i
-            pointer_diff += this_string_diff
-
-        file.spare_block.blockstring += bytestring
-
-    assert len(file.spare_block.blockstring)//2 <= file.spare_block.stop - file.spare_block.start
-    file.spare_block.incorporate()
+    block.incorporate()
 
 
 if __name__ == '__main__':
@@ -166,11 +116,12 @@ if __name__ == '__main__':
             gamefile = EXEFile(DiskA, filename)
 
             # Then get individual strings of each text block, and put them in a list.
-            block_strings = gamefile.blocks
-            original_block_strings = list(block_strings)
+            #block_strings = gamefile.blocks
+            #original_block_strings = list(block_strings)
 
-            edit_text(gamefile)
-
+            for block in gamefile.blocks:
+                edit_text(block)
+            gamefile.move_overflow()
             gamefile.incorporate()
             gamefile.write()
             gamefile.report_progress()

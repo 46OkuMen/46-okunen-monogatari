@@ -99,14 +99,14 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
 
 # Some files have an error block, which we can replace with text overflowing from other blocks.
 SPARE_BLOCK = {'OPENING.EXE': (0x55e9, 0x5639),
-    '46.EXE': (0x9cb8, 0xa07a),
-    'ST1.EXE': (0x11d42, 0x1204e),
-    'ST2.EXE': (0x10570, 0x1087d),
-    'ST3.EXE': (0xeb82, 0xee8e),
-    'ST4.EXE': (0x1659c, 0x168a8),
-    'ST5.EXE': (0x11ef2, 0x121fe),
-    'ST6.EXE': (0xd44a, 0xd756),}
- # Usually the last block.
+               '46.EXE': (0x9cb8, 0xa07a),
+               'ST1.EXE': (0x11d42, 0x1204e),
+               'ST2.EXE': (0x10570, 0x1087d),
+               'ST3.EXE': (0xeb82, 0xee8e),
+               'ST4.EXE': (0x1659c, 0x168a8),
+               'ST5.EXE': (0x11ef2, 0x121fe),
+               'ST6.EXE': (0xd44a, 0xd756),}
+ # Usually the last block. (But not in OPENNING.EXE).
 
 CREATURE_BLOCK = {'ST1.EXE': (0x10fca, 0x11595),
                   'ST2.EXE': (0xfae4, 0xfe50),
@@ -118,18 +118,18 @@ CREATURE_BLOCK = {'ST1.EXE': (0x10fca, 0x11595),
 
 # Starting position, in bytes, of each file within the Disk 1 rom.
 file_location = {'OPENING.EXE': 0x58800,
-              'ST1.EXE': 0x5e800,
-              'ST2.EXE': 0x70c00,
-              'ST3.EXE': 0x81800,
-              'ST4.EXE': 0x90800,
-              'ST5.EXE': 0xa7400,
-              'ST5S1.EXE': 0xb9800,
-              'ST5S2.EXE': 0xbd400,
-              'ST5S3.EXE': 0xc1000,
-              'ST6.EXE': 0xc6400,
-              'ENDING.EXE': 0x4e000,
-              'SINKA.DAT': 0x3d000,
-              'SEND.DAT': 0x34800,}
+                 'ST1.EXE': 0x5e800,
+                 'ST2.EXE': 0x70c00,
+                 'ST3.EXE': 0x81800,
+                 'ST4.EXE': 0x90800,
+                 'ST5.EXE': 0xa7400,
+                 'ST5S1.EXE': 0xb9800,
+                 'ST5S2.EXE': 0xbd400,
+                 'ST5S3.EXE': 0xc1000,
+                 'ST6.EXE': 0xc6400,
+                 'ENDING.EXE': 0x4e000,
+                 'SINKA.DAT': 0x3d000,
+                 'SEND.DAT': 0x34800,}
 
 # Length in bytes.
 file_length = {'OPENING.EXE': 0x5e4b,

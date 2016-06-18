@@ -8,7 +8,7 @@ from math import floor
 
 from openpyxl import load_workbook
 
-from utils import pack, file_to_hex_string, DUMP_XLS, POINTER_XLS, sjis_to_hex_string, ascii_to_hex_string
+from utils import pack, get_current_block, file_to_hex_string, DUMP_XLS, POINTER_XLS, sjis_to_hex_string, ascii_to_hex_string
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, SPARE_BLOCK, CREATURE_BLOCK
 
 class Disk(object):
@@ -61,16 +61,8 @@ class Gamefile(object):
         for block in file_blocks[self.filename]:
             self.blocks.append(Block(self, block))
 
-        self.translations = self.get_translations()
-
-    def get_translations(self):
-        """Make a DumpExcel and grab this file's translations from it."""
-        excel = DumpExcel(DUMP_XLS)
-        return excel.get_translations(self)
-
     def incorporate(self):
         """Add the edited file to the Disk in the original's place."""
-        # TODO: Is it safe to incorporate all the blocks here, too? Look at where this is used.
         i = self.disk.romstring.index(self.original_filestring)
         self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring)
 
@@ -86,13 +78,14 @@ class Gamefile(object):
         strings = 0
         replacements = 0
 
-        for (japanese, english) in self.translations.itervalues():
-            if isinstance(japanese, float):
-                # Skip the numbers in .DAT files, they're boring
-                continue
-            strings += 1
-            if english:
-                replacements += 1
+        for block in self.blocks:
+            for trans in block.translations:
+                if isinstance(trans.japanese, float):
+                    # Skip the numbers in .DAT files, they're boring
+                    continue
+                strings += 1
+                if trans.english:
+                    replacements += 1
         percentage = int(floor((replacements / strings) * 100))
         print self.filename, str(percentage), "% complete",
         print "(%s / %s)" % (replacements, strings)
@@ -113,6 +106,8 @@ class EXEFile(Gamefile):
             for block in self.blocks:
                 if block.start == spare_start:
                     self.spare_block = block
+                    block.is_spare = True
+
         except KeyError:
             self.spare_block = None
 
@@ -121,8 +116,12 @@ class EXEFile(Gamefile):
             for block in self.blocks:
                 if block.start == creature_start:
                     self.creature_block = block
+                    block.is_creature = True
+
         except KeyError:
             self.creature_block = None
+        self.overflow_bytestrings = {}
+        # TODO: Make sure overflow bytestrings is empty when there's no spare_block.
 
     def edit_pointers_in_range(self, (start, stop), diff):
         """Edit all the pointers between two file offsets."""
@@ -146,7 +145,44 @@ class EXEFile(Gamefile):
             if offset in self.pointers:
                 return offset
         # If there are no other pointers, just return the hi value.
-        return stop       # but it's not +1 here???
+
+        return stop                            # but it's not +1 here???
+        # "Don't leave me! I still love you!"
+
+    def move_overflow(self):
+        """Move the overflow bytestrings into the spare block, and adjust the pointers."""
+        if not self.spare_block:
+            return None
+            
+        self.spare_block.blockstring = ""
+
+        # TODO: Pylint be damned, (lo, hi) is a much better nomenclature.
+        for (start, stop), ov_bytestring in self.overflow_bytestrings.iteritems():
+            pointer_diff = (self.spare_block.start - start) + len(self.spare_block.blockstring)//2
+            previous_text_location = start
+
+            # Ugh. Literally the only downside of ditching the OrderedDict() impl of translations
+
+            for offset in range(start, stop):
+                for block in self.blocks:
+                    for trans in block.translations:
+                        if trans.location == offset:
+                            jp_bytestring = sjis_to_hex_string(trans.japanese)
+                            en_bytestring = ascii_to_hex_string(trans.english)
+
+                            this_string_diff = len(en_bytestring) - len(jp_bytestring) // 2
+                            j = ov_bytestring.index(jp_bytestring)
+                            ov_bytestring = ov_bytestring.replace(jp_bytestring, en_bytestring)
+
+                            self.edit_pointers_in_range((previous_text_location-1, trans.location), pointer_diff)
+                            previous_text_location = trans.location
+                            pointer_diff += this_string_diff
+
+            # Add this after the whole overflow bytestring has been ptr-adjusted.
+            self.spare_block.blockstring += ov_bytestring
+
+        assert len(self.spare_block.blockstring)//2 <= self.spare_block.stop - self.spare_block.start
+        self.spare_block.incorporate()
 
 
 class DATFile(Gamefile):
@@ -154,6 +190,11 @@ class DATFile(Gamefile):
 
     def __init__(self, disk, filename):
         Gamefile.__init__(self, disk, filename)
+        self.blocks = []
+        # DATFiles just get one big DATBlock.
+        for block in file_blocks[self.filename]:
+            self.blocks.append(DATBlock(self, block))
+
         self.src_path = os.path.join(self.disk.src_path, filename)
 
     def get_translations(self):
@@ -185,6 +226,15 @@ class Block(object):
         self.original_blockstring = file_to_hex_string(self.gamefile.disk.src_path,
                                                        start_in_disk, self.length)
         self.blockstring = "" + self.original_blockstring
+        self.translations = self.get_translations()
+
+        self.is_creature = False
+        self.is_spare = False
+
+    def get_translations(self):
+        """Grab all translations in this block."""
+        excel = DumpExcel(DUMP_XLS)
+        return excel.get_translations(self)
 
     def incorporate(self):
         """Write the new block to the source gamefile."""
@@ -205,16 +255,32 @@ class Block(object):
     def __repr__(self):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))
 
+
+class DATBlock(Block):
+    """A text block for a DAT file. Gets simpler translations."""
+
+    def get_translations(self):
+        excel = DumpExcel(DUMP_XLS)
+        return excel.get_dat_translations(self)
+
+
 class Translation(object):
     """Has an offset, a SJIS japanese string, and an ASCII english string."""
-    def __init__(self, block, offset, japanese, english):
-        self.offset = offset
+    def __init__(self, block, location, japanese, english):
+        self.location = location
         self.block = block
         self.japanese = japanese
         self.english = english
+        self.block = block
 
-    def edit(self):
-        pass
+    #def jp_bytestring(self):
+    #    return sjis_to_hex_string(self.japanese)#
+
+    #def en_bytestring(self):
+    #    return ascii_to_hex_string(self.english)
+
+    def __repr__(self):
+        return hex(self.location) + " " + self.english
 
 
 class Pointer(object):
@@ -255,28 +321,29 @@ class DumpExcel(object):
         self.path = path
         self.workbook = load_workbook(self.path)
 
-    def get_translations(self, gamefile):
+    def get_translations(self, block):
         """Get the translations for an EXE file."""
-        trans = OrderedDict()    # translations[offset] = (japanese, english)
-        worksheet = self.workbook.get_sheet_by_name(gamefile.filename)
+        trans = []    # translations[offset] = Translation()
+        worksheet = self.workbook.get_sheet_by_name(block.gamefile.filename)
 
         for row in worksheet.rows[1:]:  # Skip the first row, it's just labels
             offset = int(row[0].value, 16)
-            japanese = row[2].value
-            english = row[4].value
+            if block.start <= offset <= block.stop:
+                japanese = row[2].value
+                english = row[4].value
 
-            # Yeah this is important - blank strings are None, so use an empty string instead.
-            if not english:
-                english = ""
+                # Yeah this is important - blank strings are None (non-iterable), so use "" instead.
+                if not english:
+                    english = ""
 
-            trans[offset] = (japanese, english)
+                trans.append(Translation(block, offset, japanese, english))
 
         return trans
 
-    def get_dat_translations(self, gamefile):
+    def get_dat_translations(self, block):
         """Retrieve the translations for dat files, which don't need offset info."""
         trans = []
-        worksheet = self.workbook.get_sheet_by_name(gamefile.filename)
+        worksheet = self.workbook.get_sheet_by_name(block.gamefile.filename)
 
         for row in worksheet.rows[1:]:
             japanese = row[2].value
