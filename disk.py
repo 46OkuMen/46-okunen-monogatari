@@ -1,4 +1,4 @@
-"""Classes for the 46 Okunen Monogatari translation patch."""
+"""Classes for the 46 Okunen Monogatari text reinserter."""
 
 from __future__ import division
 import os
@@ -124,6 +124,13 @@ class EXEFile(Gamefile):
         except KeyError:
             self.creature_block = None
 
+    def edit_pointers_in_range(self, (start, stop), diff):
+        """Edit all the pointers between two file offsets."""
+        if diff != 0:
+            for offset in [p for p in range(start+1, stop+1) if p in self.pointers]:
+                for ptr in self.pointers[offset]:
+                    ptr.edit(diff)
+
     def get_pointers(self):
         """Retrieve all relevant pointers from the pointer sheet."""
         excel = PointerExcel(POINTER_XLS)
@@ -198,8 +205,20 @@ class Block(object):
     def __repr__(self):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))
 
+class Translation(object):
+    """Has an offset, a SJIS japanese string, and an ASCII english string."""
+    def __init__(self, block, offset, japanese, english):
+        self.offset = offset
+        self.block = block
+        self.japanese = japanese
+        self.english = english
+
+    def edit(self):
+        pass
+
 
 class Pointer(object):
+    """A pointer. Found in EXEFiles outside of Blocks. They can be edited with edit(diff)."""
     def __init__(self, gamefile, pointer_location, text_location):
         self.gamefile = gamefile
         self.location = pointer_location
@@ -282,6 +301,8 @@ class PointerExcel(object):
             text_offset = int(row[1].value, 16)
             pointer_offset = int(row[2].value, 16)
             ptr = Pointer(gamefile, pointer_offset, text_offset)
+            # TODO: Any better way of querying? Seems redundant to store offset 
+            # in ptrs and the Pointer() itself.
 
             if text_offset in ptrs:
                 ptrs[text_offset].append(ptr)

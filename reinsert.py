@@ -17,19 +17,10 @@ FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST
 # for testing the oh-so-problematic Ch5:
 #FILES_TO_TRANSLATE = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE']
 
-def edit_pointers_in_range(exefile, (start, stop), diff):
-    """Edit all the pointers in the (start, stop) range."""
-    if diff == 0:
-        return exefile.filestring
-    # TODO: Try a list comp here.
-    for offset in range(start+1, stop+1):
-        if offset in exefile.pointers:
-            for ptr in exefile.pointers[offset]:
-                ptr.edit(diff)
-
-
 def edit_text(file):
     """Replace each japanese string with the translated english string."""
+    # TODO: If I can make this iterate through blocks instead of strings in translations,
+    # it'd be a bit simpler! No more checking what block we're in constantly.
     pointer_diff = 0
     previous_text_offset = file.blocks[0].start
     previous_replacement_offset = 0
@@ -83,7 +74,7 @@ def edit_text(file):
             overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
 
         if not is_overflowing:
-            edit_pointers_in_range(file, (previous_text_offset, original_location), pointer_diff)
+            file.edit_pointers_in_range((previous_text_offset, original_location), pointer_diff)
 
         previous_text_offset = original_location
 
@@ -151,7 +142,8 @@ def move_overflow(file, overflow_bytestrings):
             this_string_diff = len(eng_bytestring) - len(jp_bytestring) // 2
             j = bytestring.index(jp_bytestring)
             bytestring = bytestring.replace(jp_bytestring, eng_bytestring)
-            edit_pointers_in_range(file, (previous_text_location-1, i), pointer_diff)
+            # TODO: Again, why -1? Gotta justify magic numbers.
+            file.edit_pointers_in_range((previous_text_location-1, i), pointer_diff)
             previous_text_location = i
             pointer_diff += this_string_diff
 
