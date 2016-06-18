@@ -153,7 +153,7 @@ class EXEFile(Gamefile):
         """Move the overflow bytestrings into the spare block, and adjust the pointers."""
         if not self.spare_block:
             return None
-            
+
         self.spare_block.blockstring = ""
 
         # TODO: Pylint be damned, (lo, hi) is a much better nomenclature.
@@ -213,18 +213,22 @@ class DATFile(Gamefile):
 
 
 class Block(object):
-    """A text block."""
+    """A text block.
+
+    Attributes:
+        gamefile: The EXEFile or DATFile object it belongs to.
+        start = Beginning offset of the block.
+        stop  = Ending offset of the block.
+        """
 
     def __init__(self, gamefile, (start, stop)):
         self.gamefile = gamefile
         self.start = start
         self.stop = stop
-        self.length = stop - start
-        self.location = (start, stop)
 
         start_in_disk = start + self.gamefile.location
         self.original_blockstring = file_to_hex_string(self.gamefile.disk.src_path,
-                                                       start_in_disk, self.length)
+                                                       start_in_disk, (self.stop-self.start))
         self.blockstring = "" + self.original_blockstring
         self.translations = self.get_translations()
 
@@ -235,6 +239,92 @@ class Block(object):
         """Grab all translations in this block."""
         excel = DumpExcel(DUMP_XLS)
         return excel.get_translations(self)
+
+    def edit_text(self):
+        """Replace each japanese string in the block with the translated english string."""
+        pointer_diff = 0
+        previous_text_offset = self.start
+        previous_replacement_offset = 0
+        is_overflowing = False
+
+        for trans in self.translations:
+            if is_overflowing:
+                # Leave immediately; the rest of this string is in gamefile.overflow_bytestrings now.
+                break
+
+            jp_bytestring = sjis_to_hex_string(trans.japanese)
+            eng_bytestring = ascii_to_hex_string(trans.english)
+
+            # jp_bytestring might include ASCII; if it's not found, try the ascii preserving method.
+            try:
+                j = self.blockstring.index(jp_bytestring)
+            except ValueError: # substring not found
+                jp_bytestring = sjis_to_hex_string(trans.japanese, preserve_spaces=True)
+
+            if eng_bytestring:
+                new_text_offset = trans.location + len(eng_bytestring)//2 + pointer_diff
+            else:
+                new_text_offset = trans.location + len(jp_bytestring)//2 + pointer_diff
+
+            if new_text_offset >= self.stop:
+                is_overflowing = True
+                # Pointers usually point to control codes before the text. So look for a recent pointer.
+                # But don't backtrack as far as previous_text_offset (maybe already translated)
+                recent_pointer = self.gamefile.most_recent_pointer(previous_text_offset, 
+                                                                   trans.location)
+
+                start_in_block = (recent_pointer - self.start)*2
+                overflow_bytestring = self.original_blockstring[start_in_block:]
+                # Store the start and end of the overflow bytestring, 
+                # to make sure all pointers are adjusted in the range.
+                overflow_lo, overflow_hi = recent_pointer, self.stop
+               
+                self.gamefile.overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
+
+            self.gamefile.edit_pointers_in_range((previous_text_offset, trans.location), pointer_diff)
+
+            previous_text_offset = trans.location
+
+            # "eng" is an ugly way of doing this. But we want to be able to do the thing where, if
+            # it's overflowing, do a "translation" of the overflow bytestring into "".
+            # If we set trans.english to "", it wouldn't get translated later.
+            # So use a separate "eng" variable which can be english or blank, but don't lose data.
+            eng = trans.english
+            if eng == "":
+                # No replacement necessary - pointers are edited, so we're done here.
+                continue
+
+            if is_overflowing:
+                # Then we want to blank the entire overflow bytestring.
+                # So use the rest of the function already there to do that.
+                eng = ""
+                jp_bytestring = overflow_bytestring
+
+            # Recalculate in case it got altered due to overflow.
+            eng_bytestring = ascii_to_hex_string(eng)
+            this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
+
+            # Pad creature name strings.
+            if self.is_creature:
+                if self.start <= trans.location <= self.stop:
+                    if this_string_diff <= 0:
+                        eng_bytestring += "00"*(this_string_diff*(-1))
+                    else:
+                        jp_bytestring += "00"*(this_string_diff)
+                    this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
+                    assert this_string_diff == 0, 'creature diff not 0'
+
+            pointer_diff += this_string_diff
+
+            old_slice = self.blockstring[previous_replacement_offset*2:]
+            i = old_slice.index(jp_bytestring)//2
+            previous_replacement_offset += i//2
+            new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
+
+            #j = self.blockstring.index(old_slice)
+            self.blockstring = self.blockstring.replace(old_slice, new_slice, 1)
+
+        self.incorporate()
 
     def incorporate(self):
         """Write the new block to the source gamefile."""

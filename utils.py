@@ -104,27 +104,16 @@ def ascii_to_hex_string(eng):
         return eng_bytestring
 
 
-def sjis_to_hex_string(jp):
+def sjis_to_hex_string(jp, preserve_spaces=False):
     """Returns a hex string of the Shift JIS bytes of a given japanese string."""
     jp_bytestring = ""
     sjis = jp.encode('shift-jis')
     for char in sjis:
         hexchar = "%02x" % ord(char)
         # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
-        if hexchar == '20': 
-            hexchar = '8140'
-        jp_bytestring += hexchar
-    return jp_bytestring
-
-def sjis_to_hex_string_preserve_spaces(jp):
-    """On rare occasions, the space replacing in sji_to_hex_string is a mistake.
-    Sometimes there are also ASCII spaces in a SJIS string for whatever reason.
-    So if we try to use that method, they won't get found in the original text and
-    everything will be broken on reinsertion. So use this instead when something isn't found."""
-    jp_bytestring = ""
-    sjis = jp.encode('shift-jis')
-    for char in sjis:
-        hexchar = "%02x" % ord(char)
+        if not preserve_spaces:
+            if hexchar == '20': 
+                hexchar = '8140'
         jp_bytestring += hexchar
     return jp_bytestring
 
