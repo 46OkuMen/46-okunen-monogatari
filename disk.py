@@ -3,13 +3,14 @@
 from __future__ import division
 import os
 from binascii import unhexlify
-from collections import OrderedDict
 from math import floor
 
 from openpyxl import load_workbook
 
-from utils import pack, get_current_block, file_to_hex_string, DUMP_XLS, POINTER_XLS, sjis_to_hex_string, ascii_to_hex_string
-from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, STARTING_MAP_NUMBER_LOCATION, SPARE_BLOCK, CREATURE_BLOCK
+from utils import pack, file_to_hex_string, DUMP_XLS, POINTER_XLS
+from utils import sjis_to_hex_string, ascii_to_hex_string
+from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
+from rominfo import STARTING_MAP_NUMBER_LOCATION, SPARE_BLOCK, CREATURE_BLOCK
 
 class Disk(object):
     """The main .FDI file for a PC-98 game. Disks have the properties:
@@ -17,12 +18,14 @@ class Disk(object):
     Attributes:
         src_path: A string with the path to the original .FDI.
         dest_path: A string with the path to the patched .FDI.
+        dest_dir: A string to the path of the containing folder of the patched .FDI.
         original_romstring: A hex string of the entire file. Don't change it!
         romstring: A hex string of the entire file. Change this!
+        gamefiles: EXEFile and DATFile objects identified in files_to_translate.
 
     Methods:
+        translate(): Perform reinsertion and translation of all files.
         write(): Write the patched bytes to dest_path.
-
         """ 
 
     def __init__(self, src_path, dest_path, files_to_translate):
@@ -64,7 +67,22 @@ class Disk(object):
 
 
 class Gamefile(object):
-    """All files in a disk that need editing."""
+    """Any file on the disk targeted for reinsertion.
+
+    Attributes:
+        filename: String with filename and extension.
+        disk: The Disk object containing the file.
+        location: Int, starting offset of the file in DiskA.FDI. (Not valid for HDI.)
+        length: Int, length in bytes of the file.
+        original_filestring: Hex string of the untranslated string.
+        filestring: Hex string of the file; gets edited during reinsertion.
+        blocks: List of Block objects belonging to the file.
+
+    Methods:
+        incorporate(): Reinsert this translated file into its disk.
+        write(): Write this file independently to the patched directory.
+        report_progress(): Print the file's percent completion.
+    """
 
     def __init__(self, disk, filename):
         self.filename = filename
@@ -81,7 +99,6 @@ class Gamefile(object):
 
     def incorporate(self):
         """Add the edited file to the Disk in the original's place."""
-        i = self.disk.romstring.index(self.original_filestring)
         self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring)
 
     def write(self):
@@ -113,22 +130,38 @@ class Gamefile(object):
 
 
 class EXEFile(Gamefile):
-    """An executable gamefile. Needs to deal with pointers and blocks and overflow."""
+    """An executable gamefile. Needs to deal with pointers and blocks and overflow.
+
+    Attributes:
+        pointer_constant: File-specific constant added to pointer values to retrive text location.
+        pointers: A dict of {text_location: Pointer} pairs.
+        spare_block: A Block identified as expendable; overflow text can be placed here.
+        creature_block: A Block with different padding rules.
+        overflow_bytestrings: A dict of locations and bytestrings which get retrouted to the spare block.
+
+    Methods:
+        edit_pointers_in_range: Adjust the pointers which point between (lo, hi) with a given diff.
+        get_pointers: Retrive a dict of Pointer objects.
+        most_recent_pointer: Grabs a pointer one pointer before the given one... within certain limts.
+        move_overflow: Move overflow to the spare block and adjust pointers.
+        change_starting_map: Cheat and change the beginning-of-chapter spawn point.
+         """
 
     def __init__(self, disk, filename):
         Gamefile.__init__(self, disk, filename)
         self.pointer_constant = POINTER_CONSTANT[filename]
         self.pointers = self.get_pointers()
+        # Look for a spare block and designate it as such.
         try:
             spare_start, _ = SPARE_BLOCK[self.filename]
             for block in self.blocks:
                 if block.start == spare_start:
                     self.spare_block = block
                     block.is_spare = True
-
         except KeyError:
             self.spare_block = None
 
+        # Then look for a creature block and designate it as such.
         try:
             creature_start, _ = CREATURE_BLOCK[self.filename]
             for block in self.blocks:
@@ -139,7 +172,6 @@ class EXEFile(Gamefile):
         except KeyError:
             self.creature_block = None
         self.overflow_bytestrings = {}
-        # TODO: Make sure overflow bytestrings is empty when there's no spare_block.
 
     def edit_pointers_in_range(self, (start, stop), diff):
         """Edit all the pointers between two file offsets."""
@@ -170,6 +202,8 @@ class EXEFile(Gamefile):
     def move_overflow(self):
         """Move the overflow bytestrings into the spare block, and adjust the pointers."""
         if not self.spare_block:
+            if len(self.overflow_bytestrings) > 0:
+                print "Uh oh, stuff has spilled out but there's no room to store it!!"
             return None
 
         self.spare_block.blockstring = ""
@@ -203,13 +237,15 @@ class EXEFile(Gamefile):
         assert len(self.spare_block.blockstring)//2 <= self.spare_block.stop - self.spare_block.start
         self.spare_block.incorporate()
 
+"""
     def change_starting_map(self, map_number):
-        """Cheats! Load a different map instead of thelodus sea."""
+        # TODO: Better way of doing this?
         offset_in_rom = STARTING_MAP_NUMBER_LOCATION[self.filename] + self.location
         new_map_bytes = str(map_number).encode()
         with open(DEST_ROM_PATH, 'rb+') as f:
             f.seek(offset_in_rom)
             f.write(new_map_bytes)
+"""
 
 
 class DATFile(Gamefile):
@@ -220,21 +256,17 @@ class DATFile(Gamefile):
         self.blocks = []
         # DATFiles just get one big DATBlock.
         for block in file_blocks[self.filename]:
-            self.blocks.append(DATBlock(self, block))
+            self.blocks.append(Block(self, block))
 
         self.src_path = os.path.join(self.disk.src_path, filename)
 
-    def get_translations(self):
-        excel = DumpExcel(DUMP_XLS)
-        return excel.get_dat_translations(self)
-
     def translate(self):
         """Replace all japanese strings with english ones."""
-        for (japanese, english) in self.get_translations():
-            if english == "":
+        for trans in self.blocks[0].get_translations():
+            if trans.english == "":
                 continue
-            jp_bytestring = sjis_to_hex_string(japanese)
-            eng_bytestring = ascii_to_hex_string(english)
+            jp_bytestring = sjis_to_hex_string(trans.japanese)
+            eng_bytestring = ascii_to_hex_string(trans.english)
 
             self.filestring = self.filestring.replace(jp_bytestring, eng_bytestring, 1)
 
@@ -246,6 +278,9 @@ class Block(object):
         gamefile: The EXEFile or DATFile object it belongs to.
         start = Beginning offset of the block.
         stop  = Ending offset of the block.
+        original_blockstring: Hex string of entire block.
+        blockstring: Hex string of entire block for editing.
+        translations: List of Translation objects.
         """
 
     def __init__(self, gamefile, (start, stop)):
@@ -373,14 +408,6 @@ class Block(object):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))
 
 
-class DATBlock(Block):
-    """A text block for a DAT file. Gets simpler translations."""
-
-    def get_translations(self):
-        excel = DumpExcel(DUMP_XLS)
-        return excel.get_dat_translations(self)
-
-
 class Translation(object):
     """Has an offset, a SJIS japanese string, and an ASCII english string."""
     def __init__(self, block, location, japanese, english):
@@ -419,6 +446,10 @@ class Pointer(object):
             new_bytes = pack(new_value)
             new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
 
+            # TODO: This is likely a really time-intensive way to do this.
+            # A smarter thing to do would have been to use (mutable) bytearrays instead of
+            # "bytestrings" for all these string editing operations...
+
             string_before = self.gamefile.filestring[0:location_in_string]
             string_after = self.gamefile.filestring[location_in_string+4:]
 
@@ -439,7 +470,9 @@ class DumpExcel(object):
         self.workbook = load_workbook(self.path)
 
     def get_translations(self, block):
-        """Get the translations for an EXE file."""
+        """Get the translations for an EXE or DAT file."""
+        # !! Trying to make this work for DAT files as well. They still have offsets right?
+        # So they can make use of Translation() objects as well.
         trans = []    # translations[offset] = Translation()
         worksheet = self.workbook.get_sheet_by_name(block.gamefile.filename)
 
@@ -454,20 +487,6 @@ class DumpExcel(object):
                     english = ""
 
                 trans.append(Translation(block, offset, japanese, english))
-
-        return trans
-
-    def get_dat_translations(self, block):
-        """Retrieve the translations for dat files, which don't need offset info."""
-        trans = []
-        worksheet = self.workbook.get_sheet_by_name(block.gamefile.filename)
-
-        for row in worksheet.rows[1:]:
-            japanese = row[2].value
-            english = row[4].value
-
-            trans.append((japanese, english))
-
         return trans
 
 class PointerExcel(object):

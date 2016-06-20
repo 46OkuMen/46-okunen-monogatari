@@ -147,7 +147,7 @@ file_length = {'OPENING.EXE': 0x5e4b,
                'SEND.DAT': 0x874a}
 
 # Pointer tables have two bytes, determined by the file, which separate their values.
-pointer_separators = {
+POINTER_SEPARATORS = {
     'OPENING.EXE': ("68", "04"),
     'ST1.EXE': ("5e", "0d"),
     'ST2.EXE': ("f7", "0b"),

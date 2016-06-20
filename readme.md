@@ -18,4 +18,4 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 * Alternate Endings: 0% (0 / 723)
 
 ## How do I use this?
-* Wait for a patch to be released, of course. Then use LunarIPS or FLIPS to apply the patch to your 46 Okunen Monogatari .FDIs or .HDI.
+* Wait for a patch to be released, of course.

@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 import xlsxwriter
 
-from rominfo import file_blocks, pointer_constants
+from rominfo import file_blocks, POINTER_CONSTANT, POINTER_SEPARATORS
 
 from utils import capture_pointers_from_table, capture_pointers_from_function
 from utils import location_from_pointer
@@ -70,13 +70,14 @@ for file, blocks in file_blocks.iteritems():
     in_file = open(file_path, 'rb')
     file_length = os.stat(file_path).st_size
     
-    if file in pointer_constants:
+    # If it has pointers at all, look for them.
+    if file in POINTER_CONSTANT:
         bytes = in_file.read()
         only_hex = ""
         for c in bytes:
             only_hex += "\\x%02x" % ord(c)
 
-        first, second = pointer_separators[file]
+        first, second = POINTER_SEPARATORS[file]
 
         pointers = capture_pointers_from_table(first, second, only_hex)
         dialogue_pointers = capture_pointers_from_function(only_hex)
@@ -85,19 +86,18 @@ for file, blocks in file_blocks.iteritems():
             # pointer_locations[(file, text_location)] = [pointer1_location, pointer2,...]
             # Multiple pointer_locations for the same text_location...
 
-            #pointer_location = only_hex.index(p.group(0))/4  # Where is this pointer found?
             pointer_location = p.start()/4
 
             pointer_location = '0x%05x' % pointer_location
-            # And where does it point?
-            text_location = location_from_pointer((p.group(2), p.group(3)), pointer_constants[file])
+            # And where does it point to?
+            text_location = location_from_pointer((p.group(2), p.group(3)), POINTER_CONSTANT[file])
 
             if int(text_location, 16) > file_length:     # Clearly something is wrong.
                 # These include: the code that tells pointers to add the pointer constant, ...
+                # (Wait, what? Did I really figure out that's what the code is doing??)
                 #print "Weird pointer at", pointer_location, "points to", text_location
                 continue
 
-            #print text_location, pointer_location
             all_locations = [pointer_location,]
 
             if (file, text_location) in pointer_locations:
@@ -109,8 +109,7 @@ for file, blocks in file_blocks.iteritems():
         for p in dialogue_pointers:
             pointer_location = p.start()/4 + 2 # Don't include the identifier! Go 2 bytes after it.
             pointer_location = '0x%05x' % pointer_location
-            #print p.group(1), p.group(2)
-            text_location = location_from_pointer((p.group(1), p.group(2)), pointer_constants[file])
+            text_location = location_from_pointer((p.group(1), p.group(2)), POINTER_CONSTANT[file])
             if int(text_location, 16) > file_length:
                 #print "Weird pointer at", pointer_location, "points to", text_location
                 continue
@@ -124,11 +123,8 @@ for file, blocks in file_blocks.iteritems():
 
             pointer_locations[(file, text_location)] = all_locations
 
-        # So, it looks like some of the weird pointers are the table regex picking up lone 5e-0ds in the
-        # function code. Safe to ignore those.
-
     for (block_start, block_end) in blocks:
-        dat_dump = (file == 'SINKA.DAT' or file == 'SEND.DAT')
+        dat_dump = file.endswith('.DAT')
 
         if dat_dump:
             in_file = codecs.open(file_path, 'r', 'shift_jis')
@@ -154,7 +150,7 @@ for file, blocks in file_blocks.iteritems():
                     snippet_file.write(snippet.encode('shift_jis'))
                     snippet_file.close()
                     
-                    subprocess.call(r".\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
+                    subprocess.call(r".\utils\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
                     
                     dump_files.append(dump_file_path)
                     #os.remove(snippet_filename)
@@ -197,9 +193,9 @@ for file, blocks in file_blocks.iteritems():
                     #print dump_file_path
 
                     if DUMP_ASCII: 
-                        subprocess.call(r".\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
+                        subprocess.call(r".\utils\SJIS_Dump %s %s 1 1" % (snippet_file_path, dump_file_path))
                     else:
-                        subprocess.call(r".\SJIS_Dump %s %s 1 0" % (snippet_file_path, dump_file_path))
+                        subprocess.call(r".\utils\SJIS_Dump %s %s 1 0" % (snippet_file_path, dump_file_path))
                     # Last argument: whether to dump ASCII text as well.
                     # Don't want them for the clean JP text dump, but do want them for dealing with pointers.
                 
@@ -265,7 +261,6 @@ excel_row = 0
 
 for (source, text_location), pointer_locs in pointer_locations.iteritems():
     for ptr in pointer_locs:
-        # What is this try/except loop trying to do? Match up pointers with their text to put them on the sheet?
         try:
             # This isn't taking well to tuple unpacking... Ugly solution it is!
             #pointer_location = [d[1] for d in dump if d[0] == (source, text_location)][0][0]
