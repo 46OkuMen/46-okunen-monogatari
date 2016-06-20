@@ -129,6 +129,8 @@
 * Can I insert the team name into the credits? 
     * Probably quite difficult unless I take some guy out of the credits.
 
+* Looks like the .gitignore is on the fritz...
+
 ### common problems and their solutions
 * If a "&" appears before a string when it gets replaced:
     * There's probably an 81-40 sjis space in front of it. Add it to the JP part of the dump so it gets replaced.
