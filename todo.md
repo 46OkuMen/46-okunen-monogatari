@@ -80,6 +80,10 @@
 ### cheats.py
 
 ### length validation
+* I don't think unit tests are a good way to check the translation integrity.
+** I can probably write real unit tests, though, now that there's a more object oriented structure.
+** And I can just use a normal script to find all the strings that need shortening.
+
 * What is the best way to do editing for line lengths and such?
     * The simplest is that all strings definitely can't be over 76. (max for bottom narration)
         * All strings in SINKA.DAT and SEND.DAT must be below 68. (bottom narration - indent)

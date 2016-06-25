@@ -6,7 +6,6 @@ from utils import DUMP_XLS, onscreen_length
 from openpyxl import load_workbook
 from rominfo import CREATURE_BLOCK, CREATURE_MAX_LENGTH, DIALOGUE_MAX_LENGTH, DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH
 
-
 class TestDump:
 
     def test_increasing_offsets(self):
