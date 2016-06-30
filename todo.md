@@ -2,11 +2,6 @@
 * Crash upon leaving austrolepithecus village in ch5.
     * Mistaken text replacement? One of the choices you select is filled in and the other is not...
 
-* Menu crash in ch5 has returned.
-    * Looks like something is beting treated as overflowing when it shouldn't be...?
-    * Ah. Gotta end every block AFTER an <END> tag, not on the first one.
-    * It would be useful to have a test that sees if any file has overflow when it's passed a blank translation sheet...
-
 ## Mistaken Text Replacement
 * Lots of pointer oddities/mistaken replacement in ch5...
     * Pliopithecus 2nd dialogue, "Ancient Mammoth" nametag instead rewrites a mention of it in dialogue...
@@ -18,12 +13,14 @@
 
 ## Dump Problems
 * Should I consider dumping/getting translations for INST.EXE as well?
+    * A preliminary dump shows error messages, installation stuff. Will this ever be seen?? I should ask Skye.
 
-* Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump at all??
+* Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump from assisted_dump.py at all??
 
-* Carnivorous Dino Person has a missing piece of dialogue between 0xcf16 and 0xcf64.
+* Carnivorous Dino Person had a missing piece of dialogue between 0xcf16 and 0xcf64.
     * Same as below. Used sjis-dump to dump st5 again...
     * Should I be nervous whenever I see two nametags in a row?
+    * Oddly, this line of dialogue was present in the original dump I gave to kuoushi...?
 
 * ST2.EXE 0xd1fe nametag gets duplicated, skipping a line of dialogue. The skipped line shows up at 0xd3d3...
     * Fixed this. Not sure why it happened, unfortunately.
@@ -41,21 +38,7 @@
             * (I read about this later in one of Gideon Zhi's tutorials: http://agtp.romhack.net/docs/pointers.html )
         * Sometimes the game has multiple "Save Game" or "Load Game" strings with spaces/no spaces, sometimes they are combined in this way.
 
-* Why isn't "Escape" getting translated in 5-S3?
-    * It is; there are some weird ASCII spaces at the end of "Fight" and "Special" though in the original japanese...?
-    * Ooh, looks like one of my old tricks is backfiring - it truly is an ASCII space (20) and my script is replacing all those with SJIS spaces, so it can't find it in the original text.
-    * How about if I just add a space to the end of the english?
-        * Uh, that just adds another space to the one that's there...
-    * Hm. I fixed the space problem but I think this is something else - mistaken text replacement?
-        * Some battle message gets repeatedly messed up. It involves the kanji for "power".
-            * I removed the translations of "enemy"; no artifacts this time.
-    * Some problem with the latter half of the skills block?
-    * Remove everything in the block before the first "escape": menu item becoems "pe"
-        * Remove the space in the jp text: remains "pe"
-    * Hey, so this is the second "Escape" that's the issue.
-        * Or maybe it's the first, and mistaken text replacement makes it hard to spot....
-    * I think I can solve this by spacing the first several things cleverly...
-    	* Yeah. This is really the best option.
+* In ST5S3.EXE, you have to keep the battle options pretty much the same length, Some pointers are being weird.
 
 * Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
     * Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
@@ -63,10 +46,7 @@
         * Can I subtract a space from the preivous stat?
             * Yes.
     * Check to see if larger INT values run into the stat name later.
-
-* Also, any way to get an extra character in "TextSpeed:"? There's gotta be something I can rearrange.
-    * Looks like the message box size is fixed! The numnber appears as the last two characters of the box, overwriting whatever's there...
-    * ...But in ST2 I was able to add an SJIS space before it! That gives me room.
+        * Doesn't look like it - the game is intelligent about spacing text like that.
 
 ## Tools
 
@@ -74,10 +54,18 @@
 * Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.
     * This is tricky with length stuff, I think - the ln is only one character, so make sure the diff is still calculated correctly.
 
-* Better progress reporting.
-    * Separate the reporting into a different function. Build a dict of file, progress and process it in a function.
+* Rewriting the romstring, filestring, and blockstring properties to use bytearrays instead of immutable strings would improve speed a lot!
+    * This changes a lot of the biz logic, of course. (Mostly, string indexes are /2 of their original value, and so are lengths)
+
+### test.py
+* Assert that a blank translation sheet returns no overflow errors.
+    * If it does, that means that block is a byte or two too short.
+* A test suite would be good at telling if strings are where I think they are, and thereby spot mistaken reinsertion.
+* Assert that there is no overflow in files without a spare block.
+* String length validation.
 
 ### cheats.py
+* Get rid of this and make it a method of an EXEFile.
 
 ### length validation
 * I don't think unit tests are a good way to check the translation integrity.
@@ -130,8 +118,8 @@
 
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
 
-* Can I insert the team name into the credits? 
-    * Probably quite difficult unless I take some guy out of the credits.
+* Can I insert brag text into the credits?
+    * Probably quite difficult unless I take some poor developer out of the credits.
 
 * Looks like the .gitignore is on the fritz...
 
