@@ -125,6 +125,16 @@ class Gamefile(object):
         print self.filename, str(percentage), "% complete",
         print "(%s / %s)" % (replacements, strings)
 
+    def get_string(self, offset):
+        """Get a string at a particular offset in the file."""
+        result = ""
+        source = self.filestring[offset*2:]
+        byte_index = 0
+        while source[byte_index:byte_index+2] != "00": # TODO add other sep bytes. (you seppo)
+            result += source[byte_index:byte_index+2]
+            byte_index += 2
+        return result 
+
     def __repr__(self):
         return self.filename
 

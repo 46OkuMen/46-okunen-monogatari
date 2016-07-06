@@ -12,10 +12,21 @@
                 * It's tricky - it's a crash while loading the world map, right? The crash doesn't occur when loading the world map after exiting the mammoth graveyard...
                 * MAP500.MAP appears in 3-4 places in dialogue; all the other maps appear in a big block at 0x1061e.
                     * MAP500.MAP is indeed the starting map. (Not the vegetarian village one.)
+                * 4 pointers for MAP500.MAP are incorrect: 0x539f, 0x63d6, 0x65e9, 0x6681.
+                    * They point to 0x0100ec.
+                        * Its containing block: (0xebbe, 0x1061e).
+                        * Oh! Mistaken text replacement - "Voice" goes somewhere unexpected. (f2a9)
+                        * Also "Gaia" a bunch of places.
+    * Should be fixed after correcting the mistaken text replacement. Testing still needed.
+        * Also, I really really need a way to reduce or identify mistaken text replacement!!
+
 
 ## Mistaken Text Replacement
 * Lots of pointer oddities/mistaken replacement in ch5...
     * Pliopithecus 2nd dialogue, "Ancient Mammoth" nametag instead rewrites a mention of it in dialogue...
+* Watch out for strings like "Voice" and "Gaia," they get replaced in previous lines of dialogue a lot.
+
+* Lots of spaces at Ch5:0xfe7d; why?
 
 * One cause of mistaken text replacement is when the string appears twice after the last translated text - of course it'll translate the first one it finds after the last translated thing, regardless of whether it's in dialogue or whatever.
     * Maybe I'll use something else instead of last_replacement_offset in the reinserter.
@@ -77,6 +88,7 @@
 
 ### cheats.py
 * Get rid of this and make it a method of an EXEFile.
+* Anything I can do with the creature stat values? Can I decrease them, for example, in a way that makes me evolve into a bipedal creature faster for testing ch5?
 
 ### length validation
 * I don't think unit tests are a good way to check the translation integrity.
