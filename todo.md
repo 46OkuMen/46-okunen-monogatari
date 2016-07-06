@@ -18,6 +18,7 @@
                         * Oh! Mistaken text replacement - "Voice" goes somewhere unexpected. (f2a9)
                         * Also "Gaia" a bunch of places.
     * Should be fixed after correcting the mistaken text replacement. Testing still needed.
+        * Works now!!
         * Also, I really really need a way to reduce or identify mistaken text replacement!!
 
 
