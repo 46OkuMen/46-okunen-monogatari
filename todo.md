@@ -1,40 +1,19 @@
 ## Crashes
-* Crash upon leaving vegetarian village in ch5.
-    * Mistaken text replacement? One of the choices you select is filled in and the other is not...
-    * Attempting to do it with just ST5.EXE reinserted...
-        * Yeah, it looks like it's a problem with ST5.EXE.
-            * Mistaken text replacement? "Something mammoth related"
-            * Although I think this crash was happening before adding that line...
-            * Trying this without the two mammoth strings in ST5.EXE...
-                * Nope, still crashes.
-            * Can I at least figure out what map it is? Can I tell from the dialogue?
-                * In ST1.EXE the map load is right before the dialogue...
-                * It's tricky - it's a crash while loading the world map, right? The crash doesn't occur when loading the world map after exiting the mammoth graveyard...
-                * MAP500.MAP appears in 3-4 places in dialogue; all the other maps appear in a big block at 0x1061e.
-                    * MAP500.MAP is indeed the starting map. (Not the vegetarian village one.)
-                * 4 pointers for MAP500.MAP are incorrect: 0x539f, 0x63d6, 0x65e9, 0x6681.
-                    * They point to 0x0100ec.
-                        * Its containing block: (0xebbe, 0x1061e).
-                        * Oh! Mistaken text replacement - "Voice" goes somewhere unexpected. (f2a9)
-                        * Also "Gaia" a bunch of places.
-    * Should be fixed after correcting the mistaken text replacement. Testing still needed.
-        * Works now!!
-        * Also, I really really need a way to reduce or identify mistaken text replacement!!
-
 
 ## Mistaken Text Replacement
-* Lots of pointer oddities/mistaken replacement in ch5...
-    * Pliopithecus 2nd dialogue, "Ancient Mammoth" nametag instead rewrites a mention of it in dialogue...
-* Watch out for strings like "Voice" and "Gaia," they get replaced in previous lines of dialogue a lot.
+* In the middle of finding a better way to slice the blockstring when looking for the original jp_bytestring.
+    * I still get like 5-10 strings per program which are not at their expected locations. Currently they're being handled by using the entire old blockstring as the slice to be searched, which means if the string appears as a substring of some other previous string, it'll do mistaken text replacement.
+        * So what's going on with these strings?
 
-* Lots of spaces at Ch5:0xfe7d; why?
+* It'd be nice if I had a tool that checked the jp strings to see if they're substrings of any previous string, so I could have a list of what could go wrong if I can't fix mistaken text replacement as a whole.
 
 * One cause of mistaken text replacement is when the string appears twice after the last translated text - of course it'll translate the first one it finds after the last translated thing, regardless of whether it's in dialogue or whatever.
-    * Maybe I'll use something else instead of last_replacement_offset in the reinserter.
 
 ## Non-Crash Glitches
 
 ## Dump Problems
+* Lots of spaces at Ch5:0xfe7d; why?
+
 * Should I consider dumping/getting translations for INST.EXE as well?
     * A preliminary dump shows error messages, installation stuff. Will this ever be seen?? I should ask Skye.
 

@@ -229,8 +229,8 @@ class EXEFile(Gamefile):
                 for block in self.blocks:
                     for trans in block.translations:
                         if trans.location == offset:
-                            jp_bytestring = sjis_to_hex_string(trans.japanese)
-                            en_bytestring = ascii_to_hex_string(trans.english)
+                            jp_bytestring = trans.jp_bytestring
+                            en_bytestring = trans.en_bytestring
 
                             this_string_diff = len(en_bytestring) - len(jp_bytestring) // 2
                             j = ov_bytestring.index(jp_bytestring)
@@ -276,9 +276,9 @@ class DATFile(Gamefile):
             if trans.english == "":
                 continue
             jp_bytestring = sjis_to_hex_string(trans.japanese)
-            eng_bytestring = ascii_to_hex_string(trans.english)
+            en_bytestring = ascii_to_hex_string(trans.english)
 
-            self.filestring = self.filestring.replace(jp_bytestring, eng_bytestring, 1)
+            self.filestring = self.filestring.replace(jp_bytestring, en_bytestring, 1)
 
 
 class Block(object):
@@ -316,7 +316,7 @@ class Block(object):
         """Replace each japanese string in the block with the translated english string."""
         pointer_diff = 0
         previous_text_offset = self.start
-        previous_replacement_offset = 0
+        #previous_replacement_offset = 0
         is_overflowing = False
 
         for trans in self.translations:
@@ -324,17 +324,17 @@ class Block(object):
                 # Leave immediately; the rest of this string is in gamefile.overflow_bytestrings now.
                 break
 
-            jp_bytestring = sjis_to_hex_string(trans.japanese)
-            eng_bytestring = ascii_to_hex_string(trans.english)
+            jp_bytestring = trans.jp_bytestring
+            en_bytestring = trans.en_bytestring
 
             # jp_bytestring might include ASCII; if it's not found, try the ascii preserving method.
             try:
                 j = self.blockstring.index(jp_bytestring)
             except ValueError: # substring not found
-                jp_bytestring = sjis_to_hex_string(trans.japanese, preserve_spaces=True)
+                jp_bytestring = trans.jp_bytestring_alt
 
-            if eng_bytestring:
-                new_text_offset = trans.location + len(eng_bytestring)//2 + pointer_diff
+            if en_bytestring:
+                new_text_offset = trans.location + len(en_bytestring)//2 + pointer_diff
             else:
                 new_text_offset = trans.location + len(jp_bytestring)//2 + pointer_diff
 
@@ -373,28 +373,45 @@ class Block(object):
                 jp_bytestring = overflow_bytestring
 
             # Recalculate in case it got altered due to overflow.
-            eng_bytestring = ascii_to_hex_string(eng)
-            this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
+            en_bytestring = ascii_to_hex_string(eng)
+            this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
 
             # Pad creature name strings.
             if self.is_creature:
                 if self.start <= trans.location <= self.stop:
                     if this_string_diff <= 0:
-                        eng_bytestring += "00"*(this_string_diff*(-1))
+                        en_bytestring += "00"*(this_string_diff*(-1))
                     else:
                         jp_bytestring += "00"*(this_string_diff)
-                    this_string_diff = (len(eng_bytestring) - len(jp_bytestring)) // 2
+                    this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
                     assert this_string_diff == 0, 'creature diff not 0'
 
-            pointer_diff += this_string_diff
+            # Method 1: old method. keep track of last replacement, start looking there
+            #old_slice = self.blockstring[previous_replacement_offset*2:]
 
-            old_slice = self.blockstring[previous_replacement_offset*2:]
-            i = old_slice.index(jp_bytestring)//2
-            previous_replacement_offset += i//2
-            new_slice = old_slice.replace(jp_bytestring, eng_bytestring, 1)
+            # Method 2: using where the string should be.
+            location_in_blockstring = ((pointer_diff + trans.location - self.start) * 2)
+            old_slice = self.blockstring[location_in_blockstring:]
 
-            #j = self.blockstring.index(old_slice)
+            try:
+                i = old_slice.index(jp_bytestring)//2
+            except ValueError:
+                # Sometimes the location_in_blockstring is just wrong... I wonder why?
+                old_slice = self.blockstring
+                i = old_slice.index(jp_bytestring)//2
+
+            if i > 2:    # text on final lines of dialogue has an i=2.
+                try:
+                    print trans, "location in blockstring is too high, i =", i
+                    print "predicted location was", location_in_blockstring
+                except UnicodeEncodeError:
+                    print "something might have been replaced incorrectly, i =", i
+            #previous_replacement_offset += i//2
+            new_slice = old_slice.replace(jp_bytestring, en_bytestring, 1)
+
             self.blockstring = self.blockstring.replace(old_slice, new_slice, 1)
+
+            pointer_diff += this_string_diff
 
         self.incorporate()
 
@@ -427,11 +444,10 @@ class Translation(object):
         self.english = english
         self.block = block
 
-    #def jp_bytestring(self):
-    #    return sjis_to_hex_string(self.japanese)#
+        self.jp_bytestring = sjis_to_hex_string(japanese)
+        self.en_bytestring = ascii_to_hex_string(english)
 
-    #def en_bytestring(self):
-    #    return ascii_to_hex_string(self.english)
+        self.jp_bytestring_alt = sjis_to_hex_string(japanese, preserve_spaces=True)
 
     def __repr__(self):
         return hex(self.location) + " " + self.english
@@ -465,7 +481,7 @@ class Pointer(object):
 
             rom_bytestring = self.gamefile.filestring[location_in_string:location_in_string+4]
             if self.old_bytestring != rom_bytestring:
-                print "This one got edited before; make sure it's right"
+                print "Pointer at %s got edited before; make sure it's right" % hex(self.location)
 
             self.gamefile.filestring = string_before + new_bytestring + string_after
 
