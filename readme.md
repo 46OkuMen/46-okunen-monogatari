@@ -5,10 +5,10 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 
 ## Reinsertion Progress:
 * Prologue: 28% (13 / 45)
-* Chapter 1: 80% (404 / 500)
-* Chapter 2: 28% (124 / 434)
+* Chapter 1: 81% (408 / 500)
+* Chapter 2: 29% (126 / 434)
 * Chapter 3: 26% (89 / 340)
-* Chapter 4: 22% (165 / 746)
+* Chapter 4: 23% (172 / 746)
 * Chapter 5: 20% (186 / 892)
 * Chapter 6: 17% (55 / 319)
 * Epilogue: 0% (0 / 69)
