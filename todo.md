@@ -1,18 +1,15 @@
 ## Crashes
+* The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
 ## Mistaken Text Replacement
 * In the middle of finding a better way to slice the blockstring when looking for the original jp_bytestring.
     * I still get like 5-10 strings per program which are not at their expected locations. Currently they're being handled by using the entire old blockstring as the slice to be searched, which means if the string appears as a substring of some other previous string, it'll do mistaken text replacement.
         * So what's going on with these strings?
 
-* It'd be nice if I had a tool that checked the jp strings to see if they're substrings of any previous string, so I could have a list of what could go wrong if I can't fix mistaken text replacement as a whole.
-
-* One cause of mistaken text replacement is when the string appears twice after the last translated text - of course it'll translate the first one it finds after the last translated thing, regardless of whether it's in dialogue or whatever.
-
 ## Non-Crash Glitches
 
 ## Dump Problems
-* Lots of spaces at Ch5:0xfe7d; why?
+* Lots of spaces at Ch5:0xfe7d; why???
 
 * Should I consider dumping/getting translations for INST.EXE as well?
     * A preliminary dump shows error messages, installation stuff. Will this ever be seen?? I should ask Skye.
@@ -53,6 +50,8 @@
 ## Tools
 
 ### reinsert.py
+* One of the .DAT files isn't taking kindly to something I did recently.
+
 * Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.
     * This is tricky with length stuff, I think - the ln is only one character, so make sure the diff is still calculated correctly.
 
@@ -104,6 +103,8 @@
         * Look into Travis CI or whatever standard windows build tools there are.
     * Looks like the best option is floating ips, or flips. I can make a batch file to make multiple patches.
     	* Although that doesn't play well with the command line... hm...
+
+* More centralized documentation. How do pointers work? How is the game organized? etc.
 
 * I wonder if the dump has grown more complicated and might need a database.
     * SQL queries insetad of loading the data from the xls sheet and manipulating it in memory.

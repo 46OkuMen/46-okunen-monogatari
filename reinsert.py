@@ -5,8 +5,8 @@ from cheats import change_starting_map
 
 from disk import Disk, EXEFile, DATFile
 
-FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE',] #'ST5S1.EXE',
-                    #  'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'OPENING.EXE', 'SINKA.DAT']
+FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
+                      'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'OPENING.EXE'] #'SINKA.DAT',
                       #'ENDING.EXE', 'SEND.DAT']
 
 # for testing the oh-so-problematic Ch5:

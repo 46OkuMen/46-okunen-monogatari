@@ -316,7 +316,6 @@ class Block(object):
         """Replace each japanese string in the block with the translated english string."""
         pointer_diff = 0
         previous_text_offset = self.start
-        #previous_replacement_offset = 0
         is_overflowing = False
 
         for trans in self.translations:
@@ -406,7 +405,7 @@ class Block(object):
                     print "predicted location was", location_in_blockstring
                 except UnicodeEncodeError:
                     print "something might have been replaced incorrectly, i =", i
-            #previous_replacement_offset += i//2
+
             new_slice = old_slice.replace(jp_bytestring, en_bytestring, 1)
 
             self.blockstring = self.blockstring.replace(old_slice, new_slice, 1)
@@ -490,14 +489,13 @@ class Pointer(object):
 
 
 class DumpExcel(object):
-    """Takes a dump excel path, and lets you get translations from it."""
+    """Takes a dump excel path, and lets you get a block's translations from it."""
     def __init__(self, path):
         self.path = path
         self.workbook = load_workbook(self.path)
 
     def get_translations(self, block):
         """Get the translations for an EXE or DAT file."""
-        # !! Trying to make this work for DAT files as well. They still have offsets right?
         # So they can make use of Translation() objects as well.
         trans = []    # translations[offset] = Translation()
         worksheet = self.workbook.get_sheet_by_name(block.gamefile.filename)
