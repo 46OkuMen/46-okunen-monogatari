@@ -41,11 +41,12 @@ def test_substrings_of_earlier_strings():
                     jp_string = row[2].value 
                     if isinstance(jp_string, basestring):
                         for i in previous_jp_strings:    # Repeats (nametags, etc) are also substrings!
-                            if jp_string in i[0]:
-                                print "%s %s: is a substring of %s" % (gamefile, row[0].value, i[1])
+                            if jp_string in i[0] and row[4].value:     # If it's occurred before AND it's been translated:
+                                print "%s %s: is a substring of the untranslated %s" % (gamefile, row[0].value, i[1])
                                 # More informative way of doing this...? Terminal can't display jp text though.
                                 break
-                        previous_jp_strings.append((jp_string, row[0].value))
+                        if row[4].value is None:
+                            previous_jp_strings.append((jp_string, row[0].value))
 
 def test_all_string_lengths():
     """Corasest string test. No string can be longer than 76."""
