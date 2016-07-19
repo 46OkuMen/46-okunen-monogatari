@@ -46,6 +46,7 @@ class Disk(object):
 
     def translate(self):
         """Perform translation and reinsertion."""
+        # TODO: This is probably the kind of "method that does everything" I should avoid...
         for gamefile in self.gamefiles:
             if gamefile.filename.endswith('DAT'):
                 gamefile.translate()
@@ -53,6 +54,10 @@ class Disk(object):
             else:
                 for block in gamefile.blocks:
                     block.edit_text()
+                try:
+                    gamefile.creature_block.edit_text()
+                except:
+                    pass
                 gamefile.move_overflow()
                 gamefile.incorporate()
                 gamefile.write()
@@ -67,7 +72,8 @@ class Disk(object):
 
 
 class Gamefile(object):
-    """Any file on the disk targeted for reinsertion.
+    """
+    Any file on the disk targeted for reinsertion.
 
     Attributes:
         filename: String with filename and extension.
@@ -114,6 +120,7 @@ class Gamefile(object):
         replacements = 0
 
         for block in self.blocks:
+            # TODO: This currently doesn't include the creautre block.
             for trans in block.translations:
                 if isinstance(trans.japanese, float):
                     # Skip the numbers in .DAT files, they're boring
@@ -127,10 +134,11 @@ class Gamefile(object):
 
     def get_string(self, offset):
         """Get a string at a particular offset in the file."""
+        # TODO: Not currently in use, or working...?
         result = ""
         source = self.filestring[offset*2:]
         byte_index = 0
-        while source[byte_index:byte_index+2] != "00": # TODO add other sep bytes. (you seppo)
+        while source[byte_index:byte_index+2] not in ['00', '0A']: # TODO add other sep bytes. (you seppo)
             result += source[byte_index:byte_index+2]
             byte_index += 2
         return result 
@@ -161,6 +169,7 @@ class EXEFile(Gamefile):
         Gamefile.__init__(self, disk, filename)
         self.pointer_constant = POINTER_CONSTANT[filename]
         self.pointers = self.get_pointers()
+
         # Look for a spare block and designate it as such.
         try:
             spare_start, _ = SPARE_BLOCK[self.filename]
@@ -173,14 +182,14 @@ class EXEFile(Gamefile):
 
         # Then look for a creature block and designate it as such.
         try:
-            creature_start, _ = CREATURE_BLOCK[self.filename]
+            creature_start, creature_stop = CREATURE_BLOCK[self.filename]
             for block in self.blocks:
                 if block.start == creature_start:
-                    self.creature_block = block
-                    block.is_creature = True
-
+                    self.creature_block = CreatureBlock(self, (creature_start, creature_stop))
+                    self.blocks.remove(block)
         except KeyError:
             self.creature_block = None
+
         self.overflow_bytestrings = {}
 
     def edit_pointers_in_range(self, (start, stop), diff):
@@ -206,8 +215,7 @@ class EXEFile(Gamefile):
                 return offset
         # If there are no other pointers, just return the hi value.
 
-        return stop                            # but it's not +1 here???
-        # "Don't leave me! I still love you!"
+        return stop
 
     def move_overflow(self):
         """Move the overflow bytestrings into the spare block, and adjust the pointers."""
@@ -218,7 +226,6 @@ class EXEFile(Gamefile):
 
         self.spare_block.blockstring = ""
 
-        # TODO: Pylint be damned, (lo, hi) is a much better nomenclature.
         for (start, stop), ov_bytestring in self.overflow_bytestrings.iteritems():
             pointer_diff = (self.spare_block.start - start) + len(self.spare_block.blockstring)//2
             previous_text_location = start
@@ -228,7 +235,7 @@ class EXEFile(Gamefile):
             for offset in range(start, stop):
                 for block in self.blocks:
                     for trans in block.translations:
-                        if trans.location == offset:
+                        if trans.location == offset:  # TODO use a list comp instead
                             jp_bytestring = trans.jp_bytestring
                             en_bytestring = trans.en_bytestring
 
@@ -304,11 +311,12 @@ class Block(object):
         self.blockstring = "" + self.original_blockstring
         self.translations = self.get_translations()
 
-        self.is_creature = False
         self.is_spare = False
 
     def get_translations(self):
         """Grab all translations in this block."""
+        # TODO: This is hilariously slow, I need to call it maybe once per file tops.
+        print "calling get_translations() on block", self
         excel = DumpExcel(DUMP_XLS)
         return excel.get_translations(self)
 
@@ -375,16 +383,6 @@ class Block(object):
             en_bytestring = ascii_to_hex_string(eng)
             this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
 
-            # Pad creature name strings.
-            if self.is_creature:
-                if self.start <= trans.location <= self.stop:
-                    if this_string_diff <= 0:
-                        en_bytestring += "00"*(this_string_diff*(-1))
-                    else:
-                        jp_bytestring += "00"*(this_string_diff)
-                    this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
-                    assert this_string_diff == 0, 'creature diff not 0'
-
             # Method 1: old method. keep track of last replacement, start looking there
             #old_slice = self.blockstring[previous_replacement_offset*2:]
 
@@ -432,6 +430,51 @@ class Block(object):
 
     def __repr__(self):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))
+
+
+class CreatureBlock(Block):
+    """
+    The creature block has all the names of creatures in that file, plus some stat info.
+    There's a consistent length to each creature's entry in this block which can't be altered.
+    If you pad the creature's name with spaces, the spaces show up in gameplay text...
+    But if you pad it with 00 bytes, everything is fine!
+    So no pointers need to be adjusted, you just need to pad the strings.
+    So the edit_text() method is a lot simpler for a CreatureBlock.
+    """
+
+    def edit_text(self):
+        for trans in self.translations:
+            jp_bytestring = trans.jp_bytestring
+            en_bytestring = trans.en_bytestring
+
+            this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
+
+            if this_string_diff <= 0:
+                en_bytestring += "00"*(this_string_diff*(-1))
+            else:
+                jp_bytestring += "00"*(this_string_diff)
+
+            this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
+            assert this_string_diff == 0, 'creature diff not 0'
+
+            location_in_blockstring = (trans.location - self.start) * 2
+            old_slice = self.blockstring[location_in_blockstring:]
+
+            try:
+                i = old_slice.index(jp_bytestring)//2
+            except ValueError:
+                old_slice = self.blockstring
+                i = old_slice.index(jp_bytestring)//2
+
+            new_slice = old_slice.replace(jp_bytestring, en_bytestring, 1)
+
+            self.blockstring = self.blockstring.replace(old_slice, new_slice, 1)
+
+        self.incorporate()
+
+
+class SpareBlock(Block):
+    pass
 
 
 class Translation(object):

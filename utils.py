@@ -3,6 +3,10 @@
 import os, re
 from rominfo import file_blocks
 
+"""
+Constants for filenames and locations.
+"""
+
 SCRIPT_DIR = os.path.dirname(__file__)
 SRC_PATH = os.path.join(SCRIPT_DIR, 'intermediate_roms')
 DEST_PATH = os.path.join(SCRIPT_DIR, 'patched_roms')
@@ -14,8 +18,11 @@ RAW_DUMP_XLS = 'shinkaron_dump.xlsx'
 DUMP_XLS = "shinkaron_dump_test.xlsx"
 POINTER_XLS = "shinkaron_pointer_dump.xlsx"
 
-pointer_regex = r"(\\x[0-f][0-f]\\x[0-f][0-f](\\x[0-f][0-f])(\\x[0-f][0-f]))((\\x[0-f][0-f])\\x[0-f][0-f]\2\3(?!\3\5)){7,}"
-new_dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])" # Minus the \\x50. Adds 50 more pointers.
+"""
+Regex and methods to capture pointers from the file bytestring.
+"""
+
+dialogue_pointer_regex = r"\\x1e\\xb8\\x([0-f][0-f])\\x([0-f][0-f])" # Minus the \\x50. Adds 50 more pointers.
 
 # Binary patterns used in GDT pattern encoding
 gdt_patterns = [0b00000000, 0b00100010, 0b01010101, 0b01110111, 0b11111111, 0b11011101, 0b10101010, None, 0b00000000, 
@@ -23,14 +30,18 @@ gdt_patterns = [0b00000000, 0b00100010, 0b01010101, 0b01110111, 0b11111111, 0b11
                (0b11011101, 0b01110111), (0b10101010, 0b01010101), None]
 
 def capture_pointers_from_table(first, second, hx):
+    # Doesn't usethe original  pointer_regex above - better results when you specifically look for
+    # the bytes in the file-specific pointer separators.
     return re.compile(r'(\\x([0-f][0-f])\\x([0-f][0-f])\\x%s\\x%s)' % (first, second)).finditer(hx)
 
 
 def capture_pointers_from_function(hx):
-    # No first and second; always preceded by 1E-B8 which is in the regex
-    return re.compile(new_dialogue_pointer_regex).finditer(hx)
-    # old: 4276 pointers
-    # new: 4326 pointers
+    # No arguments here; dialogue pointers always preceded by 1E-B8 which is in the regex
+    return re.compile(dialogue_pointer_regex).finditer(hx)
+
+"""
+Methods to interpret values of little-endian pointers and their 
+"""
 
 
 def unpack(s, t):
