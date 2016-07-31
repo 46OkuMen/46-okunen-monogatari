@@ -22,10 +22,10 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 ## How do I use this?
 * Wait for a patch to be released, of course.
 * The patch will target this ROM:
-	* 46 Okunen Monogatari - The Sinkaron (J) A user.FDI 'md5: C1960717957E4BF4755FD848E0614FD4'
-	* 46 Okunen Monogatari - The Sinkaron (J) B 1.FDI 'md5: EE852EC006ACD94C9CFB04B2505A51D7'
-	* 46 Okunen Monogatari - The Sinkaron (J) B 2.FDI 'md5: 3C1C0FBE1CF0A4C1B4574FFC26A490AB'
-	* 46 Okunen Monogatari - The Sinkaron (J) B 3.FDI 'md5: A3934EED652627ABB45A756F13EC531A'
-	* 46 Okunen Monogatari - The Sinkaron (J) B 4.FDI 'md5: 60E4D019F0CEF79C3D2EA3D44E6BF70E'
+	* 46 Okunen Monogatari - The Sinkaron (J) A user.FDI `md5: C1960717957E4BF4755FD848E0614FD4`
+	* 46 Okunen Monogatari - The Sinkaron (J) B 1.FDI `md5: EE852EC006ACD94C9CFB04B2505A51D7`
+	* 46 Okunen Monogatari - The Sinkaron (J) B 2.FDI `md5: 3C1C0FBE1CF0A4C1B4574FFC26A490AB`
+	* 46 Okunen Monogatari - The Sinkaron (J) B 3.FDI `md5: A3934EED652627ABB45A756F13EC531A`
+	* 46 Okunen Monogatari - The Sinkaron (J) B 4.FDI `md5: 60E4D019F0CEF79C3D2EA3D44E6BF70E`
 * Support is later planned for this hardware-compatible ROM:
-	* 46okunenm.hdi 'md5: 2B00A01944048980647FCE7ADEF07F57'
+	* 46okunenm.hdi `md5: 2B00A01944048980647FCE7ADEF07F57`
