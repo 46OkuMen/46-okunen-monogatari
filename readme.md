@@ -5,7 +5,7 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 
 ## Reinsertion Progress:
 | Segment      | %    | Strings      |
-| -------------|-----:| -------------|
+| -------------|-----:|:------------:|
 | Opening      | 28%  |  (13 / 45)   |
 | Chapter 1    | 81%  | (408 / 500)  |
 | Chapter 2    | 29%  | (126 / 434)  |
@@ -20,7 +20,7 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 | Gag Endings  |  0%  | (0 / 723)    |
 
 ## How do I use this?
-* Wait for a patch to be released, of course.
+* You can't use anything yet, just wait for a patch to be released.
 * The patch will target this ROM:
 	* 46 Okunen Monogatari - The Sinkaron (J) A user.FDI `md5: C1960717957E4BF4755FD848E0614FD4`
 	* 46 Okunen Monogatari - The Sinkaron (J) B 1.FDI `md5: EE852EC006ACD94C9CFB04B2505A51D7`
