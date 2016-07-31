@@ -35,7 +35,7 @@ def test_substrings_of_earlier_strings():
     for gamefile in file_blocks:
         ws = wb.get_sheet_by_name(gamefile)
         for (start, stop) in file_blocks[gamefile]:
-            previous_jp_strings = []
+            previous_untranslated_jp = []
             for index, row in enumerate(ws.rows[1:]):
                 if start <= int(row[0].value, 16) <= stop:
                     jp_string = row[2].value 
@@ -45,8 +45,9 @@ def test_substrings_of_earlier_strings():
                                 print "%s, '%s' is a substring of the untranslated string at %s" % (gamefile, row[4].value, i[1])
                                 # More informative way of doing this...? Terminal can't display jp text though.
                                 break
+                        # Add it to the 
                         if row[4].value is None:
-                            previous_jp_strings.append((jp_string, row[0].value))
+                            previous_untranslated_jp.append((jp_string, row[0].value))
 
 def test_all_string_lengths():
     """Corasest string test. No string can be longer than 76."""

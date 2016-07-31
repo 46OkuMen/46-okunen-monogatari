@@ -23,7 +23,7 @@
 
 * ST2.EXE 0xd1fe nametag gets duplicated, skipping a line of dialogue. The skipped line shows up at 0xd3d3...
     * Fixed this. Not sure why it happened, unfortunately.
-
+ 
 ## Text Fixes
 * Why are various humanoid creatures in ch5 showing up with different names in their nametag and HP bar?
     * "Vegetarian Monkey People" show up as creature type "Neanderthal".
@@ -62,7 +62,7 @@
 
 ### test.py
 * Assert that a blank translation sheet returns no overflow errors.
-    * If it does, that means that block is a byte or two too short.
+    * If there are errors, that means that block is a byte or two too short in rominfo.py.
 * A test suite would be good at telling if strings are where I think they are, and thereby spot mistaken reinsertion.
 * Assert that there is no overflow in files without a spare block.
 * String length validation.
