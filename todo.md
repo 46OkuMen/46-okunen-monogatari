@@ -57,6 +57,10 @@
 * Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.
     * This is tricky with length stuff, I think - the ln is only one character, so make sure the diff is still calculated correctly.
 
+* Allow a "~" in the excel to be converted to a space for reinsertion.
+    * It's super difficult to keep track of spaces and such, especially when they're /after/ strings - if I can replace them all with tildes, it will cause fewer mystery crashes.
+    * Also it won't be as simple as a Ctrl-H replace - there are spaces in between words, remember? Gotta use a regex, if excel makes that easy enough.
+
 * Rewriting the romstring, filestring, and blockstring properties to use bytearrays instead of immutable strings would improve speed a lot!
     * This changes a lot of the biz logic, of course. (Mostly, string indexes are /2 of their original value, and so are lengths)
 
