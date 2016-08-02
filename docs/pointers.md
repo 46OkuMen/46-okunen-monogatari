@@ -1,4 +1,4 @@
-## Pointers in 46 Okunen Monogatari ##
+# Pointers in 46 Okunen Monogatari #
 In order to change the length of any individual string in the game without throwing the rest of the game out of alignment, you need to change pointers. Thus, finding every last pointer and changing them in precisely the right way is probably the largest part of the project.
 
 Here's how they work, so you can skip all the reverse engineering and/or blind pawing that was performed on this game.
@@ -10,30 +10,32 @@ Pointers come in two types: system pointers and dialogue pointers.
 ### System Pointers ###
 These are the more obvious of the two - every ROMhacking tutorial says "look for a repeating, increasing sequence of bytes before a bunch of text." Yeah, 46 Okunen Monogatari has this kind of pointers.
 
-System pointers live in tables with four-byte-long rows, the first two bytes being the pointer, and the second two bytes being another file-specific set of bytes. Here's a table in `ST1.EXE`:
+System pointers live in tables with four-byte-long rows, the first two bytes being the pointer, and the second two bytes being another file-specific set of bytes. Here's a table at `ST1.EXE:0x10f96`:
 
-`62-46-5e-0d`
-`6b-45-5e-0d`
-`8a-45-5e-0d` 
+`e7-3f-5e-0d`
+`ec-3f-5e-0d`
+`f3-3f-5e-0d`
+`f5-3f-5e-0d`
+`00-40-5e-0d`...
 
-The pointer separator bytes, `5e-0d`, don't appear to mean anything, they must be defined somewhere and looked for by the program.
+The pointer separator bytes ofr this file, `5e-0d`, don't appear to mean anything, they must be defined somewhere and looked for by the program.
 
 The pointer itself is little-endian, since the PC-98 is on an x86 system. So to get the pointer's value, first reverse the two bytes and treat it as a single number:
 
-`6b-45`
-`45-6b`
-`0x456b`
+`e7-3f -> 0x3fe7`
 
 Then, add the file's pointer constant to this number:
 
-` 0x456b`
+` 0x3fe7
 `+0xd7e0`
 `-------`
-`0x11d4b`
+`0x117c7`
 
-Which is the location of... hm. Some error message. Great!
+Which is to a Japanese word for "Yes." It's right above the creature name block, so I was expecting something more exciting... but the tables don't always point where you expect them to.
 
 The pointers don't always increase, which is annoying because I was looking for that.
+
+If the pointer values are all increasing by 4, it's probably a table of pointer-pointers. As in the table exists only to point to the pointers of another table.
 
 Also, there are a few tables in each file that appear to be system pointer tables, but they are separated with the bytes `00-00` instead of the pointer separators. I have learned not to mess with them - I think they point to functions or system things. Not totally sure how to use them, though.
 
@@ -45,3 +47,5 @@ I had to ask for help on finding these - they're hiding pretty deep, hard-coded 
 Anyway, each pointer announces itself with a prefix `1e-b8`, and usually ends with a suffix `50-ff`.
 
 'Usually'? I ended up not including the `50-ff` in my regex to search for dialogue pointers. There are about 50 pointers (out of like 4,824) that don't have this suffix, for whatever reason. Weird.
+
+Once you get the pointer value, you reverse the bytes and add the pointer constant as described above.
