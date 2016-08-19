@@ -128,6 +128,7 @@ class Gamefile(object):
                 strings += 1
                 if trans.english:
                     replacements += 1
+
         percentage = int(floor((replacements / strings) * 100))
         print self.filename, str(percentage), "% complete",
         print "(%s / %s)" % (replacements, strings)
@@ -253,6 +254,30 @@ class EXEFile(Gamefile):
 
         assert len(self.spare_block.blockstring)//2 <= self.spare_block.stop - self.spare_block.start
         self.spare_block.incorporate()
+
+    def report_progress(self):
+        """Calculate and print the progress made in translating this file. Include creature block."""
+        strings = 0
+        replacements = 0
+
+        for block in self.blocks:
+            for trans in block.translations:
+                if isinstance(trans.japanese, float):
+                    # Skip the numbers in .DAT files, they're boring
+                    continue
+                strings += 1
+                if trans.english:
+                    replacements += 1
+
+        if self.creature_block:
+            for c in self.creature_block.translations:
+                strings += 1
+                if c.english:
+                    replacements += 1
+                    
+        percentage = int(floor((replacements / strings) * 100))
+        print self.filename, str(percentage), "% complete",
+        print "(%s / %s)" % (replacements, strings)
 
 """
     def change_starting_map(self, map_number):
