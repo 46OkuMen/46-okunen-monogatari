@@ -40,7 +40,7 @@ def capture_pointers_from_function(hx):
     return re.compile(dialogue_pointer_regex).finditer(hx)
 
 """
-Methods to interpret values of little-endian pointers and their 
+Methods to interpret values of little-endian pointers and the values they point to.
 """
 
 
@@ -60,18 +60,15 @@ def pack(h):
 def location_from_pointer(pointer, constant):
     return '0x' + str(format((unpack(pointer[0], pointer[1]) + constant), '05x'))
 
-
 def pointer_value_from_location(offset, constant):
     # Subtract the constant, pack it. Then that's the value to look for among the pointers already mapped out in excel.
     return offset - constant
-
 
 def get_current_block(text_offset, file):
     for index, block in enumerate(file.blocks):
         lo, hi = block.location
         if (text_offset >= lo) and (text_offset < hi):
             return index
-
 
 def first_offset_in_block(file, block_index, offsets):
     if not offsets:
@@ -89,7 +86,6 @@ def compare_strings(a, b):
     except IndexError:
         return "strings different lengths, so probably different"
 
-
 def file_to_hex_string(file_path, start=0, length=0):
     # Defaults: read full file from start.
     hex_string = ""
@@ -103,7 +99,6 @@ def file_to_hex_string(file_path, start=0, length=0):
             hex_string += "%02x" % ord(c)
     return hex_string
 
-
 def ascii_to_hex_string(eng):
     """Returns a hex string of the ascii bytes of a given english (translated) string."""
     eng_bytestring = ""
@@ -113,7 +108,6 @@ def ascii_to_hex_string(eng):
         for char in eng:
             eng_bytestring += "%02x" % ord(char)
         return eng_bytestring
-
 
 def sjis_to_hex_string(jp, preserve_spaces=False):
     """Returns a hex string of the Shift JIS bytes of a given japanese string."""
@@ -127,7 +121,6 @@ def sjis_to_hex_string(jp, preserve_spaces=False):
                 hexchar = '8140'
         jp_bytestring += hexchar
     return jp_bytestring
-
 
 def onscreen_length(eng):
     """ASCII numbers are displayed as full-width characters ingame, so their length is 2."""

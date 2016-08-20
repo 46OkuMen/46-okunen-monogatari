@@ -104,24 +104,12 @@
         * Uh this is pretty difficult. I think I will wait til I study some more string algorithms to know what I'm doing here.
 
 ### other
-* Actually make a patch!
-    * It'd be nice to generate a patch immediately during the reinsert process.
-        * Look into Travis CI or whatever standard windows build tools there are.
-    * Looks like the best option is floating ips, or flips. I can make a batch file to make multiple patches.
-    	* Although that doesn't play well with the command line... hm...
-
 * More centralized documentation. How do pointers work? How is the game organized? etc.
 
 * I wonder if the dump has grown more complicated and might need a database.
     * SQL queries insetad of loading the data from the xls sheet and manipulating it in memory.
     * DB validations instead of 'unit' tests.
     * Easier to categorize blocks a certain way, just have a 'block type' column.
-
-* Remind myself what the "intermediate roms" folder is for.
-	* It has an edited 46.EXE, so I don't need to change that every time. Anything else?
-	* .DAT files are also pre-inserted in Intermediate.
-		* This is dumb - it tries to re-do the changes it's already done, and fails silently! Better way?
-    * If I put the patched images in the intermediate roms, will it break the reinsertion by changing file locations???
 
 * Fix the randomly decaying excel formulas.
     * I am very incompetent at excel, it seems.

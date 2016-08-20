@@ -20,12 +20,13 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 | Gag Endings  |  0%  | (0 / 723)    |
 
 ## How do I use this?
-* You can't use anything yet, just wait for a patch to be released.
-* The patch will target this ROM:
-	* 46 Okunen Monogatari - The Sinkaron (J) A user.FDI `md5: C1960717957E4BF4755FD848E0614FD4`
+* There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. and I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!"
+* Use LunarIPS (or whatever other IPS program you have) to patch your Disk A image.
+* The patch targets these disk images:
+	* 46 Okunen Monogatari - The Sinkaron (J) A user.FDI `md5: CA56B37F74885C40EDC9B1D2AACB5DA6`
 	* 46 Okunen Monogatari - The Sinkaron (J) B 1.FDI `md5: EE852EC006ACD94C9CFB04B2505A51D7`
 	* 46 Okunen Monogatari - The Sinkaron (J) B 2.FDI `md5: 3C1C0FBE1CF0A4C1B4574FFC26A490AB`
 	* 46 Okunen Monogatari - The Sinkaron (J) B 3.FDI `md5: A3934EED652627ABB45A756F13EC531A`
 	* 46 Okunen Monogatari - The Sinkaron (J) B 4.FDI `md5: 60E4D019F0CEF79C3D2EA3D44E6BF70E`
-* Support is later planned for this hardware-compatible ROM:
+* Support is later planned for this hardware-compatible disk image:
 	* 46okunenm.hdi `md5: 2B00A01944048980647FCE7ADEF07F57`
