@@ -7,8 +7,8 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 | Segment      | %    | Strings      |
 | -------------|-----:|:------------:|
 | Opening      | 28%  |  (13 / 45)   |
-| Chapter 1    | 88%  | (441 / 474)  |
-| Chapter 2    | 29%  | (126 / 434)  |
+| Chapter 1    |100%  | (501 / 501)  |
+| Chapter 2    | 37%  | (162 / 434)  |
 | Chapter 3    | 26%  |  (89 / 340)  |
 | Chapter 4    | 23%  | (172 / 746)  |
 | Chapter 5    | 20%  | (186 / 892)  |
