@@ -15,7 +15,7 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 | Chapter 6    | 17%  |  (55 / 319)  |
 | Ending       |  0%  |   (0 / 69)   |
 | System       |100%  |   (5 / 5)    |
-| Images       |  0%  |   (0 / 9)    |
+| Images       | 11%  |   (1 / 9)    |
 | Encyclopedia | 48%  | (363 / 741)  |
 | Gag Endings  |  0%  | (0 / 723)    |
 
@@ -30,3 +30,4 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 	* 46 Okunen Monogatari - The Sinkaron (J) B 4.FDI `md5: 60E4D019F0CEF79C3D2EA3D44E6BF70E`
 * Support is later planned for this hardware-compatible disk image:
 	* 46okunenm.hdi `md5: 2B00A01944048980647FCE7ADEF07F57`
+* If you want to use any of the utilities for yourself, I didn't really plan for that. Check back later when there are fewer hard-coded file paths. (You'll still need your own ROMs of course.)
