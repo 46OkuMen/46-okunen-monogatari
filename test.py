@@ -40,7 +40,7 @@ def test_substrings_of_earlier_strings():
                 if start <= int(row[0].value, 16) <= stop:
                     jp_string = row[2].value 
                     if isinstance(jp_string, basestring):
-                        for i in previous_jp_strings:    # Repeats (nametags, etc) are also substrings!
+                        for i in previous_untranslated_jp:    # Repeats (nametags, etc) are also substrings!
                             if jp_string in i[0] and row[4].value:     # If it's occurred before AND it's been translated:
                                 print "%s, '%s' is a substring of the untranslated string at %s" % (gamefile, row[4].value, i[1])
                                 # More informative way of doing this...? Terminal can't display jp text though.

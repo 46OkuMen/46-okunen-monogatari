@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 from utils import pack, file_to_hex_string, DUMP_XLS, POINTER_XLS
 from utils import sjis_to_hex_string, ascii_to_hex_string
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
-from rominfo import STARTING_MAP_NUMBER_LOCATION, SPARE_BLOCK, CREATURE_BLOCK
+from rominfo import SPARE_BLOCK, CREATURE_BLOCK
 
 class Disk(object):
     """The main .FDI file for a PC-98 game. Disks have the properties:
@@ -37,16 +37,28 @@ class Disk(object):
         self.original_romstring = file_to_hex_string(src_path)
         self.romstring = "" + self.original_romstring
 
+        self.dump_excel = DumpExcel(DUMP_XLS)
+
+        # If I want to hardcode the total strings here, it's 4,815 (9/7/16)
+        self.total_strings = 0
+        self.translated_strings = 0
+
         self.gamefiles = []
         for filename in files_to_translate:
             if filename.endswith('.EXE'):
-                self.gamefiles.append(EXEFile(self, filename))
+                exefile = EXEFile(self, filename)
+                self.total_strings += exefile.total_strings
+                self.translated_strings += exefile.translated_strings
+                self.gamefiles.append(exefile)
             elif filename.endswith('.DAT'):
-                self.gamefiles.append(DATFile(self, filename))
+                datfile = DATFile(self, filename)
+                self.total_strings += datfile.total_strings
+                self.translated_strings += datfile.translated_strings
+                self.gamefiles.append(datfile)
 
+        
     def translate(self):
         """Perform translation and reinsertion."""
-        # TODO: This is probably the kind of "method that does everything" I should avoid...
         for gamefile in self.gamefiles:
             if gamefile.filename.endswith('DAT'):
                 gamefile.translate()
@@ -56,19 +68,28 @@ class Disk(object):
                     block.edit_text()
                 try:
                     gamefile.creature_block.edit_text()
-                except:
-                    pass
+                except AttributeError:
+                    print "That file doesn't have a creature block, so don't worry about it."
                 gamefile.move_overflow()
                 gamefile.incorporate()
                 gamefile.write()
                 gamefile.report_progress()
         self.write()
+        self.report_progress()
 
     def write(self):
         """Write the patched bytes to a new FDI."""
         data = unhexlify(self.romstring)
         with open(self.dest_path, 'wb') as fileopen:
             fileopen.write(data)
+
+    def report_progress(self):
+        """Calculate and print the progress made in translating this file."""
+
+        percentage = int(floor((self.translated_strings / self.total_strings * 100)))
+        print 'The Shinkaron', str(percentage), "% complete",
+        print "(%s / %s)" % (self.translated_strings, self.total_strings)
+
 
 
 class Gamefile(object):
@@ -83,6 +104,8 @@ class Gamefile(object):
         original_filestring: Hex string of the untranslated string.
         filestring: Hex string of the file; gets edited during reinsertion.
         blocks: List of Block objects belonging to the file.
+        total_strings: Number of Japanese strings in the file.
+        translated_strings: Number of replacements made.
 
     Methods:
         incorporate(): Reinsert this translated file into its disk.
@@ -103,6 +126,18 @@ class Gamefile(object):
         for block in file_blocks[self.filename]:
             self.blocks.append(Block(self, block))
 
+        self.total_strings = 0
+        self.translated_strings = 0
+        for block in self.blocks:
+            for trans in block.translations:
+                if isinstance(trans.japanese, float):
+                    # Skip the numbers in .DAT files, they're boring
+                    continue
+                self.total_strings += 1
+                if trans.english:
+                    self.translated_strings += 1
+
+
     def incorporate(self):
         """Add the edited file to the Disk in the original's place."""
         self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring)
@@ -116,22 +151,10 @@ class Gamefile(object):
 
     def report_progress(self):
         """Calculate and print the progress made in translating this file."""
-        strings = 0
-        replacements = 0
 
-        for block in self.blocks:
-            # TODO: This currently doesn't include the creautre block.
-            for trans in block.translations:
-                if isinstance(trans.japanese, float):
-                    # Skip the numbers in .DAT files, they're boring
-                    continue
-                strings += 1
-                if trans.english:
-                    replacements += 1
-
-        percentage = int(floor((replacements / strings) * 100))
+        percentage = int(floor((self.translated_strings / self.total_strings * 100)))
         print self.filename, str(percentage), "% complete",
-        print "(%s / %s)" % (replacements, strings)
+        print "(%s / %s)" % (self.translated_strings, self.total_strings)
 
     def get_string(self, offset):
         """Get a string at a particular offset in the file."""
@@ -163,7 +186,7 @@ class EXEFile(Gamefile):
         get_pointers: Retrive a dict of Pointer objects.
         most_recent_pointer: Grabs a pointer one pointer before the given one... within certain limts.
         move_overflow: Move overflow to the spare block and adjust pointers.
-        change_starting_map: Cheat and change the beginning-of-chapter spawn point.
+        (change_starting_map: Cheat and change the beginning-of-chapter spawn point. (Not implemented yet))
          """
 
     def __init__(self, disk, filename):
@@ -192,6 +215,21 @@ class EXEFile(Gamefile):
             self.creature_block = None
 
         self.overflow_bytestrings = {}
+
+        self.total_strings = 0
+        self.translated_strings = 0
+
+        for block in self.blocks:
+            for trans in block.translations:
+                self.total_strings += 1
+                if trans.english:
+                    self.translated_strings += 1
+
+        if self.creature_block:
+            for c in self.creature_block.translations:
+                self.total_strings += 1
+                if c.english:
+                    self.translated_strings += 1
 
     def edit_pointers_in_range(self, (start, stop), diff):
         """Edit all the pointers between two file offsets."""
@@ -255,30 +293,6 @@ class EXEFile(Gamefile):
         assert len(self.spare_block.blockstring)//2 <= self.spare_block.stop - self.spare_block.start
         self.spare_block.incorporate()
 
-    def report_progress(self):
-        """Calculate and print the progress made in translating this file. Include creature block."""
-        strings = 0
-        replacements = 0
-
-        for block in self.blocks:
-            for trans in block.translations:
-                if isinstance(trans.japanese, float):
-                    # Skip the numbers in .DAT files, they're boring
-                    continue
-                strings += 1
-                if trans.english:
-                    replacements += 1
-
-        if self.creature_block:
-            for c in self.creature_block.translations:
-                strings += 1
-                if c.english:
-                    replacements += 1
-                    
-        percentage = int(floor((replacements / strings) * 100))
-        print self.filename, str(percentage), "% complete",
-        print "(%s / %s)" % (replacements, strings)
-
 """
     def change_starting_map(self, map_number):
         # TODO: Better way of doing this?
@@ -341,8 +355,8 @@ class Block(object):
     def get_translations(self):
         """Grab all translations in this block."""
         # TODO: This is hilariously slow, I need to call it maybe once per file tops.
-        print "calling get_translations() on block", self
-        excel = DumpExcel(DUMP_XLS)
+        # The slow part seems to be creating the DumpExcel() object. Clearly I only need to do that once??
+        excel = self.gamefile.disk.dump_excel
         return excel.get_translations(self)
 
     def edit_text(self):
