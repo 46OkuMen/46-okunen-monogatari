@@ -112,7 +112,11 @@ def ascii_to_hex_string(eng):
 def sjis_to_hex_string(jp, preserve_spaces=False):
     """Returns a hex string of the Shift JIS bytes of a given japanese string."""
     jp_bytestring = ""
-    sjis = jp.encode('shift-jis')
+    try:
+        sjis = jp.encode('shift-jis')
+    except AttributeError:
+        # Trying to encode numbers throws an attribute error; they aren't important, so just keep the number
+        sjis = str(jp)
     for char in sjis:
         hexchar = "%02x" % ord(char)
         # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40

@@ -56,8 +56,6 @@
 ## Tools
 
 ### reinsert.py
-* One of the .DAT files isn't taking kindly to something I did recently.
-
 * Be clearer about when to use getter methods vs. attributes.
 
 * Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.

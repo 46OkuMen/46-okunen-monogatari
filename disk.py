@@ -40,6 +40,8 @@ class Disk(object):
         self.dump_excel = DumpExcel(DUMP_XLS)
 
         # If I want to hardcode the total strings here, it's 4,815 (9/7/16)
+        # wait - when I don't hardcode it, it's 5,240?? (Is that just the numbers in the .dat files?)
+        # # TODO: Determine number of strings in whole game.
         self.total_strings = 0
         self.translated_strings = 0
 
@@ -525,6 +527,11 @@ class Translation(object):
         self.english = english
         self.block = block
 
+        #try:
+        #    print hex(location)
+        #    print english
+        #except UnicodeEncodeError:
+        #    print "error string"
         self.jp_bytestring = sjis_to_hex_string(japanese)
         self.en_bytestring = ascii_to_hex_string(english)
 
@@ -587,6 +594,10 @@ class DumpExcel(object):
             if block.start <= offset <= block.stop:
                 japanese = row[2].value
                 english = row[4].value
+
+                if isinstance(japanese, float):
+                    # Causes some encoding problems? Trying to skip them for now
+                    continue
 
                 # Yeah this is important - blank strings are None (non-iterable), so use "" instead.
                 if not english:
