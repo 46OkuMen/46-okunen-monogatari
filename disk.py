@@ -90,7 +90,7 @@ class Disk(object):
 
         percentage = int(floor((self.translated_strings / self.total_strings * 100)))
         print 'The Shinkaron', str(percentage), "% complete",
-        print "(%s / %s)" % (self.translated_strings, self.total_strings)
+        print "(%s / %s)\n" % (self.translated_strings, self.total_strings)
 
 
 
@@ -156,7 +156,7 @@ class Gamefile(object):
 
         percentage = int(floor((self.translated_strings / self.total_strings * 100)))
         print self.filename, str(percentage), "% complete",
-        print "(%s / %s)" % (self.translated_strings, self.total_strings)
+        print "(%s / %s)\n" % (self.translated_strings, self.total_strings)
 
     def get_string(self, offset):
         """Get a string at a particular offset in the file."""
@@ -251,6 +251,11 @@ class EXEFile(Gamefile):
         # What's with the +1s???
         # The lo is +1 here because we don't want to include the previous text that was replaced.
         # The hi is +1 here because we do want to include the original location as a possibility...
+
+        # TODO: So an issue with this is that it can grab the last string's offset, even if it has no pointer...
+
+        #print [hex(x) for x in range(start+1, stop+1)]
+        print "Looking for pointers between", hex(start+1), hex(stop+1)
         for offset in reversed(range(start+1, stop+1)):
             if offset in self.pointers:
                 return offset
@@ -271,23 +276,21 @@ class EXEFile(Gamefile):
             pointer_diff = (self.spare_block.start - start) + len(self.spare_block.blockstring)//2
             previous_text_location = start
 
-            # Ugh. Literally the only downside of ditching the OrderedDict() impl of translations
-
             for offset in range(start, stop):
                 for block in self.blocks:
-                    for trans in block.translations:
-                        if trans.location == offset:  # TODO use a list comp instead
-                            jp_bytestring = trans.jp_bytestring
-                            en_bytestring = trans.en_bytestring
+                    for trans in [x for x in block.translations if x.location == offset]:
+                        jp_bytestring = trans.jp_bytestring
+                        en_bytestring = trans.en_bytestring
 
-                            this_string_diff = len(en_bytestring) - len(jp_bytestring) // 2
-                            j = ov_bytestring.index(jp_bytestring)
-                            ov_bytestring = ov_bytestring.replace(jp_bytestring, en_bytestring)
+                        this_string_diff = len(en_bytestring) - len(jp_bytestring) // 2
+                        j = ov_bytestring.index(jp_bytestring)
+                        ov_bytestring = ov_bytestring.replace(jp_bytestring, en_bytestring)
 
-                            self.edit_pointers_in_range((previous_text_location-1, trans.location),
-                                                        pointer_diff)
-                            previous_text_location = trans.location
-                            pointer_diff += this_string_diff
+                        print "editing an overflow pointer"
+                        self.edit_pointers_in_range((previous_text_location-1, trans.location),
+                                                    pointer_diff)
+                        previous_text_location = trans.location
+                        pointer_diff += this_string_diff
 
             # Add this after the whole overflow bytestring has been ptr-adjusted.
             self.spare_block.blockstring += ov_bytestring
@@ -393,8 +396,11 @@ class Block(object):
                 recent_pointer = self.gamefile.most_recent_pointer(previous_text_offset, 
                                                                    trans.location)
 
+                # TODO: Should I revise this method so that it always grabs the location of a real pointer?
+
                 start_in_block = (recent_pointer - self.start)*2
                 overflow_bytestring = self.original_blockstring[start_in_block:]
+                print hex(int((start_in_block/2) + self.start))
                 # Store the start and end of the overflow bytestring, 
                 # to make sure all pointers are adjusted in the range.
                 overflow_lo, overflow_hi = recent_pointer, self.stop

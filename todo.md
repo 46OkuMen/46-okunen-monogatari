@@ -2,17 +2,20 @@
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
 ## Mistaken Text Replacement
-* Ch2 Ichthyostega cave, guy who says "Flower of Evolution and didn't come back..."
-    * Same place, Ichthyostega Child F says "AWAKU0.GDT". Uh oh.
-    * I think it's something to do with the string "Flower of Evolution" - a guy says that and then his dialogue gets broken off.
-    * The entrance to the cave is broken too.
-        * And there's a crash on entering battle. (AWAKU0.GDT?)
-
 * In the middle of finding a better way to slice the blockstring when looking for the original jp_bytestring.
     * I still get like 5-10 strings per program which are not at their expected locations. Currently they're being handled by using the entire old blockstring as the slice to be searched, which means if the string appears as a substring of some other previous string, it'll do mistaken text replacement.
         * So what's going on with these strings?
 
 ## Non-Crash Glitches
+* Ch2 weird first cave map entrnace.
+    * Comes from something in the environment block? (No)
+    * Comes from something in the end-battle block? (Yes)
+
+* Ch2 broken text - "I'm going to search for all of my brothers that went looking" ...
+    * This is an overflow problem where a string was moved but it had no pointer.
+
+* Ch2 battle text problems
+    * Comes from the mid-battle text, not the end-battle text.
 
 ## Dump Problems
 * Lots of spaces at Ch5:0xfe7d; why???

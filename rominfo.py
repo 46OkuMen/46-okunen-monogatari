@@ -28,13 +28,13 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x11893, 0x119a4),  # not variable; battle msgs      # iffy ending
                            (0x11d42, 0x1204e)),  # error block
                'ST2.EXE': ((0xc23b, 0xc27c),   # environment
-                           (0xc2bc, 0xd757),   # evo files, dialogue
+                           (0xc2bc, 0xd756),   # evo files, dialogue    # TODO: Not broken up before an END?
                            (0xd757, 0xd894),   # evolution, menu
                            (0xd8c6, 0xdd50),   # battle stuff
                            (0xde35, 0xf948),   # dialogue
                            (0xf980, 0xfaa2),   # enviro
                            (0xfae4, 0xfe50),   # creature block
-                           (0x10004, 0x101df), # battle stuff
+                           (0x10004, 0x101e1), # battle stuff
                            (0x10570, 0x1087d)), # error block
                'ST3.EXE': ((0xb49d, 0xb548),   # environment
                            (0xb58a, 0xbccb),    # evo files, dialogue
