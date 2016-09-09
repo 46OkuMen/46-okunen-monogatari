@@ -13,8 +13,12 @@
 
 * Ch2 broken text - "I'm going to search for all of my brothers that went looking" ...
     * This is an overflow problem where a string was moved but it had no pointer.
+    * Also a pointer problem maybe?
+        * 0x2550 pointing to 0xd734
+        * 0x285c pointing to 0xd757
+        * 0x28a9 pointing to 0xd763
 
-* Ch2 battle text problems
+* Ch1, Ch2 battle text problems
     * Comes from the mid-battle text, not the end-battle text.
 
 ## Dump Problems
