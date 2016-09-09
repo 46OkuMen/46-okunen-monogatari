@@ -161,6 +161,7 @@ class Gamefile(object):
     def get_string(self, offset):
         """Get a string at a particular offset in the file."""
         # TODO: Not currently in use, or working...?
+        # currently more useful as a component in pointer_peek.py.
         result = ""
         source = self.filestring[offset*2:]
         byte_index = 0
@@ -260,14 +261,13 @@ class EXEFile(Gamefile):
             offset -= 1
         return offset
 
-        #print "Looking for pointers between", hex(start+1), hex(stop+1)
-        
-        #for offset in reversed(range(start+1, stop+1)):
-        #    if offset in self.pointers:
-        #        return offset
+    def most_recent_string(self, start, stop):
+        """Return the highest offset with a pointer in the given range."""
+        for offset in reversed(range(start+1, stop+1)):
+            if offset in self.pointers:
+                return offset
         # If there are no other pointers, just return the hi value.
-        #return stop
-
+        return stop
 
 
     def move_overflow(self):
@@ -293,7 +293,7 @@ class EXEFile(Gamefile):
                         j = ov_bytestring.index(jp_bytestring)
                         ov_bytestring = ov_bytestring.replace(jp_bytestring, en_bytestring)
 
-                        print "editing an overflow pointer"
+                        #print "editing an overflow pointer"
                         self.edit_pointers_in_range((previous_text_location-1, trans.location),
                                                     pointer_diff)
                         previous_text_location = trans.location
@@ -366,10 +366,50 @@ class Block(object):
 
     def get_translations(self):
         """Grab all translations in this block."""
-        # TODO: This is hilariously slow, I need to call it maybe once per file tops.
-        # The slow part seems to be creating the DumpExcel() object. Clearly I only need to do that once??
         excel = self.gamefile.disk.dump_excel
         return excel.get_translations(self)
+
+    def get_pointers(self):
+        file_pointers = self.gamefile.pointers
+        block_pointers = [p for p in file_pointers if p >= self.start and p <= self.stop]
+        block_pointers.sort()
+        return block_pointers
+
+
+    def overflow_location(self):
+        """
+        Find the first pointer that contains text that will overflow.
+        """
+        diff = 0
+        block_length = self.stop - self.start
+
+        block_pointers = self.get_pointers()
+
+        for i, ptr in enumerate(block_pointers):
+            if i > len(block_pointers)-2:
+                break
+            ptr_range = (ptr, block_pointers[i+1])
+            
+            # Look for all translations located in the pointer range.
+
+            translations = [t for t in self.translations if t.location >= ptr_range[0] and t.location < ptr_range[1]]
+            for trans in translations:
+                location_in_blockstring = (trans.location * 2) - self.start
+                jp_bytestring, en_bytestring = trans.jp_bytestring, trans.en_bytestring
+                diff += (len(en_bytestring) - len(jp_bytestring))//2
+
+                if en_bytestring:
+                    new_text_offset = trans.location + len(en_bytestring)//2 + diff
+                else:
+                    new_text_offset = trans.location + len(jp_bytestring)//2 + diff
+
+                #print hex(new_text_offset), hex(self.stop)
+                #print trans.english
+                if new_text_offset > self.stop:
+                    #print "it's overflowing\n"
+                    return ptr
+                
+                
 
     def edit_text(self):
         """Replace each japanese string in the block with the translated english string."""
@@ -377,13 +417,18 @@ class Block(object):
         previous_text_offset = self.start
         is_overflowing = False
 
+        ov_loc = self.overflow_location()
+        if ov_loc:
+            print "\n%s begins overflowing at %s" % (self, hex(ov_loc))
+        else:
+            print "\n%s block never overflows" % self
+
         for trans in self.translations:
             if is_overflowing:
                 # Leave immediately; the rest of this string is in gamefile.overflow_bytestrings now.
                 break
 
-            jp_bytestring = trans.jp_bytestring
-            en_bytestring = trans.en_bytestring
+            jp_bytestring, en_bytestring = trans.jp_bytestring, trans.en_bytestring
 
             # jp_bytestring might include ASCII; if it's not found, try the ascii preserving method.
             try:
@@ -407,14 +452,11 @@ class Block(object):
                 # 3) Backtrack and untranslate things back to the most recent pointer when overflow occurs.
 
                 # 2) seems easiest, and is less likely to bloat the method.
-                recent_pointer = self.gamefile.most_recent_pointer(previous_text_offset, 
+                recent_pointer = self.gamefile.most_recent_string(previous_text_offset, 
                                                                    trans.location)
-
-                # TODO: Should I revise this method so that it always grabs the location of a real pointer?
 
                 start_in_block = (recent_pointer - self.start)*2
                 overflow_bytestring = self.original_blockstring[start_in_block:]
-                print hex(int((start_in_block/2) + self.start))
                 # Store the start and end of the overflow bytestring, 
                 # to make sure all pointers are adjusted in the range.
                 overflow_lo, overflow_hi = recent_pointer, self.stop
@@ -580,7 +622,7 @@ class Pointer(object):
             new_bytes = pack(new_value)
             new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
 
-            # TODO: This is likely a really time-intensive way to do this.
+            # This is likely a really time-intensive way to do this.
             # A smarter thing to do would have been to use (mutable) bytearrays instead of
             # "bytestrings" for all these string editing operations...
 
@@ -594,7 +636,7 @@ class Pointer(object):
             self.gamefile.filestring = string_before + new_bytestring + string_after
 
     def __repr__(self):
-        return hex(self.location), "pointing to", hex(self.text_location)
+        return "%s pointing to %s" % (hex(self.location), hex(self.text_location))
 
 
 class DumpExcel(object):
