@@ -253,15 +253,22 @@ class EXEFile(Gamefile):
         # The hi is +1 here because we do want to include the original location as a possibility...
 
         # TODO: So an issue with this is that it can grab the last string's offset, even if it has no pointer...
+        # Am I better off truly grabbing the last pointer regardless of stop?
 
-        #print [hex(x) for x in range(start+1, stop+1)]
-        print "Looking for pointers between", hex(start+1), hex(stop+1)
-        for offset in reversed(range(start+1, stop+1)):
-            if offset in self.pointers:
-                return offset
+        offset = stop+1
+        while offset not in self.pointers:
+            offset -= 1
+        return offset
+
+        #print "Looking for pointers between", hex(start+1), hex(stop+1)
+        
+        #for offset in reversed(range(start+1, stop+1)):
+        #    if offset in self.pointers:
+        #        return offset
         # If there are no other pointers, just return the hi value.
+        #return stop
 
-        return stop
+
 
     def move_overflow(self):
         """Move the overflow bytestrings into the spare block, and adjust the pointers."""
@@ -393,6 +400,13 @@ class Block(object):
                 is_overflowing = True
                 # Pointers usually point to control codes before the text. So look for a recent pointer.
                 # But don't backtrack as far as previous_text_offset (maybe already translated)
+                # TODO: Whoops. If you don't go as far as the last pointer, some text might get split & lost.
+                # Solutions?
+                # 1) Drastically change the structure of the dump so strings never get split.
+                # 2) Make better predictions at where overflow will occur.
+                # 3) Backtrack and untranslate things back to the most recent pointer when overflow occurs.
+
+                # 2) seems easiest, and is less likely to bloat the method.
                 recent_pointer = self.gamefile.most_recent_pointer(previous_text_offset, 
                                                                    trans.location)
 

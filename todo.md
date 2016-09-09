@@ -8,15 +8,23 @@
 
 ## Non-Crash Glitches
 * Ch2 weird first cave map entrnace.
-    * Comes from something in the environment block? (No)
     * Comes from something in the end-battle block? (Yes)
 
 * Ch2 broken text - "I'm going to search for all of my brothers that went looking" ...
     * This is an overflow problem where a string was moved but it had no pointer.
     * Also a pointer problem maybe?
-        * 0x2550 pointing to 0xd734
-        * 0x285c pointing to 0xd757
-        * 0x28a9 pointing to 0xd763
+
+        * "brothers that went looking for the Flower of Evolution and didn't come back...."
+        * "We need more stamina for the forests." <abrupt ending>
+            * This is an overflow problem.
+        * 0x2550 pointing to 0xd734 (should point to "I'm so, so scared though...")
+            * Instead points to blank space, is 0xbf too high
+        * 0x285c pointing to 0xd757 (should point to AVWAKU0.GDT)
+            * Correct I think.
+        * 0x28a9 pointing to 0xd763 (should point to "The %s attacked!!")
+            * Also correct.
+
+        * ""
 
 * Ch1, Ch2 battle text problems
     * Comes from the mid-battle text, not the end-battle text.
@@ -62,7 +70,7 @@
 
 ## Tools
 
-### reinsert.py
+### disk.py
 * Be clearer about when to use getter methods vs. attributes.
 
 * Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.
@@ -88,8 +96,8 @@
 
 ### length validation
 * I don't think unit tests are a good way to check the translation integrity.
-** I can probably write real unit tests, though, now that there's a more object oriented structure.
-** And I can just use a normal script to find all the strings that need shortening.
+    * I can probably write real unit tests, though, now that there's a more object oriented structure.
+    * And I can just use a normal script to find all the strings that need shortening.
 
 * What is the best way to do editing for line lengths and such?
     * The simplest is that all strings definitely can't be over 76. (max for bottom narration)
