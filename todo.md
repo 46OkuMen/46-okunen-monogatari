@@ -9,22 +9,20 @@
 ## Non-Crash Glitches
 * Ch2 weird first cave map entrnace.
     * Comes from something in the end-battle block? (Yes)
+        * Comes from setting "You've evolved further..." for whatever reason.
+        * I guess this needs to be in a separate block, or included in the "Yes/No/Cancel" block. If it isn't isolated, it messes up some pointers related to gameover, evolution, combat, and I guess maps.
+        * This has been done for ST1 and ST2. Still gotta do the rest.
 
 * Ch2 broken text - "I'm going to search for all of my brothers that went looking" ...
     * This is an overflow problem where a string was moved but it had no pointer.
+        * I fixed the overflow offset problem, but still something is going wrong with reassigning the pointers that are in overflow...
     * Also a pointer problem maybe?
-
         * "brothers that went looking for the Flower of Evolution and didn't come back...."
-        * "We need more stamina for the forests." <abrupt ending>
-            * This is an overflow problem.
         * 0x2550 pointing to 0xd734 (should point to "I'm so, so scared though...")
             * Instead points to blank space, is 0xbf too high
-        * 0x285c pointing to 0xd757 (should point to AVWAKU0.GDT)
-            * Correct I think.
-        * 0x28a9 pointing to 0xd763 (should point to "The %s attacked!!")
-            * Also correct.
 
-        * ""
+* Ch2 environment text problems
+    * "The temperature dropped suddenly!!" "s"
 
 * Ch1, Ch2 battle text problems
     * Comes from the mid-battle text, not the end-battle text.

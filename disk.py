@@ -275,10 +275,10 @@ class EXEFile(Gamefile):
         if not self.spare_block:
             if len(self.overflow_bytestrings) > 0:
                 print "Uh oh, stuff has spilled out but there's no room to store it!!"
+                print self.overflow_bytestrings
             return None
 
         self.spare_block.blockstring = ""
-
         for (start, stop), ov_bytestring in self.overflow_bytestrings.iteritems():
             pointer_diff = (self.spare_block.start - start) + len(self.spare_block.blockstring)//2
             previous_text_location = start
@@ -293,7 +293,6 @@ class EXEFile(Gamefile):
                         j = ov_bytestring.index(jp_bytestring)
                         ov_bytestring = ov_bytestring.replace(jp_bytestring, en_bytestring)
 
-                        #print "editing an overflow pointer"
                         self.edit_pointers_in_range((previous_text_location-1, trans.location),
                                                     pointer_diff)
                         previous_text_location = trans.location
@@ -302,7 +301,9 @@ class EXEFile(Gamefile):
             # Add this after the whole overflow bytestring has been ptr-adjusted.
             self.spare_block.blockstring += ov_bytestring
 
-        assert len(self.spare_block.blockstring)//2 <= self.spare_block.stop - self.spare_block.start
+        excess = len(self.spare_block.blockstring)//2 - (self.spare_block.stop - self.spare_block.start)
+
+        assert excess < 0, "Spare block is %s too long" % (excess)
         self.spare_block.incorporate()
 
 """
@@ -380,10 +381,15 @@ class Block(object):
         """
         Find the first pointer that contains text that will overflow.
         """
+        result = None
         diff = 0
         block_length = self.stop - self.start
 
         block_pointers = self.get_pointers()
+        block_pointers.sort()
+        #print [hex(x) for x in block_pointers]
+
+        block_pointers.append(self.stop) # Should solve the problem of the last pointer not being considered (due to ranges)
 
         for i, ptr in enumerate(block_pointers):
             if i > len(block_pointers)-2:
@@ -393,21 +399,36 @@ class Block(object):
             # Look for all translations located in the pointer range.
 
             translations = [t for t in self.translations if t.location >= ptr_range[0] and t.location < ptr_range[1]]
+            #translations.sort()
+
             for trans in translations:
                 location_in_blockstring = (trans.location * 2) - self.start
                 jp_bytestring, en_bytestring = trans.jp_bytestring, trans.en_bytestring
-                diff += (len(en_bytestring) - len(jp_bytestring))//2
+
 
                 if en_bytestring:
-                    new_text_offset = trans.location + len(en_bytestring)//2 + diff
+                    text_length = len(en_bytestring)//2
+                    this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
                 else:
-                    new_text_offset = trans.location + len(jp_bytestring)//2 + diff
+                    text_length = len(jp_bytestring)//2
+                    this_string_diff = 0
+
+                new_text_offset = trans.location + text_length + diff # TODO: + this_string_diff?
 
                 #print hex(new_text_offset), hex(self.stop)
                 #print trans.english
-                if new_text_offset > self.stop:
-                    #print "it's overflowing\n"
+                #print hex(new_text_offset), trans.english, this_string_diff, diff
+                if new_text_offset >= self.stop:
+                    print "it's overflowing\n"
+                    print trans.english, "will overflow"
+                    while ptr + text_length + diff > self.stop:
+                        ptr = block_pointers[i-1]
+                        i -= 1
+                        print "backtracking to %s" % hex(ptr)
+
                     return ptr
+
+                diff += this_string_diff
                 
                 
 
@@ -417,17 +438,13 @@ class Block(object):
         previous_text_offset = self.start
         is_overflowing = False
 
-        ov_loc = self.overflow_location()
-        if ov_loc:
-            print "\n%s begins overflowing at %s" % (self, hex(ov_loc))
+        overflow_location = self.overflow_location()
+        if overflow_location:
+            print "\n%s begins overflowing at %s" % (self, hex(overflow_location))
         else:
             print "\n%s block never overflows" % self
 
         for trans in self.translations:
-            if is_overflowing:
-                # Leave immediately; the rest of this string is in gamefile.overflow_bytestrings now.
-                break
-
             jp_bytestring, en_bytestring = trans.jp_bytestring, trans.en_bytestring
 
             # jp_bytestring might include ASCII; if it's not found, try the ascii preserving method.
@@ -436,24 +453,20 @@ class Block(object):
             except ValueError: # substring not found
                 jp_bytestring = trans.jp_bytestring_alt
 
-            if en_bytestring:
-                new_text_offset = trans.location + len(en_bytestring)//2 + pointer_diff
-            else:
-                new_text_offset = trans.location + len(jp_bytestring)//2 + pointer_diff
-
-            if new_text_offset >= self.stop:
+            if (trans.location >= overflow_location) and overflow_location:
+                print "%s >= %s" % (hex(trans.location), hex(overflow_location))
                 is_overflowing = True
-                # Pointers usually point to control codes before the text. So look for a recent pointer.
-                # But don't backtrack as far as previous_text_offset (maybe already translated)
-                # TODO: Whoops. If you don't go as far as the last pointer, some text might get split & lost.
+                # Current approach splits and loses text between strings.
                 # Solutions?
-                # 1) Drastically change the structure of the dump so strings never get split.
                 # 2) Make better predictions at where overflow will occur.
-                # 3) Backtrack and untranslate things back to the most recent pointer when overflow occurs.
 
-                # 2) seems easiest, and is less likely to bloat the method.
-                recent_pointer = self.gamefile.most_recent_string(previous_text_offset, 
-                                                                   trans.location)
+                recent_string = self.gamefile.most_recent_string(previous_text_offset, 
+                                                                 trans.location)
+                recent_pointer = overflow_location
+
+                print "Overflow start, old calculation:", hex(recent_string)
+                print "Overflow start, new calculation:", hex(recent_pointer)
+
 
                 start_in_block = (recent_pointer - self.start)*2
                 overflow_bytestring = self.original_blockstring[start_in_block:]
@@ -470,7 +483,7 @@ class Block(object):
             # "eng" is an ugly way of doing this. But we want to be able to do the thing where, if
             # it's overflowing, do a "translation" of the overflow bytestring into "".
             # If we set trans.english to "", it wouldn't get translated later.
-            # So use a separate "eng" variable which can be english or blank, but don't lose data.
+            # So use a separate temporary "eng" variable which can be english or blank, but don't lose data.
             eng = trans.english
             if eng == "":
                 # No replacement necessary - pointers are edited, so we're done here.
@@ -513,7 +526,11 @@ class Block(object):
 
             pointer_diff += this_string_diff
 
+            if is_overflowing:
+                break
+
         self.incorporate()
+        print "\n"
 
     def incorporate(self):
         """Write the new block to the source gamefile."""

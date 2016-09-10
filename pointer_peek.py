@@ -1,5 +1,5 @@
 """
-Takes a file and an offset of a pointer and 
+Takes a file and an offset of a pointer and returns what that pointer points to, location and snippet.
 """
 
 import sys
