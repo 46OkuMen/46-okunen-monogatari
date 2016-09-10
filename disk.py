@@ -7,7 +7,7 @@ from math import floor
 
 from openpyxl import load_workbook
 
-from utils import pack, file_to_hex_string, DUMP_XLS, POINTER_XLS
+from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS
 from utils import sjis_to_hex_string, ascii_to_hex_string
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
 from rominfo import SPARE_BLOCK, CREATURE_BLOCK
@@ -278,14 +278,24 @@ class EXEFile(Gamefile):
                 print self.overflow_bytestrings
             return None
 
+        print "Moving overflow now"
+
         self.spare_block.blockstring = ""
         for (start, stop), ov_bytestring in self.overflow_bytestrings.iteritems():
+            print hex(start), hex(stop)
+            # need to adjust all the pointers within the overflow bytestring.
+            # to start, get them to the spare block itself - the beginning of the spare block minus the old start of the string.
+            # then the length (in bytes, not chars) of the spare block we've accumulated so far.
             pointer_diff = (self.spare_block.start - start) + len(self.spare_block.blockstring)//2
             previous_text_location = start
 
             for offset in range(start, stop):
                 for block in self.blocks:
                     for trans in [x for x in block.translations if x.location == offset]:
+                        print hex(trans.location), "trans"
+                        # AHA! Some of these pointers are getting edited twice! They are right the first time.
+                        # If there's one pointer for two translations, it will edit the same pointer twice differently.
+
                         jp_bytestring = trans.jp_bytestring
                         en_bytestring = trans.en_bytestring
 
@@ -606,11 +616,6 @@ class Translation(object):
         self.english = english
         self.block = block
 
-        #try:
-        #    print hex(location)
-        #    print english
-        #except UnicodeEncodeError:
-        #    print "error string"
         self.jp_bytestring = sjis_to_hex_string(japanese)
         self.en_bytestring = ascii_to_hex_string(english)
 
@@ -633,6 +638,12 @@ class Pointer(object):
 
     def edit(self, diff):
         """Adjusts the pointer by diff, and writes the new value to the gamefile."""
+
+        # Some terminology:
+        # "Old" is the original value in the Japanese ROM. The pointer is instantiated with this info.
+        # "New" is whatever value is given to the pointer in a given change.
+        # "Rom" is whatever value is actually in the ROM.
+        # Because the pointer can change multiple times due to overflow, compare the Old and Rom values before changing it.
         if diff != 0:
             location_in_string = self.location*2
             new_value = self.old_value + diff
@@ -647,8 +658,14 @@ class Pointer(object):
             string_after = self.gamefile.filestring[location_in_string+4:]
 
             rom_bytestring = self.gamefile.filestring[location_in_string:location_in_string+4]
+            rom_location = unpack(rom_bytestring[0:2], rom_bytestring[2:]) + self.gamefile.pointer_constant
             if self.old_bytestring != rom_bytestring:
-                print "Pointer at %s got edited before; make sure it's right" % hex(self.location)
+                new_location = new_value + self.gamefile.pointer_constant
+                print self.gamefile.spare_block
+                if self.gamefile.spare_block.start <= rom_location <= self.gamefile.spare_block.stop:
+                    print "Not editing pointer at %s; it already points to the spare block, so it's probably fine" % hex(self.location)
+                    return None
+                print "Pointer at %s got edited before; now it points to %s" % (hex(self.location), hex(new_value + self.gamefile.pointer_constant))
 
             self.gamefile.filestring = string_before + new_bytestring + string_after
 

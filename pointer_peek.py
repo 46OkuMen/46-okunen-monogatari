@@ -31,11 +31,11 @@ if __name__ == '__main__':
     offset = int(sys.argv[2], 16)
     filepath = os.path.join(DEST_PATH, filename)
     pointer_value =  word_at_offset(filepath, offset)
-    print hex(pointer_value)
+    print "value:", hex(pointer_value)
     if pointer_value == 0xb81e:
         # Lots of things listed in the pointer spreadhseet are 2 too high, and point to the "ptr begin" ctrl code.
         print "I think you meant %s" % offset
         pointer_value = word_at_offset(filepath, offset+2)
     pointed_location = pointer_value + constant
-    print hex(pointed_location)
+    print "points to:", hex(pointed_location)
     print text_at_offset(filepath, pointed_location)

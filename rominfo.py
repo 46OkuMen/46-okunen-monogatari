@@ -36,7 +36,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xfae4, 0xfe50),   # creature block
                            (0x10004, 0x10095), # Y/N/C, "evolved too far"
                            (0x100d1, 0x101e1), # battle stuff
-                           (0x10570, 0x109c1)), # error block
+                           (0x10570, 0x1087d)), # error block
                'ST3.EXE': ((0xb49d, 0xb548),   # environment
                            (0xb58a, 0xbccb),    # evo files, dialogue
                            (0xbccb, 0xbe21),

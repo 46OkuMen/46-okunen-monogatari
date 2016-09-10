@@ -27,6 +27,9 @@
 * Ch1, Ch2 battle text problems
     * Comes from the mid-battle text, not the end-battle text.
 
+* Ch1 overflow text problems
+    * "This sea is now your sea!" which overflows is getting pointed to wrong after the full dump was inserted, and when everything except battle msgs/skill names were inserted.
+
 ## Dump Problems
 * Lots of spaces at Ch5:0xfe7d; why???
 
