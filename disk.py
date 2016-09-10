@@ -158,18 +158,6 @@ class Gamefile(object):
         print self.filename, str(percentage), "% complete",
         print "(%s / %s)\n" % (self.translated_strings, self.total_strings)
 
-    def get_string(self, offset):
-        """Get a string at a particular offset in the file."""
-        # TODO: Not currently in use, or working...?
-        # currently more useful as a component in pointer_peek.py.
-        result = ""
-        source = self.filestring[offset*2:]
-        byte_index = 0
-        while source[byte_index:byte_index+2] not in ['00', '0A']: # TODO add other sep bytes. (you seppo)
-            result += source[byte_index:byte_index+2]
-            byte_index += 2
-        return result 
-
     def __repr__(self):
         return self.filename
 
@@ -282,28 +270,29 @@ class EXEFile(Gamefile):
 
         self.spare_block.blockstring = ""
         for (start, stop), ov_bytestring in self.overflow_bytestrings.iteritems():
-            print hex(start), hex(stop)
+            print "\nOverflow bytestring: ", hex(start), hex(stop)
             # need to adjust all the pointers within the overflow bytestring.
             # to start, get them to the spare block itself - the beginning of the spare block minus the old start of the string.
             # then the length (in bytes, not chars) of the spare block we've accumulated so far.
             pointer_diff = (self.spare_block.start - start) + len(self.spare_block.blockstring)//2
-            previous_text_location = start
+            previous_text_location = start-1
 
             for offset in range(start, stop):
                 for block in self.blocks:
                     for trans in [x for x in block.translations if x.location == offset]:
-                        print hex(trans.location), "trans"
-                        # AHA! Some of these pointers are getting edited twice! They are right the first time.
-                        # If there's one pointer for two translations, it will edit the same pointer twice differently.
+                        print "translation at",  hex(trans.location), trans.english
 
                         jp_bytestring = trans.jp_bytestring
                         en_bytestring = trans.en_bytestring
 
-                        this_string_diff = len(en_bytestring) - len(jp_bytestring) // 2
+                        this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
+                        # I forgot the () in this equation for 6 months. How did it ever work??
                         j = ov_bytestring.index(jp_bytestring)
                         ov_bytestring = ov_bytestring.replace(jp_bytestring, en_bytestring)
+                        print "This translation has a diff of", this_string_diff
 
-                        self.edit_pointers_in_range((previous_text_location-1, trans.location),
+                        print "Now editing pointers in range", hex(previous_text_location), hex(trans.location), "diff", pointer_diff
+                        self.edit_pointers_in_range((previous_text_location, trans.location),
                                                     pointer_diff)
                         previous_text_location = trans.location
                         pointer_diff += this_string_diff
@@ -659,14 +648,15 @@ class Pointer(object):
 
             rom_bytestring = self.gamefile.filestring[location_in_string:location_in_string+4]
             rom_location = unpack(rom_bytestring[0:2], rom_bytestring[2:]) + self.gamefile.pointer_constant
+            #print hex(rom_location), self.gamefile.spare_block
             if self.old_bytestring != rom_bytestring:
                 new_location = new_value + self.gamefile.pointer_constant
-                print self.gamefile.spare_block
-                if self.gamefile.spare_block.start <= rom_location <= self.gamefile.spare_block.stop:
-                    print "Not editing pointer at %s; it already points to the spare block, so it's probably fine" % hex(self.location)
-                    return None
-                print "Pointer at %s got edited before; now it points to %s" % (hex(self.location), hex(new_value + self.gamefile.pointer_constant))
+                #if self.gamefile.spare_block.start <= rom_location <= self.gamefile.spare_block.stop:
+                #    print "Not editing pointer at %s; it already points to %s, so it's probably fine" % (hex(self.location), hex(rom_location))
+                #    return None
+                print "Pointer at %s got edited before; pointed to %s, now points to %s" % (hex(self.location), hex(rom_location), hex(new_location))
 
+            print "Editing pointer at %s, now it points to %s" % (hex(self.location), hex(new_value + self.gamefile.pointer_constant))
             self.gamefile.filestring = string_before + new_bytestring + string_after
 
     def __repr__(self):

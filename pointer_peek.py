@@ -24,7 +24,6 @@ def text_at_offset(filename, offset):
         return data + "..."
 
 if __name__ == '__main__':
-    print sys.argv
     filename = sys.argv[1]
     constant = POINTER_CONSTANT[filename]
 

@@ -20,6 +20,7 @@
         * "brothers that went looking for the Flower of Evolution and didn't come back...."
         * 0x2550 pointing to 0xd734 (should point to "I'm so, so scared though...")
             * Instead points to blank space, is 0xbf too high
+    * After fixing overflow stuff, it still has some extra text in it - a map file after "I'm so, so scared though..."
 
 * Ch2 environment text problems
     * "The temperature dropped suddenly!!" "s"
