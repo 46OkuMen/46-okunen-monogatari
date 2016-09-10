@@ -9,7 +9,7 @@ from rominfo import POINTER_CONSTANT
 
 def word_at_offset(filename, offset):
     with open(filename, 'rb') as f:
-        f.seek(offset)
+        # TODO: Sanity check by making sure the data at offset-2 is either 0x1eb8 or the pointer sep.
         result = ""
         data = f.read(2)
         for b in data:
@@ -20,8 +20,11 @@ def text_at_offset(filename, offset):
     with open(filename, 'rb') as f:
         f.seek(offset)
         result = ""
-        data = f.read(100)
-        return data + "..."
+        data = f.read(1)
+        while ord(data) != 00:   # END control code
+            result += data
+            data = f.read(1)
+        return result
 
 if __name__ == '__main__':
     filename = sys.argv[1]

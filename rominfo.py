@@ -28,7 +28,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x11893, 0x119a4),  # not variable; battle msgs      # iffy ending
                            (0x11d42, 0x1204e)),  # error block
                'ST2.EXE': ((0xc23b, 0xc27c),   # environment
-                           (0xc2bc, 0xd756),   # evo files, dialogue
+                           (0xc2bc, 0xd757),   # evo files, dialogue
                            (0xd757, 0xd894),   # evolution, menu
                            (0xd8c6, 0xdd50),   # battle stuff
                            (0xde35, 0xf948),   # dialogue

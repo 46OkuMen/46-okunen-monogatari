@@ -7,7 +7,7 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 | Segment      | %    | Strings      |
 | -------------|-----:|:------------:|
 | Opening      | 28%  |  (13 / 45)   |
-| Chapter 1    | 89%  | (448 / 501)  |
+| Chapter 1    |100%  | (501 / 501)  |
 | Chapter 2    | 90%  | (391 / 434)  |
 | Chapter 3    | 26%  |  (89 / 340)  |
 | Chapter 4    | 23%  | (172 / 746)  |
@@ -18,7 +18,7 @@ Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatar
 | Images       | 11%  |   (1 / 9)    |
 | Encyclopedia | 48%  | (363 / 741)  |
 | Gag Endings  |  0%  | (0 / 723)    |
-| Total        | 36%  | (1898 / 5240)|
+| Total        | 36%  | (1951 / 5240)|
 
 ## How do I use this?
 * There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. and I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!"
