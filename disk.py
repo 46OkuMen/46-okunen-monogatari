@@ -170,7 +170,7 @@ class EXEFile(Gamefile):
         pointers: A dict of {text_location: Pointer} pairs.
         spare_block: A Block identified as expendable; overflow text can be placed here.
         creature_block: A Block with different padding rules.
-        overflow_bytestrings: A dict of locations and bytestrings which get retrouted to the spare block.
+        overflows: A list of Overflows which will get moved and repointed elsewhere.
 
     Methods:
         edit_pointers_in_range: Adjust the pointers which point between (lo, hi) with a given diff.
@@ -205,7 +205,7 @@ class EXEFile(Gamefile):
         except KeyError:
             self.creature_block = None
 
-        self.overflow_bytestrings = {}
+        self.overflows = []
 
         self.total_strings = 0
         self.translated_strings = 0
@@ -236,14 +236,6 @@ class EXEFile(Gamefile):
 
     def most_recent_pointer(self, start, stop):
         """Return the highest offset with a pointer in the given range."""
-        # Gets called with args lo = previous_text_offset, hi=original_location.
-        # What's with the +1s???
-        # The lo is +1 here because we don't want to include the previous text that was replaced.
-        # The hi is +1 here because we do want to include the original location as a possibility...
-
-        # TODO: So an issue with this is that it can grab the last string's offset, even if it has no pointer...
-        # Am I better off truly grabbing the last pointer regardless of stop?
-
         offset = stop+1
         while offset not in self.pointers:
             offset -= 1
@@ -251,6 +243,10 @@ class EXEFile(Gamefile):
 
     def most_recent_string(self, start, stop):
         """Return the highest offset with a pointer in the given range."""
+        # Gets called with args lo = previous_text_offset, hi=original_location.
+        # What's with the +1s???
+        # The lo is +1 here because we don't want to include the previous text that was replaced.
+        # The hi is +1 here because we do want to include the original location as a possibility...
         for offset in reversed(range(start+1, stop+1)):
             if offset in self.pointers:
                 return offset
@@ -261,23 +257,26 @@ class EXEFile(Gamefile):
     def move_overflow(self):
         """Move the overflow bytestrings into the spare block, and adjust the pointers."""
         if not self.spare_block:
-            if len(self.overflow_bytestrings) > 0:
+            if len(self.overflows) > 0:
                 print "Uh oh, stuff has spilled out but there's no room to store it!!"
-                print self.overflow_bytestrings
+                print self.overflows
             return None
 
-        print "Moving overflow now"
-
         self.spare_block.blockstring = ""
-        for (start, stop), ov_bytestring in self.overflow_bytestrings.iteritems():
-            print "\nOverflow bytestring: ", hex(start), hex(stop)
+
+        # Sort the overflow bytestrings by length - you want to insert the longest ones wherever they'll fit.
+        # ...although, they're stored as japaense bytestrings so far, so we don't know their exact length.
+        # But we estimate it at least in 
+
+
+        for overflow in self.overflows:
             # need to adjust all the pointers within the overflow bytestring.
             # to start, get them to the spare block itself - the beginning of the spare block minus the old start of the string.
             # then the length (in bytes, not chars) of the spare block we've accumulated so far.
-            pointer_diff = (self.spare_block.start - start) + len(self.spare_block.blockstring)//2
-            previous_text_location = start-1
+            pointer_diff = (self.spare_block.start - overflow.start) + len(self.spare_block.blockstring)//2
+            previous_text_location = overflow.start-1
 
-            for offset in range(start, stop):
+            for offset in range(overflow.start, overflow.stop):
                 for block in self.blocks:
                     for trans in [x for x in block.translations if x.location == offset]:
                         print "translation at",  hex(trans.location), trans.english
@@ -286,9 +285,10 @@ class EXEFile(Gamefile):
                         en_bytestring = trans.en_bytestring
 
                         this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
-                        # I forgot the () in this equation for 6 months. How did it ever work??
-                        j = ov_bytestring.index(jp_bytestring)
-                        ov_bytestring = ov_bytestring.replace(jp_bytestring, en_bytestring)
+
+                        # TODO: Move all this translation business into the Overflow object itself.
+                        j = overflow.bytestring.index(jp_bytestring)
+                        overflow.bytestring = overflow.bytestring.replace(jp_bytestring, en_bytestring)
                         print "This translation has a diff of", this_string_diff
 
                         print "Now editing pointers in range", hex(previous_text_location), hex(trans.location), "diff", pointer_diff
@@ -298,11 +298,11 @@ class EXEFile(Gamefile):
                         pointer_diff += this_string_diff
 
             # Add this after the whole overflow bytestring has been ptr-adjusted.
-            self.spare_block.blockstring += ov_bytestring
+            self.spare_block.blockstring += overflow.bytestring
 
         excess = len(self.spare_block.blockstring)//2 - (self.spare_block.stop - self.spare_block.start)
-
         assert excess < 0, "Spare block is %s too long" % (excess)
+
         self.spare_block.incorporate()
 
 """
@@ -418,12 +418,9 @@ class Block(object):
                 #print trans.english
                 #print hex(new_text_offset), trans.english, this_string_diff, diff
                 if new_text_offset >= self.stop:
-                    print "it's overflowing\n"
-                    print trans.english, "will overflow"
                     while ptr + text_length + diff > self.stop:
                         ptr = block_pointers[i-1]
                         i -= 1
-                        print "backtracking to %s" % hex(ptr)
 
                     return ptr
 
@@ -438,10 +435,6 @@ class Block(object):
         is_overflowing = False
 
         overflow_location = self.overflow_location()
-        if overflow_location:
-            print "\n%s begins overflowing at %s" % (self, hex(overflow_location))
-        else:
-            print "\n%s block never overflows" % self
 
         for trans in self.translations:
             jp_bytestring, en_bytestring = trans.jp_bytestring, trans.en_bytestring
@@ -463,17 +456,15 @@ class Block(object):
                                                                  trans.location)
                 recent_pointer = overflow_location
 
-                print "Overflow start, old calculation:", hex(recent_string)
-                print "Overflow start, new calculation:", hex(recent_pointer)
-
-
                 start_in_block = (recent_pointer - self.start)*2
                 overflow_bytestring = self.original_blockstring[start_in_block:]
                 # Store the start and end of the overflow bytestring, 
                 # to make sure all pointers are adjusted in the range.
                 overflow_lo, overflow_hi = recent_pointer, self.stop
+
+                this_overflow = Overflow((overflow_lo, overflow_hi), overflow_bytestring)
                
-                self.gamefile.overflow_bytestrings[(overflow_lo, overflow_hi)] = overflow_bytestring
+                self.gamefile.overflows.append(this_overflow)
 
             self.gamefile.edit_pointers_in_range((previous_text_offset, trans.location), pointer_diff)
 
@@ -627,36 +618,15 @@ class Pointer(object):
 
     def edit(self, diff):
         """Adjusts the pointer by diff, and writes the new value to the gamefile."""
-
-        # Some terminology:
-        # "Old" is the original value in the Japanese ROM. The pointer is instantiated with this info.
-        # "New" is whatever value is given to the pointer in a given change.
-        # "Rom" is whatever value is actually in the ROM.
-        # Because the pointer can change multiple times due to overflow, compare the Old and Rom values before changing it.
         if diff != 0:
             location_in_string = self.location*2
             new_value = self.old_value + diff
             new_bytes = pack(new_value)
             new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
 
-            # This is likely a really time-intensive way to do this.
-            # A smarter thing to do would have been to use (mutable) bytearrays instead of
-            # "bytestrings" for all these string editing operations...
-
             string_before = self.gamefile.filestring[0:location_in_string]
             string_after = self.gamefile.filestring[location_in_string+4:]
-
-            rom_bytestring = self.gamefile.filestring[location_in_string:location_in_string+4]
-            rom_location = unpack(rom_bytestring[0:2], rom_bytestring[2:]) + self.gamefile.pointer_constant
-            #print hex(rom_location), self.gamefile.spare_block
-            if self.old_bytestring != rom_bytestring:
-                new_location = new_value + self.gamefile.pointer_constant
-                #if self.gamefile.spare_block.start <= rom_location <= self.gamefile.spare_block.stop:
-                #    print "Not editing pointer at %s; it already points to %s, so it's probably fine" % (hex(self.location), hex(rom_location))
-                #    return None
-                print "Pointer at %s got edited before; pointed to %s, now points to %s" % (hex(self.location), hex(rom_location), hex(new_location))
-
-            print "Editing pointer at %s, now it points to %s" % (hex(self.location), hex(new_value + self.gamefile.pointer_constant))
+                
             self.gamefile.filestring = string_before + new_bytestring + string_after
 
     def __repr__(self):
@@ -715,3 +685,12 @@ class PointerExcel(object):
             else:
                 ptrs[text_offset] = [ptr]
         return ptrs
+
+class Overflow(object):
+    """A string of data that must be repositioned elsewhere."""
+    def __init__(self, original_location, bytestring):
+        self.start, self.stop = original_location
+        self.bytestring = bytestring
+
+    def translate(self):
+        pass

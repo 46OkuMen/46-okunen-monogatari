@@ -49,6 +49,7 @@
 * Looks like ST2's script is a bit too long. Is there any other way for me to get space?
     * Definitely can't expand into the block of 00s and various other data right after the last block... causes graphical errors.
     * Can I use the small block of 20s after that?
+        * No - the chapter doesn't even boot if there's anything in that space.
     * How much space is taken up by the text padding I create when I slice the blocks that overflow in the first place?
         * I could try inserting shorter overflow bytestrings there in the first place before I even move to the spare block.
 
@@ -97,13 +98,6 @@
         * I can insert new <LN>s in the middle of lines, but that means I should remove the later one.
 
 ### other
-* More centralized documentation. How do pointers work? How is the game organized? etc.
-
-* I wonder if the dump has grown more complicated and might need a database.
-    * SQL queries insetad of loading the data from the xls sheet and manipulating it in memory.
-    * DB validations instead of 'unit' tests.
-    * Easier to categorize blocks a certain way, just have a 'block type' column.
-
 * Fix the randomly decaying excel formulas.
     * I am very incompetent at excel, it seems.
 

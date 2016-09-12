@@ -111,9 +111,6 @@ SPARE_BLOCK = {'OPENING.EXE': (0x55e9, 0x5639),
                'ST6.EXE': (0xd44a, 0xd756),}
  # Usually the last block. (But not in OPENNING.EXE).
 
-# Experimental. I'm not sure if I can actually use this one, but there's a tiny amount of space.
-OTHER_SPARE_BLOCK = {'ST2.EXE': (0x10922, 0x109c1),}
-
 CREATURE_BLOCK = {'ST1.EXE': (0x10fca, 0x11595),
                   'ST2.EXE': (0xfae4, 0xfe50),
                   'ST3.EXE': (0xdb7e, 0xe2d5),
