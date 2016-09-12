@@ -43,9 +43,10 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xbe22, 0xc01d),
                            (0xc046, 0xc5d3),
                            (0xc607, 0xcfe6),
-                           (0xcfff, 0xdb3a),    
+                           (0xcfff, 0xdb3a),    # creature block
                            (0xdb7e, 0xe2d5),
-                           (0xe617, 0xe7f3),
+                           (0xe617, 0xe6a7),    # Y/N/C, "evolved too far"
+                           (0xe6e3, 0xe7f3),
                            (0xeb82, 0xee8e)),
                'ST4.EXE': ((0xe263, 0xe2a3), # enviro
                            (0xe2f4, 0xe90e), # EVO files, battle text
@@ -57,7 +58,8 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x14026, 0x148c1), # dialogue
                            (0x148c1, 0x149e4), # enviro
                            (0x14a28, 0x15a1e), # creature block
-                           (0x16031, 0x1620d), # yes/no/cancel, battle msgs
+                           (0x16031, 0x160c1), # Y/N/C, evolved too far
+                           (0x160fd, 0x1620d), # battle msgs
                            (0x1659c, 0x168a8)), # error block
                'ST5.EXE': ((0xcc02, 0xcc63), # dialogue?
                            (0xccf3, 0xcd34), # enviro
@@ -66,8 +68,8 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xebbe, 0x1061e), # dialogue
                            (0x10682, 0x107a4), # enviro
                            (0x107e6, 0x11467), # creature block
-                           (0x11977, 0x11983), # y/n/c
-                           (0x119dd, 0x11b54), # battle msgs
+                           (0x11977, 0x11a07), # y/n/c, evolved too far
+                           (0x11a43, 0x11b54), # battle msgs
                            (0x11ef2, 0x121fe)), # error block
                'ST5S1.EXE': ((0x24e8, 0x39bb),
                              (0x39cc, 0x3af2),),
@@ -84,8 +86,8 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xb489, 0xb8d2), # dialogue
                            (0xb8ea, 0xccaf), # dialogue 
                            (0xcd14, 0xce25), # creature block
-                           (0xcedf, 0xcef7), # y/n/c
-                           (0xcf51, 0xd0bb), # enviro, battle text
+                           (0xcedf, 0xcf6f), # y/n/c, "evolved too far"
+                           (0xcfab, 0xd0bb), # enviro, battle text
                            (0xd44a, 0xd756)), # error block
                'ENDING.EXE': ((0x3c4e, 0x4b1f),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
@@ -108,6 +110,9 @@ SPARE_BLOCK = {'OPENING.EXE': (0x55e9, 0x5639),
                'ST5.EXE': (0x11ef2, 0x121fe),
                'ST6.EXE': (0xd44a, 0xd756),}
  # Usually the last block. (But not in OPENNING.EXE).
+
+# Experimental. I'm not sure if I can actually use this one, but there's a tiny amount of space.
+OTHER_SPARE_BLOCK = {'ST2.EXE': (0x10922, 0x109c1),}
 
 CREATURE_BLOCK = {'ST1.EXE': (0x10fca, 0x11595),
                   'ST2.EXE': (0xfae4, 0xfe50),

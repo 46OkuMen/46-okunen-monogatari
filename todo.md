@@ -7,47 +7,19 @@
         * So what's going on with these strings?
 
 ## Non-Crash Glitches
-* Ch2 weird first cave map entrnace.
-    * Comes from something in the end-battle block? (Yes)
-        * Comes from setting "You've evolved further..." for whatever reason.
-        * I guess this needs to be in a separate block, or included in the "Yes/No/Cancel" block. If it isn't isolated, it messes up some pointers related to gameover, evolution, combat, and I guess maps.
-        * This has been done for ST1 and ST2. Still gotta do the rest.
-
-* Ch2 broken text - "I'm going to search for all of my brothers that went looking" ...
-    * This is an overflow problem where a string was moved but it had no pointer.
-        * I fixed the overflow offset problem, but still something is going wrong with reassigning the pointers that are in overflow...
-    * Also a pointer problem maybe?
-        * "brothers that went looking for the Flower of Evolution and didn't come back...."
-        * 0x2550 pointing to 0xd734 (should point to "I'm so, so scared though...")
-            * Instead points to blank space, is 0xbf too high
-    * After fixing overflow stuff, it still has some extra text in it - a map file after "I'm so, so scared though..."
-
 * Ch2 environment text problems
     * "The temperature dropped suddenly!!" "s"
 
-* Ch1, Ch2 battle text problems
-    * Comes from the mid-battle text, not the end-battle text.
-
-* Ch1 overflow text problems
-    * "This sea is now your sea!" which overflows is getting pointed to wrong after the full dump was inserted, and when everything except battle msgs/skill names were inserted.
-
 ## Dump Problems
-* Lots of spaces at Ch5:0xfe7d; why???
-
-* Should I consider dumping/getting translations for INST.EXE as well?
-    * A preliminary dump shows error messages, installation stuff. Will this ever be seen?? I should ask Skye.
-
 * Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump from assisted_dump.py at all??
 
 * Carnivorous Dino Person had a missing piece of dialogue between 0xcf16 and 0xcf64.
     * Same as below. Used sjis-dump to dump st5 again...
     * Should I be nervous whenever I see two nametags in a row?
-    * Oddly, this line of dialogue was present in the original dump I gave to kuoushi...?
-
-* ST2.EXE 0xd1fe nametag gets duplicated, skipping a line of dialogue. The skipped line shows up at 0xd3d3...
-    * Fixed this. Not sure why it happened, unfortunately.
  
 ## Text Fixes
+* Tons of creature names in ch3 are blank??
+
 * Why are various humanoid creatures in ch5 showing up with different names in their nametag and HP bar?
     * "Vegetarian Monkey People" show up as creature type "Neanderthal".
     * Check to see if this is also the case in the jp version.
@@ -69,11 +41,16 @@
             * Yes.
     * Check to see if larger INT values run into the stat name later.
         * Doesn't look like it - the game is intelligent about spacing text like that.
+        * Still need the INT stat name to be 5-6 character max. Wisdom maybe? (not really good for describing animals)
 
 ## Tools
 
 ### disk.py
-* Be clearer about when to use getter methods vs. attributes.
+* Looks like ST2's script is a bit too long. Is there any other way for me to get space?
+    * Definitely can't expand into the block of 00s and various other data right after the last block... causes graphical errors.
+    * Can I use the small block of 20s after that?
+    * How much space is taken up by the text padding I create when I slice the blocks that overflow in the first place?
+        * I could try inserting shorter overflow bytestrings there in the first place before I even move to the spare block.
 
 * Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.
     * This is tricky with length stuff, I think - the ln is only one character, so make sure the diff is still calculated correctly.
@@ -81,6 +58,7 @@
 * Allow a "~" in the excel to be converted to a space for reinsertion.
     * It's super difficult to keep track of spaces and such, especially when they're /after/ strings - if I can replace them all with tildes, it will cause fewer mystery crashes.
     * Also it won't be as simple as a Ctrl-H replace - there are spaces in between words, remember? Gotta use a regex, if excel makes that easy enough.
+    * Wait, can't use "~" - the singing urchin in the first map uses ~ in the song lyrics.
 
 * Rewriting the romstring, filestring, and blockstring properties to use bytearrays instead of immutable strings would improve speed a lot!
     * This changes a lot of the biz logic, of course. (Mostly, string indexes are /2 of their original value, and so are lengths)
@@ -93,14 +71,11 @@
 * String length validation.
 
 ### cheats.py
+* Original map-changing cheats aren't working now for some reason. Is it due to the image reinsertion?
 * Get rid of this and make it a method of an EXEFile.
 * Anything I can do with the creature stat values? Can I decrease them, for example, in a way that makes me evolve into a bipedal creature faster for testing ch5?
 
 ### length validation
-* I don't think unit tests are a good way to check the translation integrity.
-    * I can probably write real unit tests, though, now that there's a more object oriented structure.
-    * And I can just use a normal script to find all the strings that need shortening.
-
 * What is the best way to do editing for line lengths and such?
     * The simplest is that all strings definitely can't be over 76. (max for bottom narration)
         * All strings in SINKA.DAT and SEND.DAT must be below 68. (bottom narration - indent)
@@ -120,9 +95,6 @@
 * Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
     * No more than 3 lines between <WAIT>s?
         * I can insert new <LN>s in the middle of lines, but that means I should remove the later one.
-    * I really do need some version of the dump where I can see these control codes. At this point it may be worth it to write my own SJIS-Dump that 1) lacks the bug, and 2) can use a custom .tbl file.
-    * table-dump. Y'know, like table flipping.
-        * Uh this is pretty difficult. I think I will wait til I study some more string algorithms to know what I'm doing here.
 
 ### other
 * More centralized documentation. How do pointers work? How is the game organized? etc.
@@ -136,9 +108,6 @@
     * I am very incompetent at excel, it seems.
 
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
-
-* Can I insert brag text into the credits?
-    * Probably quite difficult unless I take some poor developer out of the credits.
 
 * Looks like the .gitignore is on the fritz...
 
