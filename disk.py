@@ -76,7 +76,11 @@ class Disk(object):
                 gamefile.incorporate()
                 gamefile.write()
                 gamefile.report_progress()
-        self.write()
+        try:
+            self.write()
+        except IOError:
+            _ = raw_input("You have the game open; close it and hit Enter to continue")
+            self.write()
         self.report_progress()
 
     def write(self):
@@ -501,6 +505,7 @@ class Block(object):
             except ValueError:
                 # Sometimes the location_in_blockstring is just wrong... I wonder why?
                 old_slice = self.blockstring
+                print hex(trans.location)
                 i = old_slice.index(jp_bytestring)//2
 
             if i > 2:    # text on final lines of dialogue has an i=2.

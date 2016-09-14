@@ -7,8 +7,12 @@
         * So what's going on with these strings?
 
 ## Non-Crash Glitches
-* Ch2 environment text problems
-    * "The temperature dropped suddenly!!" "s"
+* Ch2, Ch3 environment text problems
+    * "The temperature dropped suddenly!!" "s" <-- oh, this problem is probably from the overflow problems - check it again
+    * "Got %d EVO Genes. <LN> You defeated the enemy!"
+    * I should make sure there are <END> codes after "Got %s evo genes" whenever it appears in the spare block.
+
+* Ch3 - Gaia's Hearts aren't triggering when you walk through them?
 
 ## Dump Problems
 * Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump from assisted_dump.py at all??
@@ -52,6 +56,7 @@
         * No - the chapter doesn't even boot if there's anything in that space.
     * How much space is taken up by the text padding I create when I slice the blocks that overflow in the first place?
         * I could try inserting shorter overflow bytestrings there in the first place before I even move to the spare block.
+    * I can probably trim the spaces from some of the AV events that use spaces to center text...
 
 * Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.
     * This is tricky with length stuff, I think - the ln is only one character, so make sure the diff is still calculated correctly.
