@@ -85,9 +85,11 @@
 * What is the best way to do editing for line lengths and such?
     * The simplest is that all strings definitely can't be over 76. (max for bottom narration)
         * All strings in SINKA.DAT and SEND.DAT must be below 68. (bottom narration - indent)
-    * Strings in creature block < 21.
-    * Strings in battle block < 43.
-    * Strings in the menu block < 43. (Since evolution messages, etc.)
+    * Strings in creature block <= 22.
+    * Strings in battle block <= 42.
+    * Strings in the menu block <= 42. (Since evolution messages, etc.)
+    * Strings in opening/ending <= 77. (It loops around at that point and looks ugly)
+    * Stamina/Strength/Attack are fine, 
 
 * Is there any way to programmatically check which strings are part of fullscreen narration events?
     * One clue: it comes right after an AV*.GDT file (in the full dump).
