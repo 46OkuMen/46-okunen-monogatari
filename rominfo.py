@@ -90,7 +90,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xcedf, 0xcf6f), # y/n/c, "evolved too far"
                            (0xcfab, 0xd0bb), # enviro, battle text
                            (0xd44a, 0xd756)), # error block
-               'ENDING.EXE': ((0x3c4e, 0x4b1f),),
+               'ENDING.EXE': ((0x3c4e, 0x4b20),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
                'SEND.DAT': ((0x000, 0x8740),)}
 

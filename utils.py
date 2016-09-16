@@ -66,7 +66,7 @@ def pointer_value_from_location(offset, constant):
 
 def get_current_block(text_offset, file):
     for index, block in enumerate(file.blocks):
-        lo, hi = block.location
+        lo, hi = block.start, block.stop
         if (text_offset >= lo) and (text_offset < hi):
             return index
 

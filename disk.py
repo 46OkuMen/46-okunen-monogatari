@@ -8,7 +8,7 @@ from math import floor
 from openpyxl import load_workbook
 
 from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS
-from utils import sjis_to_hex_string, ascii_to_hex_string
+from utils import sjis_to_hex_string, ascii_to_hex_string, get_current_block
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
 from rominfo import SPARE_BLOCK, CREATURE_BLOCK
 
@@ -71,7 +71,8 @@ class Disk(object):
                 try:
                     gamefile.creature_block.edit_text()
                 except AttributeError:
-                    print "That file doesn't have a creature block, so don't worry about it."
+                    # Doesn't have a creature block. Don't worry about it.
+                    pass
                 gamefile.move_overflow()
                 gamefile.incorporate()
                 gamefile.write()
@@ -272,37 +273,9 @@ class EXEFile(Gamefile):
         # ...although, they're stored as japaense bytestrings so far, so we don't know their exact length.
         # But we estimate it at least in 
 
-
         for overflow in self.overflows:
-            # need to adjust all the pointers within the overflow bytestring.
-            # to start, get them to the spare block itself - the beginning of the spare block minus the old start of the string.
-            # then the length (in bytes, not chars) of the spare block we've accumulated so far.
-            pointer_diff = (self.spare_block.start - overflow.start) + len(self.spare_block.blockstring)//2
-            previous_text_location = overflow.start-1
-
-            for offset in range(overflow.start, overflow.stop):
-                for block in self.blocks:
-                    for trans in [x for x in block.translations if x.location == offset]:
-                        print "translation at",  hex(trans.location), trans.english
-
-                        jp_bytestring = trans.jp_bytestring
-                        en_bytestring = trans.en_bytestring
-
-                        this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
-
-                        # TODO: Move all this translation business into the Overflow object itself.
-                        j = overflow.bytestring.index(jp_bytestring)
-                        overflow.bytestring = overflow.bytestring.replace(jp_bytestring, en_bytestring)
-                        print "This translation has a diff of", this_string_diff
-
-                        print "Now editing pointers in range", hex(previous_text_location), hex(trans.location), "diff", pointer_diff
-                        self.edit_pointers_in_range((previous_text_location, trans.location),
-                                                    pointer_diff)
-                        previous_text_location = trans.location
-                        pointer_diff += this_string_diff
-
-            # Add this after the whole overflow bytestring has been ptr-adjusted.
-            self.spare_block.blockstring += overflow.bytestring
+            # TODO: See if they can be moved to other blocks, space permitting.
+            overflow.move(self.spare_block.start + len(self.spare_block.blockstring)//2)
 
         excess = len(self.spare_block.blockstring)//2 - (self.spare_block.stop - self.spare_block.start)
         assert excess < 0, "Spare block is %s too long" % (excess)
@@ -390,7 +363,6 @@ class Block(object):
 
         block_pointers = self.get_pointers()
         block_pointers.sort()
-        #print [hex(x) for x in block_pointers]
 
         block_pointers.append(self.stop) # Should solve the problem of the last pointer not being considered (due to ranges)
 
@@ -400,14 +372,11 @@ class Block(object):
             ptr_range = (ptr, block_pointers[i+1])
             
             # Look for all translations located in the pointer range.
-
             translations = [t for t in self.translations if t.location >= ptr_range[0] and t.location < ptr_range[1]]
-            #translations.sort()
 
             for trans in translations:
                 location_in_blockstring = (trans.location * 2) - self.start
                 jp_bytestring, en_bytestring = trans.jp_bytestring, trans.en_bytestring
-
 
                 if en_bytestring:
                     text_length = len(en_bytestring)//2
@@ -418,9 +387,6 @@ class Block(object):
 
                 new_text_offset = trans.location + text_length + diff # TODO: + this_string_diff?
 
-                #print hex(new_text_offset), hex(self.stop)
-                #print trans.english
-                #print hex(new_text_offset), trans.english, this_string_diff, diff
                 if new_text_offset >= self.stop:
                     while ptr + text_length + diff > self.stop:
                         ptr = block_pointers[i-1]
@@ -452,9 +418,6 @@ class Block(object):
             if (trans.location >= overflow_location) and overflow_location:
                 print "%s >= %s" % (hex(trans.location), hex(overflow_location))
                 is_overflowing = True
-                # Current approach splits and loses text between strings.
-                # Solutions?
-                # 2) Make better predictions at where overflow will occur.
 
                 recent_string = self.gamefile.most_recent_string(previous_text_offset, 
                                                                  trans.location)
@@ -466,7 +429,8 @@ class Block(object):
                 # to make sure all pointers are adjusted in the range.
                 overflow_lo, overflow_hi = recent_pointer, self.stop
 
-                this_overflow = Overflow((overflow_lo, overflow_hi), overflow_bytestring)
+                # TODO: Split this overflow into multiple bytestrings, one per pointer.
+                this_overflow = Overflow(self.gamefile, (overflow_lo, overflow_hi), overflow_bytestring)
                
                 self.gamefile.overflows.append(this_overflow)
 
@@ -510,6 +474,7 @@ class Block(object):
 
             if i > 2:    # text on final lines of dialogue has an i=2.
                 try:
+                    # still not sure when this occurs...
                     print trans, "location in blockstring is too high, i =", i
                     print "predicted location was", location_in_blockstring
                 except UnicodeEncodeError:
@@ -525,7 +490,6 @@ class Block(object):
                 break
 
         self.incorporate()
-        print "\n"
 
     def incorporate(self):
         """Write the new block to the source gamefile."""
@@ -539,8 +503,8 @@ class Block(object):
         assert block_diff <= 0, 'The block %s is too long by %s' % (self, block_diff)
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
-            #inserted_spaces_index = self.stop
             self.blockstring += '20' * number_of_spaces  # (ASCII space)
+            print number_of_spaces, "spaces inserted"
         assert len(self.original_blockstring) == len(self.blockstring)
 
     def __repr__(self):
@@ -693,9 +657,43 @@ class PointerExcel(object):
 
 class Overflow(object):
     """A string of data that must be repositioned elsewhere."""
-    def __init__(self, original_location, bytestring):
+    def __init__(self, gamefile, original_location, bytestring):
+        self.gamefile = gamefile
         self.start, self.stop = original_location
         self.bytestring = bytestring
 
+        self.translate()
+
     def translate(self):
+        # Really tough to get ptr diffs from something already translated...
         pass
+
+
+
+    def move(self, location):
+        destination_block = self.gamefile.blocks[get_current_block(location, self.gamefile)]
+
+        pointer_diff = location - self.start
+        previous_text_location = self.start-1
+
+        for offset in range(self.start, self.stop):
+            for block in self.gamefile.blocks:
+                for trans in [x for x in block.translations if x.location == offset]:
+
+                    jp_bytestring = trans.jp_bytestring
+                    en_bytestring = trans.en_bytestring
+
+                    this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
+
+                    j = self.bytestring.index(jp_bytestring)
+                    self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring)
+
+                    self.gamefile.edit_pointers_in_range((previous_text_location, trans.location),
+                                                         pointer_diff)
+                    previous_text_location = trans.location
+                    pointer_diff += this_string_diff
+
+        destination_block.blockstring += self.bytestring
+
+    def __repr__(self):
+        return hex(self.start) + " " + hex(self.stop)

@@ -4,6 +4,7 @@
     * on the third intro image/ "A barred spiral galaxy on the outreaches of space...." Some pointer thing?
     * MUsic Programming: TAGUCHI Yasuhiro (never progresses past that)
     * Something is up with the pointers, certainly - if I only translate Character Digitizing in the credits, the first one that shows up as translated is Map Digitizing (one after)...
+    * Why doesnt ptr-peek work on OPENING.EXE?
 
 
 ## Mistaken Text Replacement
@@ -16,8 +17,6 @@
     * "The temperature dropped suddenly!!" "s" <-- oh, this problem is probably from the overflow problems - check it again
     * "Got %d EVO Genes. <LN> You defeated the enemy!"
     * I should make sure there are <END> codes after "Got %s evo genes" whenever it appears in the spare block.
-
-* Ch3 - Gaia's Hearts aren't triggering when you walk through them?
 
 ## Dump Problems
 * Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump from assisted_dump.py at all??
@@ -52,21 +51,23 @@
 * Looks like most chapter scripts will be too long. Is there any other way for me to get space?
     * Definitely can't expand into the block of 00s and various other data right after the last block... causes graphical errors.
     * Can I use the small block of 20s after that?
-        * No - the chapter doesn't even boot if there's anything in that space.
+        * No - the chapter doesn't even boot if there's anything in that area.
     * How much space is taken up by the text padding I create when I slice the blocks that overflow in the first place?
         * I could try inserting shorter overflow bytestrings there in the first place before I even move to the spare block.
+            * In progress. Requires a lot of restructuring how overflow works.
     * I can probably trim the spaces from some of the AV events that use spaces to center text...
+        * Can I use tabs to achieve a similar effect without using so much space?
 
 * Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.
     * This is tricky with length stuff, I think - the ln is only one character, so make sure the diff is still calculated correctly.
-
-* Allow a "~" in the excel to be converted to a space for reinsertion.
-    * It's super difficult to keep track of spaces and such, especially when they're /after/ strings - if I can replace them all with tildes, it will cause fewer mystery crashes.
-    * Also it won't be as simple as a Ctrl-H replace - there are spaces in between words, remember? Gotta use a regex, if excel makes that easy enough.
-    * Wait, can't use "~" - the singing urchin in the first map uses ~ in the song lyrics.
+    * Not even necessary! Newlines in excel (alt+enter) show up ingame, since 0A is a newline in ascii and sjis.
+    * The real issue is - how to remove line breaks after the strings if I want to change the \n's position?
+        * I could fuse the jp string into a "s1\ns2\ns3" excel row...
+        * Any way to do that quickly?
 
 * Rewriting the romstring, filestring, and blockstring properties to use bytearrays instead of immutable strings would improve speed a lot!
     * This changes a lot of the biz logic, of course. (Mostly, string indexes are /2 of their original value, and so are lengths)
+    * This wasn't the real bottleneck anyway - that was the unnecessary Excel sheet reading.
 
 ### test.py
 * Assert that a blank translation sheet returns no overflow errors.
@@ -77,8 +78,10 @@
 
 ### cheats.py
 * Original map-changing cheats aren't working now for some reason. Is it due to the image reinsertion?
+    * Nope, the mapname file is just part of a block when it wasn't before. So something else is getting edited instead.
+    * Tried to split the block, got "block too long" errors...
+
 * Get rid of this and make it a method of an EXEFile.
-* Anything I can do with the creature stat values? Can I decrease them, for example, in a way that makes me evolve into a bipedal creature faster for testing ch5?
 
 ### length validation
 * What is the best way to do editing for line lengths and such?
@@ -87,8 +90,8 @@
     * Strings in creature block <= 22.
     * Strings in battle block <= 42.
     * Strings in the menu block <= 42. (Since evolution messages, etc.)
-    * Strings in opening/ending <= 77. (It loops around at that point and looks ugly)
-    * Stamina/Strength/Attack are fine, 
+    * Strings in opening/ending <= 76. (It loops around at that point and looks ugly)
+    * Stamina/Strength/Attack are fine, but Intelligence needs to be 5-6 chars or less.
 
 * Is there any way to programmatically check which strings are part of fullscreen narration events?
     * One clue: it comes right after an AV*.GDT file (in the full dump).
