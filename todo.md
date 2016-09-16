@@ -1,5 +1,10 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
+* Two OPENING.EXE has two crashes/sticking points: 
+    * on the third intro image/ "A barred spiral galaxy on the outreaches of space...." Some pointer thing?
+    * MUsic Programming: TAGUCHI Yasuhiro (never progresses past that)
+    * Something is up with the pointers, certainly - if I only translate Character Digitizing in the credits, the first one that shows up as translated is Map Digitizing (one after)...
+
 
 ## Mistaken Text Replacement
 * In the middle of finding a better way to slice the blockstring when looking for the original jp_bytestring.
@@ -16,14 +21,8 @@
 
 ## Dump Problems
 * Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump from assisted_dump.py at all??
-
-* Carnivorous Dino Person had a missing piece of dialogue between 0xcf16 and 0xcf64.
-    * Same as below. Used sjis-dump to dump st5 again...
-    * Should I be nervous whenever I see two nametags in a row?
  
 ## Text Fixes
-* Tons of creature names in ch3 are blank??
-
 * Why are various humanoid creatures in ch5 showing up with different names in their nametag and HP bar?
     * "Vegetarian Monkey People" show up as creature type "Neanderthal".
     * Check to see if this is also the case in the jp version.
@@ -50,7 +49,7 @@
 ## Tools
 
 ### disk.py
-* Looks like ST2's script is a bit too long. Is there any other way for me to get space?
+* Looks like most chapter scripts will be too long. Is there any other way for me to get space?
     * Definitely can't expand into the block of 00s and various other data right after the last block... causes graphical errors.
     * Can I use the small block of 20s after that?
         * No - the chapter doesn't even boot if there's anything in that space.
@@ -109,6 +108,7 @@
     * I am very incompetent at excel, it seems.
 
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
+    * It might be an install disk.
 
 * Looks like the .gitignore is on the fritz...
 
@@ -122,3 +122,6 @@
 * If the reinserter can't find the original jp string:
     * Look in the dump that includes ASCII text, there's probably some wonky spaces or something.
     * Especially if it's in OPENING or ENDING.
+
+* If the Gaia's Hearts don't do anything:
+    * Try not to disturb the length of the strings above the You Found Gaia's Heart msg. (Give them their own block?)
