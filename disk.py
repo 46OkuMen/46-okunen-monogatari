@@ -192,13 +192,18 @@ class EXEFile(Gamefile):
 
         # Look for a spare block and designate it as such.
         try:
-            spare_start, _ = SPARE_BLOCK[self.filename]
+            spare_start, spare_stop = SPARE_BLOCK[self.filename]
             for block in self.blocks:
                 if block.start == spare_start:
                     self.spare_block = block
                     block.is_spare = True
         except KeyError:
             self.spare_block = None
+
+        # You can also store stuff in the padding at the ends of blocks, so store those locs here.
+        self.spares = []
+        if self.spare_block:
+            self.spares.append((spare_start, spare_stop))
 
         # Then look for a creature block and designate it as such.
         try:
@@ -269,13 +274,20 @@ class EXEFile(Gamefile):
 
         self.spare_block.blockstring = ""
 
-        # Sort the overflow bytestrings by length - you want to insert the longest ones wherever they'll fit.
-        # ...although, they're stored as japaense bytestrings so far, so we don't know their exact length.
-        # But we estimate it at least in 
-
+        # Want to try to put the largest overflows into the smallest containing spare, for best space usage.
+        self.overflows.sort(key=lambda x: x.new_length, reverse=True)
+        self.spares.sort(key=lambda x: x[1] - x[0])
+        
         for overflow in self.overflows:
-            # TODO: See if they can be moved to other blocks, space permitting.
-            overflow.move(self.spare_block.start + len(self.spare_block.blockstring)//2)
+            print "Overflow:", [p.new_length for p in self.overflows]
+            print "Spares:", [s[1] - s[0] for s in self.spares]
+            overflow_length = overflow.new_length
+            for i, s in enumerate(self.spares):
+                if s[1] - s[0] >= overflow_length:
+                    overflow.move(s[0])
+                    self.spares[i] = s[0] + overflow_length, s[1]
+                    self.spares.sort(key=lambda x: x[1] - x[0])
+                    break
 
         excess = len(self.spare_block.blockstring)//2 - (self.spare_block.stop - self.spare_block.start)
         assert excess < 0, "Spare block is %s too long" % (excess)
@@ -352,7 +364,6 @@ class Block(object):
         block_pointers.sort()
         return block_pointers
 
-
     def overflow_location(self):
         """
         Find the first pointer that contains text that will overflow.
@@ -362,12 +373,11 @@ class Block(object):
         block_length = self.stop - self.start
 
         block_pointers = self.get_pointers()
-        block_pointers.sort()
 
         block_pointers.append(self.stop) # Should solve the problem of the last pointer not being considered (due to ranges)
 
         for i, ptr in enumerate(block_pointers):
-            if i > len(block_pointers)-2:
+            if i >= len(block_pointers)-1:
                 break
             ptr_range = (ptr, block_pointers[i+1])
             
@@ -429,10 +439,27 @@ class Block(object):
                 # to make sure all pointers are adjusted in the range.
                 overflow_lo, overflow_hi = recent_pointer, self.stop
 
-                # TODO: Split this overflow into multiple bytestrings, one per pointer.
-                this_overflow = Overflow(self.gamefile, (overflow_lo, overflow_hi), overflow_bytestring)
+                overflow_pointers = [p for p in self.get_pointers() if overflow_lo <= p <= overflow_hi]
+                if self.stop not in overflow_pointers:
+                    overflow_pointers.append(self.stop)
+                print [hex(x) for x in overflow_pointers]
+
+                for i, p in enumerate(overflow_pointers):
+                    if i == len(overflow_pointers)-1:
+                        break
+                    next_p = overflow_pointers[i+1]
+                    print hex(p), hex(next_p)
+                    start_in_block = (p - self.start)*2
+                    stop_in_block = (next_p - self.start)*2
+
+                    this_bytestring = self.original_blockstring[start_in_block:stop_in_block]
+                    print this_bytestring
+                    this_overflow = Overflow(self.gamefile, (p, next_p), this_bytestring)
+                    self.gamefile.overflows.append(this_overflow)
+
+                #this_overflow = Overflow(self.gamefile, (overflow_lo, overflow_hi), overflow_bytestring)
                
-                self.gamefile.overflows.append(this_overflow)
+                #self.gamefile.overflows.append(this_overflow)
 
             self.gamefile.edit_pointers_in_range((previous_text_offset, trans.location), pointer_diff)
 
@@ -503,8 +530,12 @@ class Block(object):
         assert block_diff <= 0, 'The block %s is too long by %s' % (self, block_diff)
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
+            padding_start = self.start + len(self.blockstring)//2
             self.blockstring += '20' * number_of_spaces  # (ASCII space)
-            print number_of_spaces, "spaces inserted"
+            #print number_of_spaces, "spaces inserted"
+            padding_stop = self.start + len(self.blockstring)//2
+
+            self.gamefile.spares.append((padding_start, padding_stop))
         assert len(self.original_blockstring) == len(self.blockstring)
 
     def __repr__(self):
@@ -660,17 +691,31 @@ class Overflow(object):
     def __init__(self, gamefile, original_location, bytestring):
         self.gamefile = gamefile
         self.start, self.stop = original_location
+        self.original_bytestring = bytestring
         self.bytestring = bytestring
 
-        self.translate()
+        self.new_length = self.get_length()
 
-    def translate(self):
-        # Really tough to get ptr diffs from something already translated...
-        pass
+    def get_length(self):
+        # This duplicates some functionality of move(), because we really just need this to get the new length.
+        for offset in range(self.start, self.stop):
+            for block in self.gamefile.blocks:
+                for trans in [x for x in block.translations if x.location == offset]:
 
+                    jp_bytestring = trans.jp_bytestring
+                    en_bytestring = trans.en_bytestring
 
+                    j = self.bytestring.index(jp_bytestring)
+                    self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring)
+
+        # return the length of the new bytestring, but restore the original bytestring first
+        result = len(self.bytestring) // 2
+        self.bytestring = str(self.original_bytestring)
+        return result
 
     def move(self, location):
+
+        # TODO: Does this always insert at exactly the place I expect it to??
         destination_block = self.gamefile.blocks[get_current_block(location, self.gamefile)]
 
         pointer_diff = location - self.start

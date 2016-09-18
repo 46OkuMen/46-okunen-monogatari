@@ -19,6 +19,5 @@ if __name__ == '__main__':
     DiskA = Disk(SRC_ROM_PATH, DEST_ROM_PATH, FILES_TO_TRANSLATE)
     DiskA.translate()
 
-    # Oh dear, these methods are broken
-    #change_starting_map('ST1.EXE', 100)
-    #change_starting_map('ST5.EXE', 600)
+    #change_starting_map('ST1.EXE', 100) # this one's broken
+    #change_starting_map('ST5.EXE', 600) # this one still works
