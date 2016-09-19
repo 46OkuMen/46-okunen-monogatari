@@ -147,6 +147,9 @@ class Gamefile(object):
 
     def incorporate(self):
         """Add the edited file to the Disk in the original's place."""
+        for b in self.blocks:
+            b.incorporate()
+            
         self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring)
 
     def write(self):
@@ -265,7 +268,10 @@ class EXEFile(Gamefile):
 
 
     def move_overflow(self):
-        """Move the overflow bytestrings into the spare block, and adjust the pointers."""
+        """
+        Move the overflows to the spares, then reroute the pointers.
+        """
+        print "moving overflow\n"
         if not self.spare_block:
             if len(self.overflows) > 0:
                 print "Uh oh, stuff has spilled out but there's no room to store it!!"
@@ -274,16 +280,19 @@ class EXEFile(Gamefile):
 
         self.spare_block.blockstring = ""
 
+        print self.overflows
+
         # Want to try to put the largest overflows into the smallest containing spare, for best space usage.
         self.overflows.sort(key=lambda x: x.new_length, reverse=True)
         self.spares.sort(key=lambda x: x[1] - x[0])
         
         for overflow in self.overflows:
-            print "Overflow:", [p.new_length for p in self.overflows]
+            #print "Overflow:", [p.new_length for p in self.overflows]
             print "Spares:", [s[1] - s[0] for s in self.spares]
             overflow_length = overflow.new_length
             for i, s in enumerate(self.spares):
-                if s[1] - s[0] >= overflow_length:
+                if s[1] - s[0] > overflow_length:
+                    print overflow, "should fit in", hex(s[0]), hex(s[1]), "since %s < %s" % (overflow.new_length, s[1]-s[0])
                     overflow.move(s[0])
                     self.spares[i] = s[0] + overflow_length, s[1]
                     self.spares.sort(key=lambda x: x[1] - x[0])
@@ -292,17 +301,7 @@ class EXEFile(Gamefile):
         excess = len(self.spare_block.blockstring)//2 - (self.spare_block.stop - self.spare_block.start)
         assert excess < 0, "Spare block is %s too long" % (excess)
 
-        self.spare_block.incorporate()
-
-"""
-    def change_starting_map(self, map_number):
-        # TODO: Better way of doing this?
-        offset_in_rom = STARTING_MAP_NUMBER_LOCATION[self.filename] + self.location
-        new_map_bytes = str(map_number).encode()
-        with open(DEST_ROM_PATH, 'rb+') as f:
-            f.seek(offset_in_rom)
-            f.write(new_map_bytes)
-"""
+        #self.spare_block.incorporate()
 
 
 class DATFile(Gamefile):
@@ -405,7 +404,6 @@ class Block(object):
                     return ptr
 
                 diff += this_string_diff
-                
                 
 
     def edit_text(self):
@@ -516,26 +514,40 @@ class Block(object):
             if is_overflowing:
                 break
 
-        self.incorporate()
+        self.identify_spares()
+        #self.incorporate()
 
     def incorporate(self):
         """Write the new block to the source gamefile."""
+        #TODO: I want this to happen after overflow is moved.
         self.pad()
         self.gamefile.filestring = self.gamefile.filestring.replace(self.original_blockstring, 
                                                                     self.blockstring)
 
-    def pad(self):
-        """Fill the remainder of the block with spaces."""
+    def identify_spares(self):
+        """Determine how much space is left at the end of the block, and designate it for
+        overflow collection."""
+        print "identifying spares\n"
         block_diff = len(self.blockstring) - len(self.original_blockstring)
         assert block_diff <= 0, 'The block %s is too long by %s' % (self, block_diff)
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
             padding_start = self.start + len(self.blockstring)//2
-            self.blockstring += '20' * number_of_spaces  # (ASCII space)
-            #print number_of_spaces, "spaces inserted"
-            padding_stop = self.start + len(self.blockstring)//2
+            padding_stop = self.start + len(self.blockstring)//2 + number_of_spaces
 
             self.gamefile.spares.append((padding_start, padding_stop))
+
+    def pad(self):
+        """Fill the remainder of the block with spaces. After identifying the spares."""
+        print "padding block\n"
+
+        block_diff = len(self.blockstring) - len(self.original_blockstring)
+        assert block_diff <= 0, 'The block %s is too long by %s' % (self, block_diff)
+        if block_diff < 0:
+            number_of_spaces = ((-1)*block_diff)//2
+            self.blockstring += '20' * number_of_spaces  # (ASCII space)
+            print number_of_spaces, "spaces inserted"
+
         assert len(self.original_blockstring) == len(self.blockstring)
 
     def __repr__(self):
@@ -714,9 +726,10 @@ class Overflow(object):
         return result
 
     def move(self, location):
-
-        # TODO: Does this always insert at exactly the place I expect it to??
         destination_block = self.gamefile.blocks[get_current_block(location, self.gamefile)]
+        #print "Originally located:", self
+        #print "new length of", self.new_length
+        #print "moving to", destination_block
 
         pointer_diff = location - self.start
         previous_text_location = self.start-1
@@ -737,8 +750,10 @@ class Overflow(object):
                                                          pointer_diff)
                     previous_text_location = trans.location
                     pointer_diff += this_string_diff
-
+        print self.bytestring
+        print "before:", len(destination_block.blockstring)
         destination_block.blockstring += self.bytestring
+        print "after:", len(destination_block.blockstring)
 
     def __repr__(self):
         return hex(self.start) + " " + hex(self.stop)

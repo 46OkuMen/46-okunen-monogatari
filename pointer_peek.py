@@ -9,11 +9,12 @@ from rominfo import POINTER_CONSTANT
 
 def word_at_offset(filename, offset):
     with open(filename, 'rb') as f:
-        # TODO: Sanity check by making sure the data at offset-2 is either 0x1eb8 or the pointer sep.
         result = ""
+        f.seek(offset)
         data = f.read(2)
         for b in data:
             result += "%02x" % ord(b)
+        print result
         return unpack(result[0:2], result[2:])
 
 def text_at_offset(filename, offset):
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     offset = int(sys.argv[2], 16)
     filepath = os.path.join(DEST_PATH, filename)
     pointer_value =  word_at_offset(filepath, offset)
+
     print "value:", hex(pointer_value)
     if pointer_value == 0xb81e:
         # Lots of things listed in the pointer spreadhseet are 2 too high, and point to the "ptr begin" ctrl code.

@@ -22,6 +22,8 @@
 * Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump from assisted_dump.py at all??
  
 ## Text Fixes
+* Remove the extra spaces around 0xe160 in the robot's dialogue.
+
 * Why are various humanoid creatures in ch5 showing up with different names in their nametag and HP bar?
     * "Vegetarian Monkey People" show up as creature type "Neanderthal".
     * Check to see if this is also the case in the jp version.
