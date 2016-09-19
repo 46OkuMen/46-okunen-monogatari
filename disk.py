@@ -65,6 +65,7 @@ class Disk(object):
             if gamefile.filename.endswith('DAT'):
                 gamefile.translate()
                 gamefile.write()
+                gamefile.report_progress()
             else:
                 for block in gamefile.blocks:
                     block.edit_text()
@@ -94,7 +95,7 @@ class Disk(object):
         """Calculate and print the progress made in translating this file."""
 
         percentage = int(floor((self.translated_strings / self.total_strings * 100)))
-        print 'The Shinkaron', str(percentage), "% complete",
+        print 'E.V.O.: The Theory of Evolution', str(percentage), "% complete",
         print "(%s / %s)\n" % (self.translated_strings, self.total_strings)
 
 
@@ -149,7 +150,7 @@ class Gamefile(object):
         """Add the edited file to the Disk in the original's place."""
         for b in self.blocks:
             b.incorporate()
-            
+
         self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring)
 
     def write(self):
@@ -271,7 +272,6 @@ class EXEFile(Gamefile):
         """
         Move the overflows to the spares, then reroute the pointers.
         """
-        print "moving overflow\n"
         if not self.spare_block:
             if len(self.overflows) > 0:
                 print "Uh oh, stuff has spilled out but there's no room to store it!!"
@@ -280,23 +280,27 @@ class EXEFile(Gamefile):
 
         self.spare_block.blockstring = ""
 
-        print self.overflows
-
         # Want to try to put the largest overflows into the smallest containing spare, for best space usage.
         self.overflows.sort(key=lambda x: x.new_length, reverse=True)
         self.spares.sort(key=lambda x: x[1] - x[0])
         
         for overflow in self.overflows:
             #print "Overflow:", [p.new_length for p in self.overflows]
-            print "Spares:", [s[1] - s[0] for s in self.spares]
+            #print "Spares:", [s[1] - s[0] for s in self.spares]
+            overflow_stored = False
             overflow_length = overflow.new_length
+            #print "Trying to store %s with length %s" % (overflow, overflow_length)
             for i, s in enumerate(self.spares):
                 if s[1] - s[0] > overflow_length:
-                    print overflow, "should fit in", hex(s[0]), hex(s[1]), "since %s < %s" % (overflow.new_length, s[1]-s[0])
+                    #print overflow, "should fit in", hex(s[0]), hex(s[1]), "since %s < %s" % (overflow.new_length, s[1]-s[0])
                     overflow.move(s[0])
                     self.spares[i] = s[0] + overflow_length, s[1]
                     self.spares.sort(key=lambda x: x[1] - x[0])
+                    overflow_stored = True
                     break
+            if not overflow_stored:
+                raise Exception("That overflow didn't fit anywhere")
+
 
         excess = len(self.spare_block.blockstring)//2 - (self.spare_block.stop - self.spare_block.start)
         assert excess < 0, "Spare block is %s too long" % (excess)
@@ -419,12 +423,14 @@ class Block(object):
 
             # jp_bytestring might include ASCII; if it's not found, try the ascii preserving method.
             try:
+                #print jp_bytestring
                 j = self.blockstring.index(jp_bytestring)
             except ValueError: # substring not found
+                #print "using alt jp string"
                 jp_bytestring = trans.jp_bytestring_alt
 
             if (trans.location >= overflow_location) and overflow_location:
-                print "%s >= %s" % (hex(trans.location), hex(overflow_location))
+                #print "%s >= %s" % (hex(trans.location), hex(overflow_location))
                 is_overflowing = True
 
                 recent_string = self.gamefile.most_recent_string(previous_text_offset, 
@@ -440,18 +446,18 @@ class Block(object):
                 overflow_pointers = [p for p in self.get_pointers() if overflow_lo <= p <= overflow_hi]
                 if self.stop not in overflow_pointers:
                     overflow_pointers.append(self.stop)
-                print [hex(x) for x in overflow_pointers]
+                #print [hex(x) for x in overflow_pointers]
 
                 for i, p in enumerate(overflow_pointers):
                     if i == len(overflow_pointers)-1:
                         break
                     next_p = overflow_pointers[i+1]
-                    print hex(p), hex(next_p)
+                    #print hex(p), hex(next_p)
                     start_in_block = (p - self.start)*2
                     stop_in_block = (next_p - self.start)*2
 
                     this_bytestring = self.original_blockstring[start_in_block:stop_in_block]
-                    print this_bytestring
+                    #print this_bytestring
                     this_overflow = Overflow(self.gamefile, (p, next_p), this_bytestring)
                     self.gamefile.overflows.append(this_overflow)
 
@@ -492,10 +498,12 @@ class Block(object):
             try:
                 i = old_slice.index(jp_bytestring)//2
             except ValueError:
-                # Sometimes the location_in_blockstring is just wrong... I wonder why?
+                # Sometimes the location_in_blockstring is just wrong... I wonder why? (SJIS spaces?)
                 old_slice = self.blockstring
                 print hex(trans.location)
+                #print jp_bytestring
                 i = old_slice.index(jp_bytestring)//2
+
 
             if i > 2:    # text on final lines of dialogue has an i=2.
                 try:
@@ -519,15 +527,15 @@ class Block(object):
 
     def incorporate(self):
         """Write the new block to the source gamefile."""
-        #TODO: I want this to happen after overflow is moved.
         self.pad()
         self.gamefile.filestring = self.gamefile.filestring.replace(self.original_blockstring, 
                                                                     self.blockstring)
 
     def identify_spares(self):
-        """Determine how much space is left at the end of the block, and designate it for
-        overflow collection."""
-        print "identifying spares\n"
+        """
+        Determine how much space is left at the end of the block, and designate it for
+        overflow collection.
+        """
         block_diff = len(self.blockstring) - len(self.original_blockstring)
         assert block_diff <= 0, 'The block %s is too long by %s' % (self, block_diff)
         if block_diff < 0:
@@ -539,7 +547,6 @@ class Block(object):
 
     def pad(self):
         """Fill the remainder of the block with spaces. After identifying the spares."""
-        print "padding block\n"
 
         block_diff = len(self.blockstring) - len(self.original_blockstring)
         assert block_diff <= 0, 'The block %s is too long by %s' % (self, block_diff)
@@ -750,10 +757,7 @@ class Overflow(object):
                                                          pointer_diff)
                     previous_text_location = trans.location
                     pointer_diff += this_string_diff
-        print self.bytestring
-        print "before:", len(destination_block.blockstring)
         destination_block.blockstring += self.bytestring
-        print "after:", len(destination_block.blockstring)
 
     def __repr__(self):
         return hex(self.start) + " " + hex(self.stop)

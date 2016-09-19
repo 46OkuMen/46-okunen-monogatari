@@ -1,24 +1,24 @@
 # shank-a-rom
-Romhacking notes and text dumping/reinserting utilities for *46 Okunen Monogatari: The Shinka Ron*, the 1990 Japan-only predecessor to *E.V.O: Search for Eden*. 
+Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory of Evolution*, otherwise known as *46 Okunen Monogatari: The Shinka Ron*, the 1990 Japan-only predecessor to *E.V.O: Search for Eden*. 
 
 ![screen from mid-Chapter 1, translated](https://raw.githubusercontent.com/hollowaytape/shank-a-rom/master/img/evidence_02.png)
 
 ## Draft Reinsertion Progress:
 | Segment      | %    | Strings      |
 | -------------|-----:|:------------:|
-| Opening      | 44%  |  (20 / 45)   |
+| Opening      | 53%  |  (24 / 45)   |
 | Chapter 1    |100%  | (501 / 501)  |
-| Chapter 2    | 90%  | (391 / 434)  |
-| Chapter 3    | 91%  | (309 / 338)  |
+| Chapter 2    | 92%  | (400 / 434)  |
+| Chapter 3    | 95%  | (324 / 338)  |
 | Chapter 4    | 23%  | (172 / 746)  |
 | Chapter 5    | 20%  | (186 / 892)  |
 | Chapter 6    | 17%  |  (55 / 319)  |
-| Ending       |  0%  |   (0 / 69)   |
+| Ending       | 41%  |  (41 / 70)   |
 | System       |100%  |   (5 / 5)    |
 | Images       | 11%  |   (1 / 9)    |
-| Encyclopedia | 48%  | (363 / 741)  |
-| Gag Endings  |  0%  | (0 / 723)    |
-| Total        | 41%  | (2178 / 5238)|
+| Encyclopedia | 48%  | (537 / 1116) |
+| Gag Endings  |  3%  |  (25 / 777)  |
+| Total        | 43%  |(2262 / 5239) |
 
 ## How do I use this?
 * There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. and I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!"

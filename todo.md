@@ -11,6 +11,8 @@
 * In the middle of finding a better way to slice the blockstring when looking for the original jp_bytestring.
     * I still get like 5-10 strings per program which are not at their expected locations. Currently they're being handled by using the entire old blockstring as the slice to be searched, which means if the string appears as a substring of some other previous string, it'll do mistaken text replacement.
         * So what's going on with these strings?
+        * One theory: It's all the strings that have SJIS spaces before the actual text begins!
+            * That's great, since I was going to need to look for those anyway and shorten them.
 
 ## Non-Crash Glitches
 * Ch2, Ch3 environment text problems
@@ -19,6 +21,8 @@
     * I should make sure there are <END> codes after "Got %s evo genes" whenever it appears in the spare block.
 
 ## Dump Problems
+* A significant number of problems I've been facing recently have had to do with the Shift-JIS spaces missing in the dump. It's weird when they're missing from the middle of strings...
+
 * Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump from assisted_dump.py at all??
  
 ## Text Fixes
@@ -125,8 +129,7 @@
     * Make sure you split up the block of the first overflow string AFTER an <END> tag.
 
 * If the reinserter can't find the original jp string:
-    * Look in the dump that includes ASCII text, there's probably some wonky spaces or something.
-    * Especially if it's in OPENING or ENDING.
+    * Look for Shift-JIS spaces that accidentally got converted to ASCII spaces.
 
 * If the Gaia's Hearts don't do anything:
     * Try not to disturb the length of the strings above the You Found Gaia's Heart msg. (Give them their own block?)
