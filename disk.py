@@ -279,12 +279,13 @@ class EXEFile(Gamefile):
         self.spare_block.blockstring = ""
 
         # Want to try to put the largest overflows into the smallest containing spare, for best space usage.
-        self.overflows.sort(key=lambda x: x.new_length, reverse=True)
+        self.overflows.sort(key=lambda x: x.new_length)
         self.spares.sort(key=lambda x: x[1] - x[0])
         
-        for overflow in self.overflows:
-            #print "Overflow:", [p.new_length for p in self.overflows]
-            #print "Spares:", [s[1] - s[0] for s in self.spares]
+        while len(self.overflows) > 0:
+            overflow = self.overflows.pop()
+            print "Overflow:", [p.new_length for p in self.overflows]
+            print "Spares:", [s[1] - s[0] for s in self.spares]
             overflow_stored = False
             overflow_length = overflow.new_length
             #print "Trying to store %s with length %s" % (overflow, overflow_length)
@@ -400,6 +401,9 @@ class Block(object):
 
                 if new_text_offset >= self.stop:
                     while ptr + text_length + diff > self.stop:
+                        # If the block is really tiny and overflows IMMEDIATELY, need to return asap.
+                        if i == 0:
+                            break
                         ptr = block_pointers[i-1]
                         i -= 1
 

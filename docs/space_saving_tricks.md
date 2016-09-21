@@ -19,6 +19,7 @@
 	* Yeah that definitely doesn't work. The game boots but it corrupts particular bits of text...
 		* Not even bits of text that get moved to that location, either. I wonder what's going on?
 	* Maybe I should rewrite the pointer-pointers too??
+* Using the Borland compiler message as a spare block.
 * Using tab characters to indent stuff rather than the 4-5 SJIS spaces.
 	* Not as easy to insert in Excel as newlines...
 * Removing the error messages within normal text blocks. (Sometimes causes the game to not boot.)
