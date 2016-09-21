@@ -42,19 +42,17 @@ class Disk(object):
         # If I want to hardcode the total strings here, it's 4,815 (9/7/16)
         # wait - when I don't hardcode it, it's 5,240?? (Is that just the numbers in the .dat files?)
         # # TODO: Determine number of strings in whole game.
-        self.total_strings = 0
+        self.total_strings = 4815
         self.translated_strings = 0
 
         self.gamefiles = []
         for filename in files_to_translate:
             if filename.endswith('.EXE'):
                 exefile = EXEFile(self, filename)
-                self.total_strings += exefile.total_strings
                 self.translated_strings += exefile.translated_strings
                 self.gamefiles.append(exefile)
             elif filename.endswith('.DAT'):
                 datfile = DATFile(self, filename)
-                self.total_strings += datfile.total_strings
                 self.translated_strings += datfile.translated_strings
                 self.gamefiles.append(datfile)
 
@@ -495,10 +493,13 @@ class Block(object):
             location_in_blockstring = ((pointer_diff + trans.location - self.start) * 2)
             old_slice = self.blockstring[location_in_blockstring:]
 
+            #print "Marco"
             try:
+                # TODO: Does this ever actually work??
+                # Yes. I see tons of messages from the ValueError branch but far fewer than succeed.
                 i = old_slice.index(jp_bytestring)//2
             except ValueError:
-                # Sometimes the location_in_blockstring is just wrong... I wonder why? (SJIS spaces?)
+                #print "Polo"
                 old_slice = self.blockstring
                 print hex(trans.location)
                 #print jp_bytestring
@@ -506,10 +507,9 @@ class Block(object):
 
 
             if i > 2:    # text on final lines of dialogue has an i=2.
+                # this happens usually when there are initial SJIS spaces in the ROM.
                 try:
-                    # still not sure when this occurs...
                     print trans, "location in blockstring is too high, i =", i
-                    print "predicted location was", location_in_blockstring
                 except UnicodeEncodeError:
                     print "something might have been replaced incorrectly, i =", i
 
@@ -665,7 +665,11 @@ class DumpExcel(object):
         worksheet = self.workbook.get_sheet_by_name(block.gamefile.filename)
 
         for row in worksheet.rows[1:]:  # Skip the first row, it's just labels
-            offset = int(row[0].value, 16)
+            try:
+                offset = int(row[0].value, 16)
+            except TypeError:
+                # Either a blank line or a total value. Ignore it.
+                break
             if block.start <= offset <= block.stop:
                 japanese = row[2].value
                 english = row[4].value

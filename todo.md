@@ -1,11 +1,20 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
+
+* Ch4 crash on entering first area on map.
+    * Occurs when reinserting something in the last dialogue block (ending 0x14847 ish)
+
 * Two OPENING.EXE has two crashes/sticking points: 
     * on the third intro image/ "A barred spiral galaxy on the outreaches of space...." Some pointer thing?
     * MUsic Programming: TAGUCHI Yasuhiro (never progresses past that)
     * Something is up with the pointers, certainly - if I only translate Character Digitizing in the credits, the first one that shows up as translated is Map Digitizing (one after)...
-    * Why doesnt ptr-peek work on OPENING.EXE?
 
+* At least one sticking point in ENDING.EXE:
+    * "But you had no body" or something like that.
+    * And maybe the one afterwards? Check that.
+
+* Is the end of the game really a GEAGR error after the credits???? That can't be right.
+    * If I am evil, I might just replace that error message with "Brought to you by hollowaytape, kuoushi, SkyeWelse, and friends"
 
 ## Mistaken Text Replacement
 * In the middle of finding a better way to slice the blockstring when looking for the original jp_bytestring.

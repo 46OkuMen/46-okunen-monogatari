@@ -56,7 +56,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x12115, 0x134d9), # dialogue
                            (0x134f6, 0x13c25), # dialogue
                            (0x13e97, 0x13fed), # dialogue
-                           (0x14026, 0x148c1), # dialogue
+                           (0x14026, 0x1485f), # dialogue
                            (0x148c1, 0x149e4), # enviro
                            (0x14a28, 0x15a1e), # creature block
                            (0x16031, 0x160c1), # Y/N/C, evolved too far

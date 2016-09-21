@@ -129,6 +129,8 @@ def sjis_to_hex_string(jp, preserve_spaces=False):
 def onscreen_length(eng):
     """ASCII numbers are displayed as full-width characters ingame, so their length is 2."""
     result = 0
+    if eng is None:
+        return result
     for char in eng:
         if char.isdigit():
             result += 2

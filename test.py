@@ -21,9 +21,13 @@ def test_increasing_offsets():
         ws = wb.get_sheet_by_name(sheet)
         new_offset = 0
         for index, row in enumerate(ws.rows[1:]):  # Skip the first row, it's just labels
-            if int(row[0].value, 16) <= new_offset:
+            try:
+                this_offset = int(row[0].value, 16)
+            except TypeError:
+                break
+            if this_offset <= new_offset:
                 print "In sheet %s, fix offset at row %s; %s < %s" % (sheet, index+2, hex(int(row[0].value, 16)), hex(new_offset))
-            new_offset = int(row[0].value, 16)
+            new_offset = this_offset
 
 def test_substrings_of_earlier_strings():
     wb = load_workbook(DUMP_XLS)
@@ -37,7 +41,11 @@ def test_substrings_of_earlier_strings():
         for (start, stop) in file_blocks[gamefile]:
             previous_untranslated_jp = []
             for index, row in enumerate(ws.rows[1:]):
-                if start <= int(row[0].value, 16) <= stop:
+                try:
+                    this_offset = int(row[0].value, 16)
+                except TypeError:
+                    break
+                if start <= this_offset <= stop:
                     jp_string = row[2].value 
                     if isinstance(jp_string, basestring):
                         for i in previous_untranslated_jp:    # Repeats (nametags, etc) are also substrings!
@@ -50,7 +58,7 @@ def test_substrings_of_earlier_strings():
                             previous_untranslated_jp.append((jp_string, row[0].value))
 
 def test_all_string_lengths():
-    """Corasest string test. No string can be longer than 76."""
+    """Corasest string test. No string can be longer than 77."""
     wb = load_workbook(DUMP_XLS)
     sheets = wb.get_sheet_names()
     sheets.remove('ORIGINAL')
@@ -60,6 +68,7 @@ def test_all_string_lengths():
         new_offset = 0
         for index, row in enumerate(ws.rows[1:]):
             if row[4].value:
+                print row[4].value
                 if onscreen_length(row[4].value) > FULLSCREEN_MAX_LENGTH:
                     print "%s %s: %s has length %s" % (sheet, row[0].value, row[4].value, onscreen_length(row[4].value))
 
@@ -85,9 +94,34 @@ def test_dat_string_lengths():
             if row[4].value:
                 assert onscreen_length(row[4].value) <= DAT_MAX_LENGTH, "In sheet %s, shorten string at row %s" % (sheet, index+2)
 
+def test_game_string_lengths():
+    """
+    Wide onscreen strings can't be more than 68? characters.
+    Ones not marked as wide can't be more than 42 characters.
+    """
+    wb = load_workbook(DUMP_XLS)
+    for sheet in ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
+                  'ST5S2.EXE', 'ST5S3.EXE', "ST6.EXE"]:
+        ws = wb.get_sheet_by_name(sheet)
+        new_offset = 0
+        for index, row in enumerate(ws.rows[1:]):
+            if row[7].value:
+                if row[7].value == 'wide':
+                    if onscreen_length(row[4].value) > FULLSCREEN_MAX_LENGTH:
+                        try:
+                            print "%s %s: %s has length %s" % (sheet, row[0].value, row[4].value, onscreen_length(row[4].value))
+                        except UnicodeDecodeError:
+                            print "%s %s: %s has length %s" % (sheet, row[0].value, 'some string', onscreen_length(row[4].value))
+            else:
+                if onscreen_length(row[4].value) > DIALOGUE_MAX_LENGTH:
+                    try:
+                        print "%s %s: %s has length %s" % (sheet, row[0].value, row[4].value, onscreen_length(row[4].value))
+                    except UnicodeDecodeError:
+                        print "%s %s: %s has length %s" % (sheet, row[0].value, 'some string', onscreen_length(row[4].value))
+
 # make sure a blank translation sheet doesn't return overflow errors
 
 if __name__ == '__main__':
     test_increasing_offsets()
-    test_all_string_lengths()
+    test_game_string_lengths()
     test_substrings_of_earlier_strings()
