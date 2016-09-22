@@ -12,6 +12,8 @@ from utils import sjis_to_hex_string, ascii_to_hex_string, get_current_block
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
 from rominfo import SPARE_BLOCK, CREATURE_BLOCK
 
+from pointer_peek import text_at_offset
+
 class Disk(object):
     """The main .FDI file for a PC-98 game. Disks have the properties:
 
@@ -497,13 +499,9 @@ class Block(object):
             location_in_blockstring = ((pointer_diff + trans.location - self.start) * 2)
             old_slice = self.blockstring[location_in_blockstring:]
 
-            #print "Marco"
             try:
-                # TODO: Does this ever actually work??
-                # Yes. I see tons of messages from the ValueError branch but far fewer than succeed.
                 i = old_slice.index(jp_bytestring)//2
             except ValueError:
-                #print "Polo"
                 old_slice = self.blockstring
                 print hex(trans.location)
                 #print jp_bytestring
@@ -527,7 +525,6 @@ class Block(object):
                 break
 
         self.identify_spares()
-        #self.incorporate()
 
     def incorporate(self):
         """Write the new block to the source gamefile."""
@@ -651,6 +648,12 @@ class Pointer(object):
             string_after = self.gamefile.filestring[location_in_string+4:]
                 
             self.gamefile.filestring = string_before + new_bytestring + string_after
+
+    def text(self):
+        """
+        Get what the pointer points to, ending at the END byte (00).
+        """
+        return text_at_offset(self.gamefile, self.location)
 
     def __repr__(self):
         return "%s pointing to %s" % (hex(self.location), hex(self.text_location))

@@ -8,10 +8,18 @@
     * 0x64cc points to 0x10789, which is also nothing
 
 * Two OPENING.EXE has two crashes/sticking points: 
-    * on the third intro image/ "A barred spiral galaxy on the outreaches of space...." Some pointer thing?
-    * MUsic Programming: TAGUCHI Yasuhiro (never progresses past that)
+    * "A barred spiral galaxy on the outreaches of space...." Some pointer thing?
+    * "Animation: ASAMI Tsuyoshi"
     * Something is up with the pointers, certainly - if I only translate Character Digitizing in the credits, the first one that shows up as translated is Map Digitizing (one after)...
     * Pointer-peek 0x4c05, 0x4cc09, 0x4c0d, 0x4c15.
+        * These all show up normal...
+    * This is really quite bizarre. Some strings work for these few lines, but not others. Can't find a pattern.
+        * All 3 problematic lines begin with "A". Could that seriously be it??
+        * Let's try" "B mass of rock debris attracted by gravity gradually"
+            * IT WORKS??
+            * And it just crashed before it got to the fourth line that begins with A: "AV Digitizing: IMAGE BOX"
+            * And the line that broke everything in ENDING.EXE was "As you floated around the planet,""
+            * This is easily the stupidest bug I've ever seen. Why does it happen??
 
 * At least one sticking point in ENDING.EXE:
     * "But you had no body to return to" or something like that.
@@ -39,22 +47,7 @@
 
 ## Block Layout
 * I should put stuff that comes before Gaia's Heart text in a separate block! That will remove the super awkward constraints I'm facing.
- 
-## Text Fixes
-* Why are various humanoid creatures in ch5 showing up with different names in their nametag and HP bar?
-    * "Vegetarian Monkey People" show up as creature type "Neanderthal".
-    * Check to see if this is also the case in the jp version.
-
-* In ST5S3.EXE, you have to keep the battle options pretty much the same length, Some pointers are being weird.
-
-* Any way to reposition the stats? Like add a few spaces to the left of DEF and HP?
-    * Just spaces seems to have no effect. Look in the ROM and see if the spaces are there...
-    * Oh, actually this works fine. DEF looks good, HP could use another space but there's no room.
-        * Can I subtract a space from the preivous stat?
-            * Yes.
-    * Check to see if larger INT values run into the stat name later.
-        * Doesn't look like it - the game is intelligent about spacing text like that.
-        * Still need the INT stat name to be 5-6 character max. Wisdom maybe? (not really good for describing animals)
+* Looks like I need to be stricter with splitting the blocks at map files as well. I thought I fixed that, but I guess not enough...
 
 ## Tools
 

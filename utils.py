@@ -120,6 +120,7 @@ def sjis_to_hex_string(jp, preserve_spaces=False):
     for char in sjis:
         hexchar = "%02x" % ord(char)
         # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
+        # TODO: This doesn't seem to catch all of the spaces, for some reason...
         if not preserve_spaces:
             if hexchar == '20': 
                 hexchar = '8140'
