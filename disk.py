@@ -40,6 +40,7 @@ class Disk(object):
         self.romstring = "" + self.original_romstring
 
         self.dump_excel = DumpExcel(DUMP_XLS)
+        self.pointer_excel = PointerExcel(POINTER_XLS)
 
         # If I want to hardcode the total strings here, it's 4,815 (9/7/16)
         # wait - when I don't hardcode it, it's 5,240?? (Is that just the numbers in the .dat files?)
@@ -191,6 +192,7 @@ class EXEFile(Gamefile):
 
     def __init__(self, disk, filename):
         Gamefile.__init__(self, disk, filename)
+        self.disk = disk
         self.pointer_constant = POINTER_CONSTANT[filename]
         self.pointers = self.get_pointers()
 
@@ -245,8 +247,8 @@ class EXEFile(Gamefile):
 
     def get_pointers(self):
         """Retrieve all relevant pointers from the pointer sheet."""
-        excel = PointerExcel(POINTER_XLS)
-        return excel.get_pointers(self)
+        result = self.disk.pointer_excel.get_pointers(self)
+        return result
 
     def most_recent_pointer(self, start, stop):
         """Return the highest offset with a pointer in the given range."""
@@ -636,6 +638,8 @@ class Pointer(object):
         old_bytes = pack(self.old_value)
         self.old_bytestring = "{:02x}".format(old_bytes[0]) + "{:02x}".format(old_bytes[1])
 
+        self.new_text_location = text_location
+
     def edit(self, diff):
         """Adjusts the pointer by diff, and writes the new value to the gamefile."""
         if diff != 0:
@@ -649,11 +653,21 @@ class Pointer(object):
                 
             self.gamefile.filestring = string_before + new_bytestring + string_after
 
+            self.new_text_location = self.text_location + diff
+
     def text(self):
         """
         Get what the pointer points to, ending at the END byte (00).
         """
-        return text_at_offset(self.gamefile, self.location)
+        return text_at_offset(self.gamefile, self.new_text_location)
+
+    def typeset(self):
+        """
+        Find all the newlines in the pointer, then move them around.
+        """
+        import re
+        for m in re.finditer('\n', self.text):
+            print "newline found at", m.start(), m.end()
 
     def __repr__(self):
         return "%s pointing to %s" % (hex(self.location), hex(self.text_location))

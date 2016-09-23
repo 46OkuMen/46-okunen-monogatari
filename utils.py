@@ -44,7 +44,10 @@ Methods to interpret values of little-endian pointers and the values they point 
 """
 
 
-def unpack(s, t):
+def unpack(s, t=None):
+    if t is None:
+        t = str(s)[2:]
+        s = str(s)[0:2]
     s = int(s, 16)
     t = int(t, 16)
     value = (t * 0x100) + s

@@ -18,14 +18,21 @@ def word_at_offset(filename, offset):
         return unpack(result[0:2], result[2:])
 
 def text_at_offset(filename, offset):
-    with open(filename, 'rb') as f:
-        f.seek(offset)
-        result = ""
+    try:
+        f = open(filename, 'rb')
+    except TypeError:
+        filename = os.path.join(DEST_PATH, filename.filename)
+        f = open(filename, 'rb')
+
+    
+    f.seek(offset)
+    result = ""
+    data = f.read(1)
+    while ord(data) != 00:   # END control code
+        result += data
         data = f.read(1)
-        while ord(data) != 00:   # END control code
-            result += data
-            data = f.read(1)
-        return result
+    f.close()
+    return result
 
 if __name__ == '__main__':
     filename = sys.argv[1]
