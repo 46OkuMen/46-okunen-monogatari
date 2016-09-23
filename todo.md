@@ -20,6 +20,7 @@
             * And it just crashed before it got to the fourth line that begins with A: "AV Digitizing: IMAGE BOX"
             * And the line that broke everything in ENDING.EXE was "As you floated around the planet,""
             * This is easily the stupidest bug I've ever seen. Why does it happen??
+                * Maybe it thinks they're images (AVX.GDT) and tries to load them as such?
 
 * At least one sticking point in ENDING.EXE:
     * "But you had no body to return to" or something like that.
@@ -39,6 +40,7 @@
 * Ch2, Ch3 environment text problems
     * "Got %d EVO Genes. <LN> You defeated the enemy!"
     * I should make sure there are <END> codes after "Got %s evo genes" whenever it appears in the spare block.
+* One entry in the credits (character digitizing?) is being skipped.
 
 ## Dump Problems
 * A significant number of problems I've been facing recently have had to do with the Shift-JIS spaces missing in the dump. It's weird when they're missing from the middle of strings...
@@ -100,6 +102,10 @@
 * Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
     * No more than 3 lines between <WAIT>s?
         * I can insert new <LN>s in the middle of lines, but that means I should remove the later one.
+
+### images
+* TITLE0.GDT bleeds into the previous image?
+    * Maybe I can't just crop the black parts of this one.
 
 ### other
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?

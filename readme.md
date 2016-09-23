@@ -6,19 +6,19 @@ Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory 
 ## Draft Reinsertion Progress:
 | Segment      | %    | Strings      |
 | -------------|-----:|:------------:|
-| Opening      | 53%  |  (24 / 45)   |
+| Opening      |100%  |  (45 / 45)   |
 | Chapter 1    |100%  | (501 / 501)  |
 | Chapter 2    | 93%  | (404 / 434)  |
 | Chapter 3    | 95%  | (324 / 338)  |
 | Chapter 4    | 87%  | (656 / 747)  |
 | Chapter 5    | 20%  | (186 / 892)  |
 | Chapter 6    | 17%  |  (55 / 319)  |
-| Ending       | 97%  |  (68 / 70)   |
+| Ending       |100%  |  (70 / 70)   |
 | System       |100%  |   (5 / 5)    |
-| Images       | 11%  |   (1 / 9)    |
+| Images       | 66%  |   (6 / 9)    |
 | Encyclopedia | 48%  | (537 / 1116) |
 | Gag Endings  |  3%  |  (25 / 777)  |
-| Total        | 53%  |(2594 / 4815) |
+| Total        | 54%  |(2618 / 4815) |
 
 ## How do I use this?
 * There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. and I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!"
