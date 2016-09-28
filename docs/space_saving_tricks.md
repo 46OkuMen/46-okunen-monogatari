@@ -19,8 +19,13 @@
 	* Yeah that definitely doesn't work. The game boots but it corrupts particular bits of text...
 		* Not even bits of text that get moved to that location, either. I wonder what's going on?
 	* Maybe I should rewrite the pointer-pointers too??
-* Using the Borland compiler message as a spare block.
-* Eliminating duplicate strings ("Got $d EVO Genes."))
+* ~~Using the Borland compiler message as a spare block.~~
+	* Changed it to "Barland", now the chapter won't boot.
+	* Changed one character of "Abnormal program termination." as well, also won't boot.
+* Eliminating duplicate strings ("Got $d EVO Genes.")
 * Using tab characters to indent stuff rather than the 4-5 SJIS spaces.
 	* Not as easy to insert in Excel as newlines...
+	* \t just shows up ingame as a yen symbol. Maybe it's something else?
 * Removing the error messages within normal text blocks. (Sometimes causes the game to not boot.)
+* Removing the indentation after a line break in normal lines of dialogue.
+	* Gotta look for the bytes 0A-81-40 in what pointer-peek finds.

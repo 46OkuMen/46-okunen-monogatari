@@ -91,11 +91,11 @@
     * That means the max length of a dialogue is 44, but 42 excluding that space.
     * Do we want to keep that space?
 
-* Is there a hard length limit on skill names?
+* ~~Is there a hard length limit on skill names?~~
     * "Swift AttacGo Behind"
     * Intimidate" is fine.
     * Swift Attack and Go Behind look fine in the ROM dump itself.
-    * Changing Swift Attack to be "Swift" in the sheet, see if that helps?
+    * ~~Changing Swift Attack to be "Swift" in the sheet, see if that helps?~~
         * Nope. No hard limit on skill names, either...
         * Why is it going wrong then?
 
@@ -104,8 +104,18 @@
         * I can insert new <LN>s in the middle of lines, but that means I should remove the later one.
 
 ### images
-* TITLE0.GDT bleeds into the previous image?
+* ~~TITLE0.GDT bleeds into the previous image?~~
     * Maybe I can't just crop the black parts of this one.
+        * Yup, that solves the issue. Took some trial and error, though.
+
+* ~~TITLE2.GDT becomes an orange line on the left.~~
+
+* ~~TITLE3.GDT has some green glitching past the right edge of the image.~~
+
+* TITLE4.GDT has some blue fuzz at the top of the right side of the image.
+
+* ~~TITLE7.GDT has some orange/green lines to the right side of the image.~~
+    * Couldn't get rid of them, but I made the image larger than the screen to push the glitches offscreen, which is the same thing. Perfect!
 
 ### other
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?

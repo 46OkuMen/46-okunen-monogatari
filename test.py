@@ -30,6 +30,11 @@ def test_increasing_offsets():
             new_offset = this_offset
 
 def test_substrings_of_earlier_strings():
+    """
+    The reinserter sometimes accidentally replaces something earlier in the file, causing hard-to-find pointer bugs.
+    It does this when the japanese string that's been translated is a substring of an untranslated earlier string.
+    If I know where this happens, I can fix it manually pretty easily.
+    """
     wb = load_workbook(DUMP_XLS)
     sheets = wb.get_sheet_names()
     sheets.remove('ORIGINAL')
@@ -53,9 +58,35 @@ def test_substrings_of_earlier_strings():
                                 print "%s, '%s' is a substring of the untranslated string at %s" % (gamefile, row[4].value, i[1])
                                 # More informative way of doing this...? Terminal can't display jp text though.
                                 break
-                        # Add it to the 
+                        # If it's not translated, add it to the list of things to check against later
                         if row[4].value is None:
                             previous_untranslated_jp.append((jp_string, row[0].value))
+
+def test_duplicate_strings():
+    """
+    If multiple English strings are duplicates, we can reroute the pointers to just one and gain space.
+    """
+    wb = load_workbook(DUMP_XLS)
+    sheets = wb.get_sheet_names()
+    sheets.remove('ORIGINAL')
+    sheets.remove('MISC TITLES')
+    sheets.remove('SINKA.DAT')
+    sheets.remove('SEND.DAT')
+    for sheet in sheets:
+        ws = wb.get_sheet_by_name(sheet)
+        previous_en = []
+        for index, row in enumerate(ws.rows[1:]):
+            try:
+                this_offset = int(row[0].value, 16)
+            except TypeError:
+                break
+            en_string = row[4].value 
+            if isinstance(en_string, basestring):
+                for i in previous_en:
+                    if en_string == i[0]:
+                        print "%s, '%s' is a duplicate of a string at %s" % (sheet, row[4].value, i[1])
+                        break
+                previous_en.append((en_string, row[0].value))
 
 def test_all_string_lengths():
     """Corasest string test. No string can be longer than 77."""
@@ -122,6 +153,7 @@ def test_game_string_lengths():
 # make sure a blank translation sheet doesn't return overflow errors
 
 if __name__ == '__main__':
-    test_increasing_offsets()
-    test_game_string_lengths()
-    test_substrings_of_earlier_strings()
+    #test_increasing_offsets()
+    #test_game_string_lengths()
+    #test_substrings_of_earlier_strings()
+    test_duplicate_strings()
