@@ -141,19 +141,19 @@ file_location = {'OPENING.EXE': 0x58800,
                  'SEND.DAT': 0x34800,}
 
 # Length in bytes.
-file_length = {'OPENING.EXE': 0x5e4b,
-               'ST1.EXE': 0x121a7,
-               'ST2.EXE': 0x109d5,
-               'ST3.EXE':  0xefe7,
-               'ST4.EXE': 0x16a01,
-               'ST5.EXE': 0x12357,
-               'ST5S1.EXE': 0x3bbb,
-               'ST5S2.EXE': 0x3861,
-               'ST5S3.EXE': 0x50ef,
-               'ST6.EXE': 0xd8af,
-               'ENDING.EXE': 0x4f55,
-               'SINKA.DAT': 0x69a4,
-               'SEND.DAT': 0x874a}
+file_length = {'OPENING.EXE': 0x5e4c,
+               'ST1.EXE': 0x121a8,
+               'ST2.EXE': 0x109d6,
+               'ST3.EXE':  0xefe8,
+               'ST4.EXE': 0x16a02,
+               'ST5.EXE': 0x12358,
+               'ST5S1.EXE': 0x3bbc,
+               'ST5S2.EXE': 0x3862,
+               'ST5S3.EXE': 0x50f0,
+               'ST6.EXE': 0xd8b0,
+               'ENDING.EXE': 0x4f56,
+               'SINKA.DAT': 0x69a5,
+               'SEND.DAT': 0x874b}
 
 # Pointer tables have two bytes, determined by the file, which separate their values.
 POINTER_SEPARATORS = {

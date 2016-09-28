@@ -66,6 +66,8 @@ def test_duplicate_strings():
     """
     If multiple English strings are duplicates, we can reroute the pointers to just one and gain space.
     """
+
+    # TODO: It's just picking up all of the nametags right now, which isn't helpful...
     wb = load_workbook(DUMP_XLS)
     sheets = wb.get_sheet_names()
     sheets.remove('ORIGINAL')
