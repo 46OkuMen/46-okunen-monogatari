@@ -32,6 +32,46 @@
 * Expanding files!! This would be the hardest thing to do, maybe, but would solve all the problems. 
 	* Compare file footers in the EXE files, as well as headers, to look for any information that hardcodes file length.
 	* "Increase ROM size" appends FF to the end of the file.
+	* Looks like I an expand the ROM without any problems, but pointing stuff to the expanded space might not work...?
+		* Does that extra space get loaded into the game?
+			* Yep, "Hello World" appears to be in the game's memory at address 00013a50.
+			* But that's separate from the rest of the ST1.EXE contents, which shows up around 0004100.
+				* ...and it gets overwritten as soon as the dialogue is over.
+				* What else is in this separate earlier block?
+				* The entire footer, plus some of the error block? (138f5 - 138a8 = 4d) last spaces of it.
+				* The total amount of room made: 13ca8 - 138a8 = 0x200 = 512, or one page.
+				* The rest of the spaces are with the rest of the file. Spaces: (444ed - 0x4432d = 1c0 spaces)
+					* The game file has: 1204d - 11e8d = 1c0. All spaces accounted for.
+					* So why is it split up there?
+				* Actually it's not the split that matters; I can point to stuff at the end of the error block and it shows up just fine. It's just anything beyond that final 18-byte footer...
+					* I can totally insert stuff in that last block of 20's, too. Cool.
+					* Any way I can move that footer?
+						* Are there any pointers to it?
+						* Need to look for pointers that have values between b4 49 and c8 49.
+							* 0x02c5: c849
+							* 0x02d1: b649
+							* 00x2e3: ba49
+							* 0x02dd: c649
+							* 0x030b: b849
+							* 0x0b65: c849
+							* 0x0b97: c849
+							* 0x0ba2: c849
+							* 0x3c90: be49
+							* 0x88cf: b449
+							* 0xa880: bc49
+							* 0xaa09: bc49
+							* 0xaecd: be49
+						* Some of these are clearly unrelated. Bad side effects of adjusting all of them:
+							* Controls do unexpected things & can't move very far.
+							* Crash when trying to load an image in combat.
+
+					* Debugging: Look at code that looks at addresses 13a3c thru 13a4f.
+
+
+			* Maybe the code at the end of the file splits it up right before the last mass of 20s?
+				* Only two pointers to stuff beyond error block: 0x001de points to 0x120f2, and 0x120f0 points to 0x120f4.
+		* Can I fiddle with that header value any?
+		* Or should I move the footer somewhere else?
 
 ## header format?
 00-01: 4d 5a (constant)
@@ -88,6 +128,10 @@ d8af - 6db0 =  6aff  st6  + a460 =
 5e4b - 304c =  2dff  op   + 4a80 =
 4f55 - 2856 =  26ff  en   + 39a0 =
 
+4d5a = signature.
+next word: last page size.
+third word: number of pages.
+
 
 ## ST1.EXE header
 4d 5a a8 01 91 00 70 00 20 00 30 00 ff ff 1b 12 e6 00 00 00 00 00 00 00 22 00 00 00 01 00 fb 20 72 6a 01 00 00 00 45 0e 00 00 9d 0e 00 00 a4 0e 00 00 (pointer table)
@@ -100,6 +144,7 @@ with exp: 121a7, appends "FF" to end of ROM
 
 right before the final pointer, there's 14 49 53 0d, which is a pointer to... the beginning of the spaces that immediately follow (12193 - 120f4 = 9f, or a0)
 That's odd, the original rom header ends with 01 after the 99. That's a serious problem - am I slicing the files one byte too soon before I place them in the patched roms folder?
+* Fixed that.
 
 final footer:
 00 00 90 01 90 01 97 01 98 01 56 ab 5b ab 5b ab 5b ab 99 01
