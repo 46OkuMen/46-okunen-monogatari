@@ -61,9 +61,15 @@
 							* 0xa880: bc49
 							* 0xaa09: bc49
 							* 0xaecd: be49
+						
 						* Some of these are clearly unrelated. Bad side effects of adjusting all of them:
 							* Controls do unexpected things & can't move very far.
 							* Crash when trying to load an image in combat.
+						* Seems like the real limit is the c849 value, so look at just those:
+							* 0x02c5: c849 - edit this, and "Hallo World" gets addressed to "Has6'"????
+							* 0x0b65: c849
+							* 0x0b97: c849
+							* 0x0ba2: c849
 
 					* Debugging: Look at code that looks at addresses 13a3c thru 13a4f.
 
