@@ -39,6 +39,8 @@
 ## Non-Crash Glitches
 * Ch2, Ch3 environment text problems
     * "Got %d EVO Genes. <LN> You defeated the enemy!"
+    * "Got %d EVO Genes. <LN> 'Ho-ho-ho-ho!'"
+        * Bug: Christmas comes early
     * I should make sure there are <END> codes after "Got %s evo genes" whenever it appears in the spare block.
 * One entry in the credits (character digitizing?) is being skipped.
 
@@ -73,6 +75,10 @@
         * I could fuse the jp string into a "s1\ns2\ns3" excel row...
         * Any way to do that quickly?
 
+* Allow a "blank" translation entry rather than just doing the one-space thing I'm doing now.
+    * Currently a blank entry just means no translation is provided, so the text remains japanese.
+    * I should implement a control code like <blank> for this.
+
 ### test.py
 * Assert that a blank translation sheet returns no overflow errors.
     * If there are errors, that means that block is a byte or two too short in rominfo.py.
@@ -103,19 +109,22 @@
     * No more than 3 lines between <WAIT>s?
         * I can insert new <LN>s in the middle of lines, but that means I should remove the later one.
 
+### rerouting pointers for duplicate strings
+* ST1.EXE, "Got %dp. EVO Genes."
+    * Text at 0x691b, pointer at 0x1586.
+    * Text at 0x10f6e, pointer at 0x7731.
+* ST2.EXE, "Got %dp. EVO Genes."
+    * Text at 0xc263, pointer at 0x1746.
+    * Text at 0xe907, pointer at 0x5e4f.
+    * Text at 0xfa8a, pointer at 0x7255.
+* ST3.EXE, "Got %dp. EVO Genes."
+    * Text at 0xb531, pointer at 0x162a.
+    * Text at 0xd252, pointer at 0x59ae.
+    * Text at 0xdb25, pointer at 0x652e.
+
 ### images
-* ~~TITLE0.GDT bleeds into the previous image?~~
-    * Maybe I can't just crop the black parts of this one.
-        * Yup, that solves the issue. Took some trial and error, though.
-
-* ~~TITLE2.GDT becomes an orange line on the left.~~
-
-* ~~TITLE3.GDT has some green glitching past the right edge of the image.~~
-
 * TITLE4.GDT has some blue fuzz at the top of the right side of the image.
-
-* ~~TITLE7.GDT has some orange/green lines to the right side of the image.~~
-    * Couldn't get rid of them, but I made the image larger than the screen to push the glitches offscreen, which is the same thing. Perfect!
+* TITLE5.GDT has some fuzzy problems.
 
 ### other
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?

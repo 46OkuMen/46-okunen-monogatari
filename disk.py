@@ -655,6 +655,13 @@ class Pointer(object):
 
             self.new_text_location = self.text_location + diff
 
+    def absorb(self, other):
+        """
+        Set the other pointer's value equal to this one.
+        Useful for saving space when dealing with duplicates/similar bits of text.
+        """
+        pass
+
     def text(self):
         """
         Get what the pointer points to, ending at the END byte (00).

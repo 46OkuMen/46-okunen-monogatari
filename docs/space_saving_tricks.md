@@ -29,6 +29,7 @@
 * Removing the error messages within normal text blocks. (Sometimes causes the game to not boot.)
 * Removing the indentation after a line break in normal lines of dialogue.
 	* Gotta look for the bytes 0A-81-40 in what pointer-peek finds.
+* NightWolve's recommendation - implementing a space text compressor/decompressor in the main text routine.
 * Expanding files!! This would be the hardest thing to do, maybe, but would solve all the problems. 
 	* Compare file footers in the EXE files, as well as headers, to look for any information that hardcodes file length.
 	* "Increase ROM size" appends FF to the end of the file.
@@ -43,6 +44,7 @@
 				* The rest of the spaces are with the rest of the file. Spaces: (444ed - 0x4432d = 1c0 spaces)
 					* The game file has: 1204d - 11e8d = 1c0. All spaces accounted for.
 					* So why is it split up there?
+				* !!The footer shows up in two locations - that place around 13a50, and alo at 0x44640, with the rest of the text. But it has some garbage after it instead of the text I write...!!
 				* Actually it's not the split that matters; I can point to stuff at the end of the error block and it shows up just fine. It's just anything beyond that final 18-byte footer...
 					* I can totally insert stuff in that last block of 20's, too. Cool.
 					* Any way I can move that footer?
@@ -141,6 +143,21 @@ third word: number of pages.
 
 ## ST1.EXE header
 4d 5a a8 01 91 00 70 00 20 00 30 00 ff ff 1b 12 e6 00 00 00 00 00 00 00 22 00 00 00 01 00 fb 20 72 6a 01 00 00 00 45 0e 00 00 9d 0e 00 00 a4 0e 00 00 (pointer table)
+
+last page size: 0x01a8
+file pages: 0x91
+relocation items: 0x70
+header paragraphs: 0x20 (16 byte blocks - yep, everything until 0x200 is just headers/pointers)
+MINALLOC: 0x30
+MAXALLOC: 0xffff
+Initial SS Value: 0x12ab
+Initial SP Value: 0x00e6
+Complemented Checksum: 0x0000 (probably unused)
+Initial IP Value: 0x0000
+Prelocated CS Value: 0x0000
+Relocation Table Offset: 0x2200
+Overlay Number: 0x0000
+
 
 final spaces thing: 120f4 - 12193
 with expansion: 120f4 - 12193
