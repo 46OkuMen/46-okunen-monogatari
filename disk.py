@@ -146,7 +146,6 @@ class Gamefile(object):
                 if trans.english:
                     self.translated_strings += 1
 
-
     def incorporate(self):
         """Add the edited file to the Disk in the original's place."""
         for b in self.blocks:
@@ -288,8 +287,8 @@ class EXEFile(Gamefile):
         
         while len(self.overflows) > 0:
             overflow = self.overflows.pop()
-            print "Overflow:", [p.new_length for p in self.overflows]
-            print "Spares:", [s[1] - s[0] for s in self.spares]
+            #print "Overflow:", [p.new_length for p in self.overflows]
+            #print "Spares:", [s[1] - s[0] for s in self.spares]
             overflow_stored = False
             overflow_length = overflow.new_length
             #print "Trying to store %s with length %s" % (overflow, overflow_length)
@@ -307,9 +306,6 @@ class EXEFile(Gamefile):
 
         excess = len(self.spare_block.blockstring)//2 - (self.spare_block.stop - self.spare_block.start)
         assert excess < 0, "Spare block is %s too long" % (excess)
-
-        #self.spare_block.incorporate()
-
 
 class DATFile(Gamefile):
     """A data gamefile. Doesn't have pointers or a fixed length, so it's much simpler."""
@@ -632,18 +628,16 @@ class Translation(object):
         while self.jp_bytestring[0:4] == '8140':
             self.jp_bytestring = self.jp_bytestring[4:]
 
-        # TODO: Actually the trick is to look forward... whoops
-        lookback = 0
+        scan = 0
         snippet_right_before = self.block.blockstring[self.location_in_blockstring:self.location_in_blockstring+4]
-        if snippet_right_before == '8140':
+        while snippet_right_before == '8140':
             self.jp_bytestring = '8140' + self.jp_bytestring
             self.jp_bytestring_alt = '8140' + self.jp_bytestring_alt
-            print hex(self.location), self.block.gamefile
-            print 'sjis space found at %s and prepended' % hex(self.location)
+            #print hex(self.location), self.block.gamefile
+            #print 'sjis space found at %s and prepended' % hex(self.location+scan)
 
-            # This isn't quite catching all of them, for whatever reason, especially in the opening/ending...
-            lookback += 4
-            snippet_right_before = self.block.blockstring[self.location_in_blockstring+lookback:self.location_in_blockstring+4+lookback]
+            scan += 4
+            snippet_right_before = self.block.blockstring[self.location_in_blockstring+scan:self.location_in_blockstring+4+scan]
 
     def __repr__(self):
         return hex(self.location) + " " + self.english

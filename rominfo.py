@@ -44,25 +44,25 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x10570, 0x1087d)), # error block
                'ST3.EXE': ((0xb49d, 0xb548),   # environment
                            (0xb58a, 0xbccb),    # evo files, dialogue
-                           (0xbccb, 0xbe21),
+                           (0xbccb, 0xbe16),
                            (0xbe22, 0xc01d),
                            (0xc046, 0xc5d3),
-                           (0xc607, 0xcfe6),
-                           (0xcfff, 0xda19),
-                           (0xda19, 0xdb3a),  # enviro
+                           (0xc607, 0xcfe6),   # TODO: want to break at caaf?
+                           (0xcfff, 0xda0d),
+                           (0xda0d, 0xdb3a),  # enviro
                            (0xdb7e, 0xe2d5),  # creature block
                            (0xe617, 0xe6a7),    # Y/N/C, "evolved too far"
                            (0xe6e3, 0xe7f3),
                            (0xeb82, 0xee8e)),
                'ST4.EXE': ((0xe263, 0xe2a3), # enviro
                            (0xe2f4, 0xe90e), # EVO files, battle text
-                           (0xe90e, 0xea4c), # evolution, menus
+                           (0xe90e, 0xea47), # evolution, menus
                            (0xea78, 0x120a1), # dialogue... ends at crazy control codes/table
                            (0x12115, 0x134d9), # dialogue
                            (0x134f6, 0x13c25), # dialogue
                            (0x13e97, 0x13fed), # dialogue
                            (0x14026, 0x1485f), # dialogue
-                           (0x148c1, 0x149e4), # enviro
+                           (0x148c1, 0x149e5), # enviro
                            (0x14a28, 0x15a1e), # creature block
                            (0x16031, 0x160c1), # Y/N/C, evolved too far
                            (0x160fd, 0x1620d), # battle msgs

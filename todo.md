@@ -22,27 +22,17 @@
             * This is easily the stupidest bug I've ever seen. Why does it happen??
                 * Maybe it thinks they're images (AVX.GDT) and tries to load them as such?
 
-* At least one sticking point in ENDING.EXE:
-    * "But you had no body to return to" or something like that.
-    * And maybe the one afterwards? Check that.
-
-* Is the end of the game really a GEAGR error after the credits???? That can't be right.
-    * If I am evil, I might just replace that error message with "Brought to you by hollowaytape, kuoushi, SkyeWelse, and friends"
-
-## Mistaken Text Replacement
-* In the middle of finding a better way to slice the blockstring when looking for the original jp_bytestring.
-    * I still get like 5-10 strings per program which are not at their expected locations. Currently they're being handled by using the entire old blockstring as the slice to be searched, which means if the string appears as a substring of some other previous string, it'll do mistaken text replacement.
-        * So what's going on with these strings?
-        * One theory: It's all the strings that have SJIS spaces before the actual text begins!
-            * That's great, since I was going to need to look for those anyway and shorten them.
-
 ## Non-Crash Glitches
+* Random "u" being shown during the Ending.
+
+* Gotta fix the Ch3 and Ch4 menu item alignments again. Ugh.
+
 * Ch2, Ch3 environment text problems
     * "Got %d EVO Genes. <LN> You defeated the enemy!"
     * "Got %d EVO Genes. <LN> 'Ho-ho-ho-ho!'"
         * Bug: Christmas comes early
     * I should make sure there are <END> codes after "Got %s evo genes" whenever it appears in the spare block.
-* One entry in the credits (character digitizing?) is being skipped.
+* One entry in the credits (character digitizing) is being skipped.
 
 ## Dump Problems
 * A significant number of problems I've been facing recently have had to do with the Shift-JIS spaces missing in the dump. It's weird when they're missing from the middle of strings...
@@ -52,6 +42,7 @@
 ## Block Layout
 * I should put stuff that comes before Gaia's Heart text in a separate block! That will remove the super awkward constraints I'm facing.
 * Looks like I need to be stricter with splitting the blocks at map files as well. I thought I fixed that, but I guess not enough...
+    * This might be a </<= error with the new way I'm handling overflow and editing pointers and stuff. I am having mroe of those problems now than I did before.
 
 ## Tools
 
@@ -109,7 +100,7 @@
     * No more than 3 lines between <WAIT>s?
         * I can insert new <LN>s in the middle of lines, but that means I should remove the later one.
 
-### rerouting pointers for duplicate strings
+### rerouting pointers for duplicate strings 
 * ST1.EXE, "Got %dp. EVO Genes."
     * Text at 0x691b, pointer at 0x1586.
     * Text at 0x10f6e, pointer at 0x7731.
@@ -123,6 +114,7 @@
     * Text at 0xdb25, pointer at 0x652e.
 
 ### images
+* 46 OK gdt is completely illegible, of course.
 * TITLE4.GDT has some blue fuzz at the top of the right side of the image.
 * TITLE5.GDT has some fuzzy problems.
 
@@ -147,3 +139,6 @@
 
 * If it freezes before the next map loads:
     * Look at the location of "MAPXYZ.MAP" and make sure the previous block ends at the first "M", not slightly before.
+
+* If a block is "too long" despite all the countermeasures:
+    * It's probably ending at the wrong place, go fix that.
