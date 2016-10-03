@@ -15,6 +15,8 @@ if __name__ == '__main__':
     	for text_offset, pointer in sorted(gamefile.pointers.iteritems()):
     		for p in pointer:
     			print hex(p.location)
+    			print hex(p.text_location)
+    			print hex(p.new_text_location)
     			print p.text() + "\n"
     			# i am making a large mistake somewhere
     			# This is giving me something 2 bytes too far into the string, and 2 bytes further than what pointer_peek.py gives me.

@@ -7,7 +7,7 @@ from math import floor
 
 from openpyxl import load_workbook
 
-from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS
+from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS, DEST_PATH
 from utils import sjis_to_hex_string, ascii_to_hex_string, get_current_block
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
 from rominfo import SPARE_BLOCK, CREATURE_BLOCK
@@ -494,10 +494,8 @@ class Block(object):
             en_bytestring = ascii_to_hex_string(eng)
             this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
 
-            # Method 1: old method. keep track of last replacement, start looking there
-            #old_slice = self.blockstring[previous_replacement_offset*2:]
-
-            # Method 2: using where the string should be.
+            # Predict where the string should be, then start looking there.
+            # Not really sure why these estimations are wrong sometimes...
             location_in_blockstring = ((pointer_diff + trans.location - self.start) * 2)
             old_slice = self.blockstring[location_in_blockstring:]
 
@@ -505,8 +503,6 @@ class Block(object):
                 i = old_slice.index(jp_bytestring)//2
             except ValueError:
                 old_slice = self.blockstring
-                print hex(trans.location)
-                #print jp_bytestring
                 i = old_slice.index(jp_bytestring)//2
 
 
@@ -618,10 +614,36 @@ class Translation(object):
         self.english = english
         self.block = block
 
+        self.location_in_blockstring = (location - block.start) * 2
+
         self.jp_bytestring = sjis_to_hex_string(japanese)
         self.en_bytestring = ascii_to_hex_string(english)
 
         self.jp_bytestring_alt = sjis_to_hex_string(japanese, preserve_spaces=True)
+
+        self.integrate_spaces()
+
+    def integrate_spaces(self):
+        """
+        All second and third lines of dialogue are prepended with an SJIS space (0x8140).
+        To save space, we get rid of these.
+        """
+        # first, remove the SJIS spaces that are already prepended.
+        while self.jp_bytestring[0:4] == '8140':
+            self.jp_bytestring = self.jp_bytestring[4:]
+
+        # TODO: Actually the trick is to look forward... whoops
+        lookback = 0
+        snippet_right_before = self.block.blockstring[self.location_in_blockstring:self.location_in_blockstring+4]
+        if snippet_right_before == '8140':
+            self.jp_bytestring = '8140' + self.jp_bytestring
+            self.jp_bytestring_alt = '8140' + self.jp_bytestring_alt
+            print hex(self.location), self.block.gamefile
+            print 'sjis space found at %s and prepended' % hex(self.location)
+
+            # This isn't quite catching all of them, for whatever reason, especially in the opening/ending...
+            lookback += 4
+            snippet_right_before = self.block.blockstring[self.location_in_blockstring+lookback:self.location_in_blockstring+4+lookback]
 
     def __repr__(self):
         return hex(self.location) + " " + self.english
@@ -655,18 +677,30 @@ class Pointer(object):
 
             self.new_text_location = self.text_location + diff
 
+    def edit_absolute(self, new_value):
+        """
+        Give the pointer a new absolute value.
+        """
+        pass
+
     def absorb(self, other):
         """
         Set the other pointer's value equal to this one.
         Useful for saving space when dealing with duplicates/similar bits of text.
         """
+        # 
         pass
 
     def text(self):
         """
         Get what the pointer points to, ending at the END byte (00).
         """
-        return text_at_offset(self.gamefile, self.new_text_location)
+        from pointer_peek import word_at_offset
+        gamefile_path = os.path.join(DEST_PATH, self.gamefile.filename)
+        pointer_value = word_at_offset(gamefile_path, self.location)
+        pointed_location = pointer_value + POINTER_CONSTANT[self.gamefile.filename]
+        # TODO: Why isn't pointed_location the same thing as self.new_text_location?
+        return text_at_offset(self.gamefile, pointed_location)
 
     def typeset(self):
         """
@@ -698,7 +732,7 @@ class DumpExcel(object):
             except TypeError:
                 # Either a blank line or a total value. Ignore it.
                 break
-            if block.start <= offset <= block.stop:
+            if block.start <= offset < block.stop:
                 japanese = row[2].value
                 english = row[4].value
 
