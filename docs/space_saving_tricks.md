@@ -9,13 +9,14 @@
 	* Impact: Provides 780 more characters of space per file.
 	* The error messages in this block only show up during a fatal crash, and they usually don't help. With my optimism, I blanked the entire error block in every file so I can reroute the pointers of strings that overflow from their blocks.
 * Using the end-of-block padding as overflow containers.
-	* Impact: Varies widely. 250 more characters in ST2.EXE, 280 in ST3.EXE.
-* Removing the Shift-JIS spaces that serve to center text in credits and CG sequences.
-	* Impact: Provides 8-10 more characters per centered string, but removes the emphatic effect.
+	* Impact: Allows full utilization of the 780 characters in the error block, which was underutilized by 200-300 characters in ST2 and St3.
+* Removing Shift-JIS spaces that indent text.
+	* Impact: Varies pretty widely, still calculating.
 	* This is sometimes the only thing I can do to get space in OPENING.EXE and ENDING.EXE, which have no spare block.
-
+* Removing error messages in the menu text block.
+	* Impact: 13-26 more characters per file.
 ## Other things I might try
-* Rewriting the spare-block pointer table, which immediately precedes it.
+* ~~Rewriting the spare-block pointer table, which immediately precedes it.~~
 	* Yeah that definitely doesn't work. The game boots but it corrupts particular bits of text...
 		* Not even bits of text that get moved to that location, either. I wonder what's going on?
 	* Maybe I should rewrite the pointer-pointers too??
@@ -26,10 +27,10 @@
 * Using tab characters to indent stuff rather than the 4-5 SJIS spaces.
 	* Not as easy to insert in Excel as newlines...
 	* \t just shows up ingame as a yen symbol. Maybe it's something else?
-* Removing the error messages within normal text blocks. (Sometimes causes the game to not boot.)
-* Removing the indentation after a line break in normal lines of dialogue.
-	* Gotta look for the bytes 0A-81-40 in what pointer-peek finds.
+* Allowing truly "blank" translations instead of the one space I use for them currently.
+	* Really scraping the bottom of the barrel.
 * NightWolve's recommendation - implementing a space text compressor/decompressor in the main text routine.
+
 * Expanding files!! This would be the hardest thing to do, maybe, but would solve all the problems. 
 	* Compare file footers in the EXE files, as well as headers, to look for any information that hardcodes file length.
 	* "Increase ROM size" appends FF to the end of the file.
@@ -80,8 +81,14 @@
 				* Only two pointers to stuff beyond error block: 0x001de points to 0x120f2, and 0x120f0 points to 0x120f4.
 		* Can I fiddle with that header value any?
 		* Or should I move the footer somewhere else?
+		* Is there anything in 46.EXE that tells it how much to load each file?
+			* 0xfa02: pointer value pointing to ST1.EXE
+				* 0x59d (doubtful)
+				* 0xa07, 0xa0c (probable)
 
 ## header format?
+It's a standard DOS header format ("MZ").
+
 00-01: 4d 5a (constant)
 02-04: a8 01 91,    <- does this resemble 121a7?
        d6 01 85,    <- does this resemble 109d5?
@@ -109,33 +116,6 @@
 10-25: e6 00 00 00 00 00 00 00 22 00 00 00 01 00 fb 20 72 6a 01 00 00 00
 26
 
-Seems like 02-04 is an important value for my purposes.
-9101a8 - 0121a7 = 8fe001
-8501d6 - 0109d5 = 8ef801
-7801e8 - 00e5e7 = 771c01
-b60002 - 016a01 = b49601
-920158 - 12357  = 90de01
-
-0191a8 - 0121a7 = 7001
-0185d6 - 0109d5 = 7c01
-0178e8 - 00e5e7 = 9301
-00b602 - 16a01  =-b3ff (4c01?)
-019258 - 12357 =  6f01
-
-maybe the second value is more like a flag? don't include it in the value (explains the weird stuff with ST4)
-
-121a7 - 91a8 = 8fff  st1  + d7e0 = 167df
-109d5 - 85d6 = 83ff  st2  + c170 = 1456f
- e5e7 - 78e8 = 6cff  st3  + b400 = 120ff
-16a01 - b602 = b3ff  st4  + e140 = 1953f
-12357 - 9258 = 90ff  st5  + cb60 = 15c5f
-3bbb - 1ebc =  1cff  st5s1+ 2440 =
-3861 - 1d62 =  1aff  st5s2+ 2360 =
-50ef - 29f0 =  26ff  st5s3+ 3ce0 =
-d8af - 6db0 =  6aff  st6  + a460 =
-5e4b - 304c =  2dff  op   + 4a80 =
-4f55 - 2856 =  26ff  en   + 39a0 =
-
 4d5a = signature.
 next word: last page size.
 third word: number of pages.
@@ -148,14 +128,14 @@ last page size: 0x01a8
 file pages: 0x91
 relocation items: 0x70
 header paragraphs: 0x20 (16 byte blocks - yep, everything until 0x200 is just headers/pointers)
-MINALLOC: 0x30
+MINALLOC: 0x30 (paragraphs)
 MAXALLOC: 0xffff
-Initial SS Value: 0x12ab
+Initial SS Value: 0x121b
 Initial SP Value: 0x00e6
 Complemented Checksum: 0x0000 (probably unused)
 Initial IP Value: 0x0000
 Prelocated CS Value: 0x0000
-Relocation Table Offset: 0x2200
+Relocation Table Offset: 0x0022
 Overlay Number: 0x0000
 
 

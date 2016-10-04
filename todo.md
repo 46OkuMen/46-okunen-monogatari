@@ -119,6 +119,8 @@
 * TITLE5.GDT has some fuzzy problems.
 
 ### other
+* What is the ST1S1.EXE, ST1S2.EXE, etc. that gets pointed to in ST1.EXE?
+
 * What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
     * It might be an install disk. Or just the intro (which is on Disk A...)
 

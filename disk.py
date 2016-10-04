@@ -693,8 +693,19 @@ class Pointer(object):
         gamefile_path = os.path.join(DEST_PATH, self.gamefile.filename)
         pointer_value = word_at_offset(gamefile_path, self.location)
         pointed_location = pointer_value + POINTER_CONSTANT[self.gamefile.filename]
-        # TODO: Why isn't pointed_location the same thing as self.new_text_location?
+        self.new_text_location = pointed_location
+
         return text_at_offset(self.gamefile, pointed_location)
+
+    def print_dialogue_box(self):
+        """
+        Get the text, and print a representation of how it looks in a dialogue window.
+        """
+        lines = self.text().splitlines()
+        print "-"*44
+        for l in lines:
+            print "|" + l.ljust(43, " ") + "|"
+        print "-"*44
 
     def typeset(self):
         """

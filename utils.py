@@ -135,6 +135,9 @@ def onscreen_length(eng):
     result = 0
     if eng is None:
         return result
+    # remove 'new' and 'wait' control codes - they don't display anything
+    eng = eng.replace('\x16', '')
+    eng = eng.replace('\x13', '')
     for char in eng:
         if char.isdigit():
             result += 2
