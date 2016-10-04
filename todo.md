@@ -1,4 +1,8 @@
 ## Crashes
+* Ch3 combat pointers are really messed up.
+
+* Ch4 boot crash.
+
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
 * Ch2 crash right after "The gigantic rock lost its balance and fell into the river of magama below."

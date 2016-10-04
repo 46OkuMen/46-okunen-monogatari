@@ -47,10 +47,12 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xb58a, 0xbccb),    # evo files, dialogue
                            (0xbccb, 0xbe16),
                            (0xbe22, 0xc01d),
-                           (0xc046, 0xc5d3),
-                           (0xc607, 0xcfe6),
-                           (0xcfff, 0xda0d),
-                           (0xda0d, 0xdb3a),  # enviro
+                           (0xc046, 0xcaaf),
+                           (0xcaaf, 0xcfe6),
+                           (0xcfff, 0xd7ef),
+                           (0xd7ef, 0xd963),
+                           (0xd963, 0xda0d),
+                           (0xda0d, 0xdb3b),  # enviro
                            (0xdb7e, 0xe2d5),  # creature block
                            (0xe617, 0xe6a7),    # Y/N/C, "evolved too far"
                            (0xe6e3, 0xe7f3),

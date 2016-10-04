@@ -831,7 +831,17 @@ class Overflow(object):
 
                     jp_bytestring = trans.jp_bytestring
                     en_bytestring = trans.en_bytestring
-                    j = self.bytestring.index(jp_bytestring)
+                    if en_bytestring == "":
+                        en_bytestring = jp_bytestring
+                    try:
+                        j = self.bytestring.index(jp_bytestring)
+                    except ValueError:
+                        print hex(self.start), hex(self.stop), trans.english
+                        print jp_bytestring
+                        jp_bytestring = trans.jp_bytestring_alt
+                        print jp_bytestring
+                        print self.bytestring
+                        j = self.bytestring.index(jp_bytestring)
                     self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring)
 
         # return the length of the new bytestring, but restore the original bytestring first
