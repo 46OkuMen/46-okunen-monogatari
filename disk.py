@@ -644,7 +644,9 @@ class Translation(object):
 
 
 class Pointer(object):
-    """A pointer. Found in EXEFiles outside of Blocks. They can be edited with edit(diff)."""
+    """
+    A pointer. Found in EXEFiles outside of Blocks. They can be edited with edit(diff).
+    """
     def __init__(self, gamefile, pointer_location, text_location):
         self.gamefile = gamefile
         self.location = pointer_location
@@ -653,6 +655,9 @@ class Pointer(object):
         self.old_value = text_location - gamefile.pointer_constant
         old_bytes = pack(self.old_value)
         self.old_bytestring = "{:02x}".format(old_bytes[0]) + "{:02x}".format(old_bytes[1])
+
+        # TODO: Populate a list of translations that belong to this pointer.
+        self.translations = []
 
         self.new_text_location = text_location
 
@@ -711,16 +716,46 @@ class Pointer(object):
         """
         Find all the newlines in the pointer, then move them around.
         """
-        import re
-        for m in re.finditer('\n', self.text):
-            print "newline found at", m.start(), m.end()
+        # skip error messages
+        if spare_start < self.pointed_location < spare_stop:
+            return None
+        print hex(p.new_text_location)
+        original_text = p.text()
+        textlines = original_text.splitlines()
+        print original_text
+        for i, line in enumerate(textlines):
+            if onscreen_length(line) > 44:
+                if i == len(textlines) - 1:
+                    joinedlines = line
+                else:
+                    joinedlines = line + "\n" + textlines[i+1]
+                words = joinedlines.split(' ')
+                firstline = ''
+                while onscreen_length(firstline + " ") <= 44:
+                    if onscreen_length(firstline) + onscreen_length(words[0]) <= 44:
+                        # Only add a space if it's not empty to begin with.
+                        if len(firstline) > 0:
+                            firstline += " "
+                        firstline += words.pop(0)
+                        print firstline
+                    else:
+                        break
+                secondline = ' '.join(words)
+                if i == len(textlines) - 1:
+                    textlines.append('')
+                
+                textlines[i], textlines[i+1] = firstline, secondline
+        new_text = '\n'.join(textlines)
+        print new_text
 
     def __repr__(self):
         return "%s pointing to %s" % (hex(self.location), hex(self.text_location))
 
 
 class DumpExcel(object):
-    """Takes a dump excel path, and lets you get a block's translations from it."""
+    """
+    Takes a dump excel path, and lets you get a block's translations from it.
+    """
     def __init__(self, path):
         self.path = path
         self.workbook = load_workbook(self.path)
@@ -753,11 +788,13 @@ class DumpExcel(object):
         return trans
 
 class PointerExcel(object):
-    """Takes a pointer dump excel path, and lets you grab the relevant pointers from it."""
+    """
+    Takes a pointer dump excel path, and lets you grab the relevant pointers from it.
+    """
     def __init__(self, path):
         self.path = path
         self.pointer_wb = load_workbook(self.path)
-        self.pointer_sheet = self.pointer_wb.get_sheet_by_name("Sheet1") 
+        self.pointer_sheet = self.pointer_wb.worksheets[0]
 
     def get_pointers(self, gamefile):
         """Retrieve all relevant pointers from the pointer sheet."""
@@ -794,7 +831,6 @@ class Overflow(object):
 
                     jp_bytestring = trans.jp_bytestring
                     en_bytestring = trans.en_bytestring
-
                     j = self.bytestring.index(jp_bytestring)
                     self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring)
 

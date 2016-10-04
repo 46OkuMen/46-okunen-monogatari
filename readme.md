@@ -11,14 +11,14 @@ Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory 
 | Chapter 2    | 97%  | (422 / 434)  |
 | Chapter 3    | 97%  | (328 / 338)  |
 | Chapter 4    | 90%  | (677 / 747)  |
-| Chapter 5    | 20%  | (186 / 892)  |
+| Chapter 5    | 71%  | (634 / 892)  |
 | Chapter 6    | 17%  |  (55 / 319)  |
 | Ending       |100%  |  (70 / 70)   |
 | System       |100%  |   (5 / 5)    |
 | Images       | 66%  |   (6 / 9)    |
-| Encyclopedia | 48%  | (537 / 1116) |
+| Encyclopedia |  0%  |  (10 / 1116) |
 | Gag Endings  |  3%  |  (25 / 777)  |
-| Total        | 72%  |(3491 / 4815) |
+| Total        | 59%  |(2875 / 4815) |
 
 ## How do I use this?
 * There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. and I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!"

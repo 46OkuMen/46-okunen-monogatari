@@ -15,7 +15,7 @@ if __name__ == '__main__':
     DiskA = Disk(SRC_ROM_PATH, DEST_ROM_PATH, FILES_TO_TYPESET)
     for gamefile in DiskA.gamefiles:
         spare_start, spare_stop = gamefile.spare_block.start, gamefile.spare_block.stop
-        print spare_start, spare_stop
+        print hex(spare_start), hex(spare_stop)
         for _, pointer in sorted(gamefile.pointers.iteritems()):
             for p in pointer:
                 # skip error messages

@@ -34,7 +34,8 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xd5b9, 0xd757),   # dialogue
                            (0xd757, 0xd894),   # evolution, menu
                            (0xd8c6, 0xdd50),   # battle stuff
-                           (0xde35, 0xf165),   # dialogue/AV screens
+                           (0xde35, 0xe5fd),   # dialogue/AV (split at AV206/stone image)
+                           (0xe5fd, 0xf165),   # dialogue/AV screens
                            (0xf171, 0xf8c9),   # dialogue
                            (0xf8f5, 0xf948),   # just one environment msg
                            (0xf980, 0xfaa2),   # enviro
@@ -47,7 +48,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xbccb, 0xbe16),
                            (0xbe22, 0xc01d),
                            (0xc046, 0xc5d3),
-                           (0xc607, 0xcfe6),   # TODO: want to break at caaf?
+                           (0xc607, 0xcfe6),
                            (0xcfff, 0xda0d),
                            (0xda0d, 0xdb3a),  # enviro
                            (0xdb7e, 0xe2d5),  # creature block
@@ -55,10 +56,12 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xe6e3, 0xe7f3),
                            (0xeb82, 0xee8e)),
                'ST4.EXE': ((0xe263, 0xe2a3), # enviro
-                           (0xe2f4, 0xe90e), # EVO files, battle text
-                           (0xe90e, 0xea47), # evolution, menus
-                           (0xea78, 0x120a1), # dialogue... ends at crazy control codes/table
-                           (0x12115, 0x134d9), # dialogue
+                           (0xe2f4, 0xe8ab),
+                           (0xe8ab, 0xea4b), # evolution, menus
+                           (0xea4b, 0x102cb),
+                           (0x102cb, 0x120a1), # dialogue... ends at crazy control codes/table
+                           (0x12115, 0x12925),
+                           (0x12925, 0x134d9), # dialogue
                            (0x134f6, 0x13c25), # dialogue
                            (0x13e97, 0x13fed), # dialogue
                            (0x14026, 0x1485f), # dialogue
@@ -69,8 +72,9 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x1659c, 0x168a8)), # error block
                'ST5.EXE': ((0xcc02, 0xcc63), # dialogue?
                            (0xccf3, 0xcd34), # enviro
-                           (0xcd74, 0xcedc), # EVO files, evolution
-                           (0xcf16, 0xeac4), # dialogue
+                           (0xcd74, 0xcedc),
+                           (0xcf16, 0xea57),
+                           (0xea57, 0xeac4), # dialogue
                            (0xebbe, 0x1061e), # dialogue
                            (0x10682, 0x107a4), # enviro
                            (0x107e6, 0x11467), # creature block
