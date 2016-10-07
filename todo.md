@@ -1,8 +1,6 @@
 ## Crashes
 * Ch3 combat pointers are really messed up.
 
-* Ch4 boot crash.
-
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
 * Ch2 crash right after "The gigantic rock lost its balance and fell into the river of magama below."
@@ -10,21 +8,6 @@
     * Pointer-peek 0x6457, 0x6468, 0x649a, 0x64cc, ...
     * 0x6468 points to 0x1078d, which is nothing
     * 0x64cc points to 0x10789, which is also nothing
-
-* Two OPENING.EXE has two crashes/sticking points: 
-    * "A barred spiral galaxy on the outreaches of space...." Some pointer thing?
-    * "Animation: ASAMI Tsuyoshi"
-    * Something is up with the pointers, certainly - if I only translate Character Digitizing in the credits, the first one that shows up as translated is Map Digitizing (one after)...
-    * Pointer-peek 0x4c05, 0x4cc09, 0x4c0d, 0x4c15.
-        * These all show up normal...
-    * This is really quite bizarre. Some strings work for these few lines, but not others. Can't find a pattern.
-        * All 3 problematic lines begin with "A". Could that seriously be it??
-        * Let's try" "B mass of rock debris attracted by gravity gradually"
-            * IT WORKS??
-            * And it just crashed before it got to the fourth line that begins with A: "AV Digitizing: IMAGE BOX"
-            * And the line that broke everything in ENDING.EXE was "As you floated around the planet,""
-            * This is easily the stupidest bug I've ever seen. Why does it happen??
-                * Maybe it thinks they're images (AVX.GDT) and tries to load them as such?
 
 ## Non-Crash Glitches
 * Random "u" being shown during the Ending.
@@ -116,17 +99,16 @@
     * Text at 0xb531, pointer at 0x162a.
     * Text at 0xd252, pointer at 0x59ae.
     * Text at 0xdb25, pointer at 0x652e.
+* ST5S3.EXE, 'Demon'
+* ST5S3.EXE, 'The enemy'
+* ST5S3.EXE, duplicate skill name strings
 
 ### images
 * 46 OK gdt is completely illegible, of course.
-* TITLE4.GDT has some blue fuzz at the top of the right side of the image.
-* TITLE5.GDT has some fuzzy problems.
+    * When and why does the codec return "Sequence contains no elements"??
 
 ### other
 * What is the ST1S1.EXE, ST1S2.EXE, etc. that gets pointed to in ST1.EXE?
-
-* What is the purpose of Disk B1? Does it contain anything not in Disk B2? Is it a part of gameplay at all?
-    * It might be an install disk. Or just the intro (which is on Disk A...)
 
 * Looks like the .gitignore is on the fritz...
 
@@ -139,6 +121,7 @@
 
 * If the reinserter can't find the original jp string:
     * Look for Shift-JIS spaces that accidentally got converted to ASCII spaces.
+    * Also check to see if two blocks accidentally overlap.
 
 * If the Gaia's Hearts don't do anything:
     * Try not to disturb the length of the strings above the You Found Gaia's Heart msg. (Give them their own block?)
@@ -148,3 +131,4 @@
 
 * If a block is "too long" despite all the countermeasures:
     * It's probably ending at the wrong place, go fix that.
+    * Or there are a bunch of untranslated strings right at the end of the block, so it can't tell that it overflows.

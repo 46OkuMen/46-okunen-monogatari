@@ -1,5 +1,5 @@
 # shank-a-rom
-Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory of Evolution*, otherwise known as *46 Okunen Monogatari: The Shinka Ron*, the 1990 Japan-only predecessor to *E.V.O: Search for Eden*. 
+Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory of Evolution*, otherwise known as *46 Okunen Monogatari: The Shinkaron*, the 1990 Japan-only predecessor to *E.V.O: Search for Eden* for the SNES.
 
 ![screen from mid-Chapter 1, translated](https://raw.githubusercontent.com/hollowaytape/shank-a-rom/master/img/evidence_02.png)
 
@@ -15,10 +15,10 @@ Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory 
 | Chapter 6    | 90%  | (289) / 319) |
 | Ending       |100%  |  (70 / 70)   |
 | System       |100%  |   (5 / 5)    |
-| Images       | 66%  |   (6 / 9)    |
+| Images       | 89%  |   (8 / 9)    |
 | Encyclopedia |  0%  |  (10 / 1116) |
 | Gag Endings  |  3%  |  (25 / 777)  |
-| Total        | 59%  |(2875 / 4815) |
+| Total        | 72%  |(3480 / 4815) |
 
 ## How do I use this?
 * There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. and I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!"

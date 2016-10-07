@@ -47,7 +47,8 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xb58a, 0xbccb),    # evo files, dialogue
                            (0xbccb, 0xbe16),
                            (0xbe22, 0xc01d),
-                           (0xc046, 0xcaaf),
+                           (0xc046, 0xc5d3),
+                           (0xc607, 0xcaaf),
                            (0xcaaf, 0xcfe6),
                            (0xcfff, 0xd7ef),
                            (0xd7ef, 0xd963),
