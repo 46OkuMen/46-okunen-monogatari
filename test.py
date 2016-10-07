@@ -5,9 +5,10 @@
 # For this case, unit tests are not useful - I need to check things about the data itself.
 # Unit tests stop after one thing is wrong; I need a list of all things that are wrong.
 
-from utils import DUMP_XLS, onscreen_length
+from utils import DUMP_XLS, WORKBOOK_XLS, onscreen_length
 from openpyxl import load_workbook
 from rominfo import file_blocks, CREATURE_BLOCK, CREATURE_MAX_LENGTH, DIALOGUE_MAX_LENGTH, DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH
+from pointer_peek import word_at_offset, text_at_offset
 
 def test_increasing_offsets():
     """Make sure the offsets are strictly increasing - so that no strings are mislabeled."""
@@ -153,6 +154,20 @@ def test_game_string_lengths():
                         print "%s %s: %s has length %s" % (sheet, row[0].value, 'some string', onscreen_length(row[4].value))
 
 # make sure a blank translation sheet doesn't return overflow errors
+
+def test_map_locations():
+    """
+    Pointers to .MAP files should return the same pointed text after reinsertion.
+    If not, the game will probably crash when trying to load it.
+    """
+    wb = load_workbook(POINTER_XLS)
+    ws = wb.sheets[0]
+    for row in ws.rows[1:]):
+        if row[3].value.endswith('.MAP'):
+            print row[3].value
+            # build a list of stuff that's maps
+            # pointer-peek int he pathced fiels to make sure they're still maps
+
 
 if __name__ == '__main__':
     #test_increasing_offsets()

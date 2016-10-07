@@ -273,27 +273,24 @@ class EXEFile(Gamefile):
         """
         Move the overflows to the spares, then reroute the pointers.
         """
-        if not self.spare_block:
-            if len(self.overflows) > 0:
-                print "Uh oh, stuff has spilled out but there's no room to store it!!"
-                print self.overflows
-            return None
-
-        self.spare_block.blockstring = ""
+        if self.spare_block:
+            self.spare_block.blockstring = ""
 
         # Want to try to put the largest overflows into the smallest containing spare, for best space usage.
         self.overflows.sort(key=lambda x: x.new_length)
         self.spares.sort(key=lambda x: x[1] - x[0])
         
         while len(self.overflows) > 0:
-            overflow = self.overflows.pop()
+
             #print "Overflow:", [p.new_length for p in self.overflows]
             #print "Spares:", [s[1] - s[0] for s in self.spares]
+            overflow = self.overflows.pop()
             overflow_stored = False
             overflow_length = overflow.new_length
+
             #print "Trying to store %s with length %s" % (overflow, overflow_length)
             for i, s in enumerate(self.spares):
-                if s[1] - s[0] > overflow_length:
+                if s[1] - s[0] >= overflow_length:
                     #print overflow, "should fit in", hex(s[0]), hex(s[1]), "since %s < %s" % (overflow.new_length, s[1]-s[0])
                     overflow.move(s[0])
                     self.spares[i] = s[0] + overflow_length, s[1]
@@ -303,9 +300,9 @@ class EXEFile(Gamefile):
             if not overflow_stored:
                 raise Exception("That overflow didn't fit anywhere")
 
-
-        excess = len(self.spare_block.blockstring)//2 - (self.spare_block.stop - self.spare_block.start)
-        assert excess < 0, "Spare block is %s too long" % (excess)
+        if self.spare_block:
+            excess = len(self.spare_block.blockstring)//2 - (self.spare_block.stop - self.spare_block.start)
+            assert excess <= 0, "Spare block is %s too long" % (excess)
 
 class DATFile(Gamefile):
     """A data gamefile. Doesn't have pointers or a fixed length, so it's much simpler."""
@@ -502,12 +499,12 @@ class Block(object):
                 i = old_slice.index(jp_bytestring)//2
 
 
-            if i > 2:    # text on final lines of dialogue has an i=2.
-                # this happens usually when there are initial SJIS spaces in the ROM.
-                try:
-                    print trans, "location in blockstring is too high, i =", i
-                except UnicodeEncodeError:
-                    print "something might have been replaced incorrectly, i =", i
+            #if i > 2:    # text on final lines of dialogue has an i=2.
+            #    # this happens usually when there are initial SJIS spaces in the ROM.
+            #    try:
+            #        print trans, "location in blockstring is too high, i =", i
+            #    except UnicodeEncodeError:
+            #        print "something might have been replaced incorrectly, i =", i
 
             new_slice = old_slice.replace(jp_bytestring, en_bytestring, 1)
 
@@ -531,10 +528,10 @@ class Block(object):
         Determine how much space is left at the end of the block, and designate it for
         overflow collection.
         """
-        block_diff = len(self.blockstring) - len(self.original_blockstring)
+        block_diff = (len(self.blockstring) - len(self.original_blockstring)) // 2
         assert block_diff <= 0, 'The block %s is too long by %s' % (self, block_diff)
         if block_diff < 0:
-            number_of_spaces = ((-1)*block_diff)//2
+            number_of_spaces = (-1)*block_diff
             padding_start = self.start + len(self.blockstring)//2
             padding_stop = self.start + len(self.blockstring)//2 + number_of_spaces
 
@@ -846,6 +843,7 @@ class Overflow(object):
 
         # return the length of the new bytestring, but restore the original bytestring first
         result = len(self.bytestring) // 2
+        self._temp_bytestring = self.bytestring
         self.bytestring = str(self.original_bytestring)
         return result
 
@@ -865,6 +863,12 @@ class Overflow(object):
                     jp_bytestring = trans.jp_bytestring
                     en_bytestring = trans.en_bytestring
 
+                    if en_bytestring == '':
+                        en_bytestring = jp_bytestring
+
+                    #print jp_bytestring
+                    #print en_bytestring
+
                     this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
 
                     j = self.bytestring.index(jp_bytestring)
@@ -874,6 +878,7 @@ class Overflow(object):
                                                          pointer_diff)
                     previous_text_location = trans.location
                     pointer_diff += this_string_diff
+        assert len(self.bytestring) == len(self._temp_bytestring), "%s:\n%s\n%s" % (self, self.bytestring, self._temp_bytestring)
         destination_block.blockstring += self.bytestring
 
     def __repr__(self):

@@ -8,11 +8,11 @@ Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory 
 | -------------|-----:|:------------:|
 | Opening      |100%  |  (45 / 45)   |
 | Chapter 1    |100%  | (501 / 501)  |
-| Chapter 2    | 97%  | (422 / 434)  |
-| Chapter 3    | 97%  | (328 / 338)  |
-| Chapter 4    | 90%  | (677 / 747)  |
-| Chapter 5    | 71%  | (634 / 892)  |
-| Chapter 6    | 17%  |  (55 / 319)  |
+| Chapter 2    | 97%  | (423 / 434)  |
+| Chapter 3    | 95%  | (324 / 338)  |
+| Chapter 4    | 91%  | (684 / 747)  |
+| Chapter 5    | 87%  | (781 / 892)  |
+| Chapter 6    | 90%  | (289) / 319) |
 | Ending       |100%  |  (70 / 70)   |
 | System       |100%  |   (5 / 5)    |
 | Images       | 66%  |   (6 / 9)    |

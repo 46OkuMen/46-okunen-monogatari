@@ -59,7 +59,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xeb82, 0xee8e)),
                'ST4.EXE': ((0xe263, 0xe2a3), # enviro
                            (0xe2f4, 0xe8ab),
-                           (0xe8ab, 0xea4b), # evolution, menus
+                           (0xe8ab, 0xea47), # evolution, menus
                            (0xea4b, 0x102cb),
                            (0x102cb, 0x120a1), # dialogue... ends at crazy control codes/table
                            (0x12115, 0x12925),
@@ -90,16 +90,16 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                              (0x3e30, 0x3f65),
                              (0x3f97, 0x4daa),
                              (0x4dba, 0x4ee0),),
-               'ST6.EXE': ((0xa51b, 0xa55a), # enviro
+               'ST6.EXE': ((0xa51b, 0xa55c), # enviro
                            (0xa59c, 0xa5e9), # evo files
-                           (0xa5e9, 0xaf59), # stats/evolution
+                           (0xa5e9, 0xaf5b), # stats/evolution
                            (0xaf59, 0xb066), # menu
-                           (0xb072, 0xb457), # dialogue
-                           (0xb489, 0xb8d2), # dialogue
-                           (0xb8ea, 0xccaf), # dialogue 
+                           (0xb072, 0xb459), # dialogue
+                           (0xb489, 0xb8d3), # dialogue
+                           (0xb8ea, 0xccb1), # dialogue 
                            (0xcd14, 0xce25), # creature block
                            (0xcedf, 0xcf6f), # y/n/c, "evolved too far"
-                           (0xcfab, 0xd0bb), # enviro, battle text
+                           (0xcfab, 0xd0bc), # enviro, battle text
                            (0xd44a, 0xd756)), # error block
                'ENDING.EXE': ((0x3c4e, 0x4b20),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
@@ -131,7 +131,7 @@ CREATURE_BLOCK = {'ST1.EXE': (0x10fca, 0x11595),
                   'ST6.EXE': (0xcd14, 0xce25)}
 # Usually the third-to-last block.
 
-# Starting position, in bytes, of each file within the Disk 1 rom.
+# Starting position, in bytes, of each file within the Disk A rom.
 file_location = {'OPENING.EXE': 0x58800,
                  'ST1.EXE': 0x5e800,
                  'ST2.EXE': 0x70c00,

@@ -52,3 +52,5 @@ if __name__ == '__main__':
                 p.print_dialogue_box()
                 # So one problem with the text that's showing up is that it's probably the old error message pointers.
                 # I can filter those out with a list comp, I think.
+
+                # I need to edit pointers as well, since I might add more line breaks. Tricky!
