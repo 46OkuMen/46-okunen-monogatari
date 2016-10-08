@@ -18,7 +18,7 @@ Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory 
 | Images       | 89%  |   (8 / 9)    |
 | Encyclopedia |100%  | (935 / 935)  |
 | Gag Endings  |  3%  |  (25 / 729)  |
-| Total        | 82%  |(3480 / 5373) |
+| Total        | 82%  |(4410 / 5373) |
 
 ## How do I use this?
 * There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. and I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!"
