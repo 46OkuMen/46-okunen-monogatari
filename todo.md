@@ -1,7 +1,7 @@
 ## Crashes
-* Ch3 combat pointers are really messed up.
-
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
+
+* Menu pointers are messed up in Ch6.
 
 * Ch2 crash right after "The gigantic rock lost its balance and fell into the river of magama below."
     * This is going to be quite annoying to fix - it's super late into the chapter...
@@ -14,17 +14,7 @@
 
 * Gotta fix the Ch3 and Ch4 menu item alignments again. Ugh.
 
-* Ch2, Ch3 environment text problems
-    * "Got %d EVO Genes. <LN> You defeated the enemy!"
-    * "Got %d EVO Genes. <LN> 'Ho-ho-ho-ho!'"
-        * Bug: Christmas comes early
-    * I should make sure there are <END> codes after "Got %s evo genes" whenever it appears in the spare block.
 * One entry in the credits (character digitizing) is being skipped.
-
-## Dump Problems
-* A significant number of problems I've been facing recently have had to do with the Shift-JIS spaces missing in the dump. It's weird when they're missing from the middle of strings...
-
-* Why are SINKA.DAT and SEND.DAT offsets still wrong? And why aren't the files in the dump from assisted_dump.py at all??
 
 ## Block Layout
 * I should put stuff that comes before Gaia's Heart text in a separate block! That will remove the super awkward constraints I'm facing.
@@ -34,8 +24,6 @@
 ## Tools
 
 ### disk.py
-* Why isn't ST2.EXE using all of the spare block? There should be like 100 characters left...
-
 * Looks like most chapter scripts will be too long. Is there any other way for me to get space?
     * Definitely can't expand into the block of 00s and various other data right after the last block... causes graphical errors.
     * Can I use the small block of 20s after that?
@@ -45,13 +33,6 @@
             * In progress. Requires a lot of restructuring how overflow works.
     * I can probably trim the spaces from some of the AV events that use spaces to center text...
         * Can I use tabs to achieve a similar effect without using so much space?
-
-* Allow a manual line break in english text: <LN> becomes the byte 0A, or whatever.
-    * This is tricky with length stuff, I think - the ln is only one character, so make sure the diff is still calculated correctly.
-    * Not even necessary! Newlines in excel (alt+enter) show up ingame, since 0A is a newline in ascii and sjis.
-    * The real issue is - how to remove line breaks after the strings if I want to change the \n's position?
-        * I could fuse the jp string into a "s1\ns2\ns3" excel row...
-        * Any way to do that quickly?
 
 * Allow a "blank" translation entry rather than just doing the one-space thing I'm doing now.
     * Currently a blank entry just means no translation is provided, so the text remains japanese.
@@ -74,14 +55,6 @@
 * Looks like there are simply SJIS spaces after newlines, which means I can remove those if I want.
     * That means the max length of a dialogue is 44, but 42 excluding that space.
     * Do we want to keep that space?
-
-* ~~Is there a hard length limit on skill names?~~
-    * "Swift AttacGo Behind"
-    * Intimidate" is fine.
-    * Swift Attack and Go Behind look fine in the ROM dump itself.
-    * ~~Changing Swift Attack to be "Swift" in the sheet, see if that helps?~~
-        * Nope. No hard limit on skill names, either...
-        * Why is it going wrong then?
 
 * Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
     * No more than 3 lines between <WAIT>s?
@@ -108,6 +81,8 @@
     * When and why does the codec return "Sequence contains no elements"??
 
 ### other
+* Figure out if "Cannot save EVO" msg appears anywhere in Ch6.
+* Will the game display the umlaut in "Dusseldorf" correctly?
 * What is the ST1S1.EXE, ST1S2.EXE, etc. that gets pointed to in ST1.EXE?
 
 * Looks like the .gitignore is on the fritz...

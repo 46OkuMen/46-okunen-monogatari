@@ -45,17 +45,20 @@ class Disk(object):
         # If I want to hardcode the total strings here, it's 4,815 (9/7/16)
         # wait - when I don't hardcode it, it's 5,240?? (Is that just the numbers in the .dat files?)
         # # TODO: Determine number of strings in whole game.
-        self.total_strings = 4815
+        #self.total_strings = 4815
+        self.total_strings = 0
         self.translated_strings = 0
 
         self.gamefiles = []
         for filename in files_to_translate:
             if filename.endswith('.EXE'):
                 exefile = EXEFile(self, filename)
+                self.total_strings += exefile.total_strings
                 self.translated_strings += exefile.translated_strings
                 self.gamefiles.append(exefile)
             elif filename.endswith('.DAT'):
                 datfile = DATFile(self, filename)
+                self.total_strings += datfile.total_strings
                 self.translated_strings += datfile.translated_strings
                 self.gamefiles.append(datfile)
 
@@ -82,7 +85,7 @@ class Disk(object):
         try:
             self.write()
         except IOError:
-            _ = raw_input("You have the game open; close it and hit Enter to continue")
+            raw_input("You have the game open; close it and hit Enter to continue")
             self.write()
         self.report_progress()
 
@@ -98,8 +101,6 @@ class Disk(object):
         percentage = int(floor((self.translated_strings / self.total_strings * 100)))
         print 'E.V.O.: The Theory of Evolution', str(percentage), "% complete",
         print "(%s / %s)\n" % (self.translated_strings, self.total_strings)
-
-
 
 class Gamefile(object):
     """
@@ -137,9 +138,10 @@ class Gamefile(object):
 
         self.total_strings = 0
         self.translated_strings = 0
+        self.spaces = 0
         for block in self.blocks:
             for trans in block.translations:
-                if isinstance(trans.japanese, float):
+                if isinstance(trans.japanese, long):
                     # Skip the numbers in .DAT files, they're boring
                     continue
                 self.total_strings += 1
@@ -160,12 +162,19 @@ class Gamefile(object):
         with open(dest_path, 'wb') as fileopen:
             fileopen.write(data)
 
+    def get_spaces(self):
+        for b in self.blocks:
+            for t in b.translations:
+                self.spaces += t.spaces
+        return self.spaces*2
+
     def report_progress(self):
         """Calculate and print the progress made in translating this file."""
 
         percentage = int(floor((self.translated_strings / self.total_strings * 100)))
         print self.filename, str(percentage), "% complete",
-        print "(%s / %s)\n" % (self.translated_strings, self.total_strings)
+        print "(%s / %s)" % (self.translated_strings, self.total_strings),
+        print "%s characters of space taken from SJIS spaces\n" % self.get_spaces()
 
     def __repr__(self):
         return self.filename
@@ -614,6 +623,7 @@ class Translation(object):
 
         self.jp_bytestring_alt = sjis_to_hex_string(japanese, preserve_spaces=True)
 
+        self.spaces = 0
         self.integrate_spaces()
 
     def integrate_spaces(self):
@@ -632,6 +642,7 @@ class Translation(object):
             self.jp_bytestring_alt = '8140' + self.jp_bytestring_alt
             #print hex(self.location), self.block.gamefile
             #print 'sjis space found at %s and prepended' % hex(self.location+scan)
+            self.spaces += 1
 
             scan += 4
             snippet_right_before = self.block.blockstring[self.location_in_blockstring+scan:self.location_in_blockstring+4+scan]

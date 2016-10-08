@@ -108,6 +108,7 @@ def ascii_to_hex_string(eng):
     if not eng:
         return ""
     else:
+        eng = str(eng)
         for char in eng:
             eng_bytestring += "%02x" % ord(char)
         return eng_bytestring
