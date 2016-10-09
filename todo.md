@@ -1,6 +1,9 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
+* Losing the ability to navigate menus in Ch3 after a few battles...??
+    * Also happened in Ch4 after a lot of battles...?
+
 * Menu pointers are messed up in Ch6.
 
 * Ch2 crash right after "The gigantic rock lost its balance and fell into the river of magama below."
@@ -13,6 +16,9 @@
 * Random "u" being shown during the Ending.
 
 * Gotta fix the Ch3 and Ch4 menu item alignments again. Ugh.
+    * Ch3 done.
+
+* There's an extra string at the end of the Ch3 "You found Gaia's Heart" msg.
 
 * One entry in the credits (character digitizing) is being skipped.
 

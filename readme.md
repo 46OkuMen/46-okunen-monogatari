@@ -21,7 +21,7 @@ Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory 
 | Total        | 82%  |(4410 / 5373) |
 
 ## How do I use this?
-* There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. and I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!"
+* There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. And I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!" The game will almost certainly crash at some point!!
 * Use LunarIPS (or whatever other IPS program you have) to patch your Disk A image.
 * The patch targets these disk images:
 	* 46 Okunen Monogatari - The Sinkaron (J) A user.FDI `md5: CA56B37F74885C40EDC9B1D2AACB5DA6`
