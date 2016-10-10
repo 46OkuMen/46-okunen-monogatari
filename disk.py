@@ -9,8 +9,10 @@ from openpyxl import load_workbook
 
 from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS, DEST_PATH
 from utils import sjis_to_hex_string, ascii_to_hex_string, get_current_block
+from utils import onscreen_length
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
 from rominfo import SPARE_BLOCK, CREATURE_BLOCK
+from rominfo import DAT_MAX_LENGTH
 
 from pointer_peek import text_at_offset
 
@@ -331,6 +333,8 @@ class DATFile(Gamefile):
             if trans.english == "":
                 continue
             jp_bytestring = sjis_to_hex_string(trans.japanese)
+            
+            trans.english = trans.simple_typeset()
             en_bytestring = ascii_to_hex_string(trans.english)
 
             self.filestring = self.filestring.replace(jp_bytestring, en_bytestring, 1)
@@ -507,14 +511,6 @@ class Block(object):
                 old_slice = self.blockstring
                 i = old_slice.index(jp_bytestring)//2
 
-
-            #if i > 2:    # text on final lines of dialogue has an i=2.
-            #    # this happens usually when there are initial SJIS spaces in the ROM.
-            #    try:
-            #        print trans, "location in blockstring is too high, i =", i
-            #    except UnicodeEncodeError:
-            #        print "something might have been replaced incorrectly, i =", i
-
             new_slice = old_slice.replace(jp_bytestring, en_bytestring, 1)
 
             self.blockstring = self.blockstring.replace(old_slice, new_slice, 1)
@@ -603,10 +599,6 @@ class CreatureBlock(Block):
         self.incorporate()
 
 
-class SpareBlock(Block):
-    pass
-
-
 class Translation(object):
     """Has an offset, a SJIS japanese string, and an ASCII english string."""
     def __init__(self, block, location, japanese, english):
@@ -646,6 +638,32 @@ class Translation(object):
 
             scan += 4
             snippet_right_before = self.block.blockstring[self.location_in_blockstring+scan:self.location_in_blockstring+4+scan]
+
+    def simple_typeset(self):
+        """
+        Typeset a simple DAT string.
+        No pointer-editing or length checking beyond 2 lines.
+        Only aware of the current translation; can't prepend excess to the next translation.
+        """
+        if isinstance(self.english, long):
+            return None
+        if onscreen_length(self.english) > DAT_MAX_LENGTH:
+            words = self.english.split(' ')
+            firstline = ''
+            while onscreen_length(firstline) <= DAT_MAX_LENGTH:
+                if onscreen_length(firstline + " " + words[0]) <= DAT_MAX_LENGTH:
+                    if len(firstline) > 0:
+                        firstline += " "
+                    firstline += words.pop(0)
+                else:
+                    break
+            secondline = ' '.join(words)
+            assert onscreen_length(secondline) <= DAT_MAX_LENGTH
+            secondline = '        ' + secondline
+            combinedlines = "\n".join([firstline, secondline])
+        else:
+            return self.english
+        return combinedlines
 
     def __repr__(self):
         return hex(self.location) + " " + self.english

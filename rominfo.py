@@ -9,7 +9,7 @@ CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 CREATURE_MAX_LENGTH = 21
 DIALOGUE_MAX_LENGTH = 44
 FULLSCREEN_MAX_LENGTH = 76
-DAT_MAX_LENGTH = 68   # TODO: Check on SEND.DAT, see if they're indented.
+DAT_MAX_LENGTH = 71   # TODO: Check on SEND.DAT, see if they're indented.
 
 # How the files themselves get broken up for reinsertion.
 file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
