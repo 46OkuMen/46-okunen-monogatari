@@ -11,6 +11,7 @@ DIALOGUE_MAX_LENGTH = 44
 FULLSCREEN_MAX_LENGTH = 76
 DAT_MAX_LENGTH = 71   # TODO: Check on SEND.DAT, see if they're indented.
 
+# TODO: Why did I use tuples of tuples? Why not a list of tuples? Less confusing that way.
 # How the files themselves get broken up for reinsertion.
 file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                                (0x55e9, 0x5639), # spare block
@@ -77,14 +78,16 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x107e6, 0x11467), # creature block
                            (0x11977, 0x11a07), # y/n/c, evolved too far
                            (0x11a43, 0x11b54), # battle msgs
-                           (0x11ef2, 0x121fe)), # error block
+                           (0x11ef2, 0x121fe), # error
+                           (0x122a4, 0x12343)), # otherspare
                'ST5S1.EXE': ((0x24e8, 0x39bb),
                              (0x39cc, 0x3af2),),
                'ST5S2.EXE': ((0x23f9, 0x3798),),
                'ST5S3.EXE': ((0x3db9, 0x3dc6),
                              (0x3e30, 0x3f65),
                              (0x3f97, 0x4daa),
-                             (0x4dba, 0x4ee0),),
+                             (0x4dba, 0x4ee0),
+                             (0x503c, 0x50db)), # otherspare
                'ST6.EXE': ((0xa51b, 0xa55c), # enviro
                            (0xa59c, 0xa5e9), # evo files
                            (0xa5e9, 0xaf5b), # stats/evolution
@@ -95,7 +98,8 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xcd14, 0xce25), # creature block
                            (0xcedf, 0xcf6f), # y/n/c, "evolved too far"
                            (0xcfab, 0xd0bc), # enviro, battle text
-                           (0xd44a, 0xd756)), # error block
+                           (0xd44a, 0xd756), # error block
+                           (0xd7fc, 0xd89b)), # otherspare
                'ENDING.EXE': ((0x3c4e, 0x4b20),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
                'SEND.DAT': ((0x000, 0x8740),)}
@@ -121,7 +125,10 @@ SPARE_BLOCK = {'OPENING.EXE': (0x55e9, 0x5639),
 #OTHER_SPARE_BLOCK = {}
 OTHER_SPARE_BLOCK = {'ST2.EXE': (0x10922, 0x109c1),
                      'ST3.EXE': (0xef34, 0xefd3),
-                     'ST4.EXE': (0x1694e, 0x169ed),}
+                     'ST4.EXE': (0x1694e, 0x169ed),
+                     'ST5.EXE': (0x122a4, 0x12343),
+                     'ST5S3.EXE': (0x503c, 0x50db),
+                     'ST6.EXE': (0xd7fc, 0xd89b)}
 
 CREATURE_BLOCK = {'ST1.EXE': (0x10fca, 0x11595),
                   'ST2.EXE': (0xfae4, 0xfe50),

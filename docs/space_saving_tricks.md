@@ -17,6 +17,9 @@
 	* Impact: Varies pretty widely, still calculating.
 	* This is sometimes the only thing I can do to get space in OPENING.EXE and ENDING.EXE, which have no spare block.
 
+* Use the padding right before the footer of certain files as another overflow container.
+	* Impact: 159 characters in all files but the opening, ending, ST5S1, and ST5S2.
+
 * Removing error messages in the menu text block.
 	* Impact: 13-26 more characters per file.
 
