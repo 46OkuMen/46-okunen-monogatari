@@ -5,17 +5,24 @@
 * Using ASCII encoding instead of Shift-JIS.
 	* Impact: Massive. Halves the required space for the game script.
 	* This one's a no-brainer - it looks better than the vaporwave-ish spaced-apart Shift-JIS Roman characters, and it's natively supported by the PC-98, so it requires no effort at all.
+
 * Using the error block as an overflow container.
 	* Impact: Provides 780 more characters of space per file.
 	* The error messages in this block only show up during a fatal crash, and they usually don't help. With my optimism, I blanked the entire error block in every file so I can reroute the pointers of strings that overflow from their blocks.
+
 * Using the end-of-block padding as overflow containers.
 	* Impact: Allows full utilization of the 780 characters in the error block, which was underutilized by 200-300 characters in ST2 and St3.
+
 * Removing Shift-JIS spaces that indent text.
 	* Impact: Varies pretty widely, still calculating.
 	* This is sometimes the only thing I can do to get space in OPENING.EXE and ENDING.EXE, which have no spare block.
+
 * Removing error messages in the menu text block.
 	* Impact: 13-26 more characters per file.
+
 ## Other things I might try
+* Using a "second spare block" (159 characters) right before the footer.
+	* I must have tried this before, did this give me graphical glitches? It seems fine so far in Ch2.
 * ~~Rewriting the spare-block pointer table, which immediately precedes it.~~
 	* Yeah that definitely doesn't work. The game boots but it corrupts particular bits of text...
 		* Not even bits of text that get moved to that location, either. I wonder what's going on?

@@ -7,14 +7,14 @@ from math import floor
 
 from openpyxl import load_workbook
 
-from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS, DEST_PATH
+from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS, SRC_PATH, DEST_PATH
 from utils import sjis_to_hex_string, ascii_to_hex_string, get_current_block
 from utils import onscreen_length
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
-from rominfo import SPARE_BLOCK, CREATURE_BLOCK
+from rominfo import SPARE_BLOCK, OTHER_SPARE_BLOCK, CREATURE_BLOCK
 from rominfo import DAT_MAX_LENGTH
 
-from pointer_peek import text_at_offset
+from pointer_peek import text_at_offset, word_at_offset
 
 class Disk(object):
     """The main .FDI file for a PC-98 game. Disks have the properties:
@@ -207,19 +207,27 @@ class EXEFile(Gamefile):
         self.pointers = self.get_pointers()
 
         # Look for a spare block and designate it as such.
+        self.spares = []
+        self.spare_block = None
+        self.other_spare_block = None
+
         try:
             spare_start, spare_stop = SPARE_BLOCK[self.filename]
+            self.spares.append((spare_start, spare_stop))
             for block in self.blocks:
                 if block.start == spare_start:
                     self.spare_block = block
-                    block.is_spare = True
         except KeyError:
             self.spare_block = None
 
-        # You can also store stuff in the padding at the ends of blocks, so store those locs here.
-        self.spares = []
-        if self.spare_block:
-            self.spares.append((spare_start, spare_stop))
+        try:
+            other_start, other_stop = OTHER_SPARE_BLOCK[self.filename]
+            self.spares.append((other_start, other_stop))
+            for block in self.blocks:
+                if block.start == other_start:
+                    self.other_spare_block = block
+        except KeyError:
+            self.other_spare_block = None
 
         # Then look for a creature block and designate it as such.
         try:
@@ -286,6 +294,8 @@ class EXEFile(Gamefile):
         """
         if self.spare_block:
             self.spare_block.blockstring = ""
+        if self.other_spare_block:
+            self.other_spare_block.blockstring = ""
 
         # Want to try to put the largest overflows into the smallest containing spare, for best space usage.
         self.overflows.sort(key=lambda x: x.new_length)
@@ -333,7 +343,7 @@ class DATFile(Gamefile):
             if trans.english == "":
                 continue
             jp_bytestring = sjis_to_hex_string(trans.japanese)
-            
+
             trans.english = trans.simple_typeset()
             en_bytestring = ascii_to_hex_string(trans.english)
 
@@ -362,8 +372,6 @@ class Block(object):
                                                        start_in_disk, (self.stop-self.start))
         self.blockstring = "" + self.original_blockstring
         self.translations = self.get_translations()
-
-        self.is_spare = False
 
     def get_translations(self):
         """Grab all translations in this block."""
@@ -681,14 +689,22 @@ class Pointer(object):
         self.old_value = text_location - gamefile.pointer_constant
         old_bytes = pack(self.old_value)
         self.old_bytestring = "{:02x}".format(old_bytes[0]) + "{:02x}".format(old_bytes[1])
+       
+        # the location of the translation relative to the pointer comes into play here...
+        # the original text location, minus the extra spaces, plus the length of its text
+        self.text_location_stop = self._true_location() + len(self.jp_text())
 
-        # TODO: Populate a list of translations that belong to this pointer.
-        self.translations = []
+        self.translations = self.get_translations()
 
-        self.new_text_location = text_location
+    def get_translations(self):
+        result = []
+        for b in self.gamefile.blocks:
+            result += [t for t in b.translations if self.text_location <= t.location < self.text_location_stop]
+        return result
 
     def edit(self, diff):
         """Adjusts the pointer by diff, and writes the new value to the gamefile."""
+        #print "editing %s with diff %s" % (self, diff)
         if diff != 0:
             location_in_string = self.location*2
             new_value = self.old_value + diff
@@ -700,14 +716,6 @@ class Pointer(object):
                 
             self.gamefile.filestring = string_before + new_bytestring + string_after
 
-            self.new_text_location = self.text_location + diff
-
-    def edit_absolute(self, new_value):
-        """
-        Give the pointer a new absolute value.
-        """
-        pass
-
     def absorb(self, other):
         """
         Set the other pointer's value equal to this one.
@@ -716,17 +724,50 @@ class Pointer(object):
         # 
         pass
 
+    def _true_location(self):
+        """
+        I'll let you in on a little secret: "text_location" isn't where the
+        pointer points, usually. That's just where the translation was picked up.
+        """
+        # DANGER: I changed this to look at the SRC path instead of DEST.
+        gamefile_path = os.path.join(SRC_PATH, self.gamefile.filename)
+        pointer_value = word_at_offset(gamefile_path, self.location)
+        return pointer_value + POINTER_CONSTANT[self.gamefile.filename]
+
+    def jp_text(self):
+        """
+        Get what the pointer points to, ending at the END byte (00).
+        """
+        gamefile_path = os.path.join(SRC_PATH, self.gamefile.filename)
+        pointer_value = word_at_offset(gamefile_path, self.location)
+        pointer_location = pointer_value + POINTER_CONSTANT[self.gamefile.filename]
+
+        result = text_at_offset(gamefile_path, pointer_location)
+
+        # Sometimes there are pointers to control code right before an END.
+        # Look a bit further in these cases.
+        if len(result) < 2:
+            #print "super short text; let's go a little further"
+            result = text_at_offset(gamefile_path, pointer_location+2)
+        return result
+
+
     def text(self):
         """
         Get what the pointer points to, ending at the END byte (00).
         """
-        from pointer_peek import word_at_offset
         gamefile_path = os.path.join(DEST_PATH, self.gamefile.filename)
         pointer_value = word_at_offset(gamefile_path, self.location)
-        pointed_location = pointer_value + POINTER_CONSTANT[self.gamefile.filename]
-        self.new_text_location = pointed_location
+        pointer_location = pointer_value + POINTER_CONSTANT[self.gamefile.filename]
 
-        return text_at_offset(self.gamefile, pointed_location)
+        result = text_at_offset(self.gamefile, pointer_location)
+
+        # Sometimes there are pointers to control code right before an END.
+        # Look a bit further in these cases.
+        if len(result) < 2:
+            #print "super short text; let's go a little further"
+            result = text_at_offset(self.gamefile, pointer_location+2)
+        return result
 
     def print_dialogue_box(self):
         """
@@ -745,7 +786,6 @@ class Pointer(object):
         # skip error messages
         if spare_start < self.pointed_location < spare_stop:
             return None
-        print hex(p.new_text_location)
         original_text = p.text()
         textlines = original_text.splitlines()
         print original_text
@@ -878,35 +918,41 @@ class Overflow(object):
 
     def move(self, location):
         destination_block = self.gamefile.blocks[get_current_block(location, self.gamefile)]
-        #print "Originally located:", self
-        #print "new length of", self.new_length
-        #print "moving to", destination_block
+        #print "\nmoving", self, "to location", hex(location), "\n"
 
         pointer_diff = location - self.start
-        previous_text_location = self.start-1
 
-        for offset in range(self.start, self.stop):
-            for block in self.gamefile.blocks:
-                for trans in [x for x in block.translations if x.location == offset]:
+        for pointer in [p for p in self.gamefile.pointers if self.start <= p < self.stop]:
+            for i, p in enumerate(self.gamefile.pointers[pointer]):
+                # Don't double-edit the text in pointers
+                if i < 1:
+                    #print p
+                    #print p.text()
+                    #print "got translations between", hex(p.text_location), hex(p.text_location_stop)
+                    #print "calculated the last number with", hex(p._true_location()), len(p.jp_text())
+                    #print p.translations
+                    for trans in p.translations:
+                        # need to move pointers even when the text remains the same!!
+                        # do a loop over pointers instead of translations
 
-                    jp_bytestring = trans.jp_bytestring
-                    en_bytestring = trans.en_bytestring
+                        jp_bytestring = trans.jp_bytestring
+                        en_bytestring = trans.en_bytestring
 
-                    if en_bytestring == '':
-                        en_bytestring = jp_bytestring
+                        if en_bytestring == '':
+                            en_bytestring = jp_bytestring
 
-                    #print jp_bytestring
-                    #print en_bytestring
+                        #print "looking for", trans.english
 
-                    this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
+                        this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
 
-                    j = self.bytestring.index(jp_bytestring)
-                    self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring)
+                        j = self.bytestring.index(jp_bytestring)
+                        self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring)
+                        #pointer_diff += this_string_diff
 
-                    self.gamefile.edit_pointers_in_range((previous_text_location, trans.location),
-                                                         pointer_diff)
-                    previous_text_location = trans.location
-                    pointer_diff += this_string_diff
+                # When there are multiple translated strings in an overflow bytestring,
+                p.edit(pointer_diff)
+
+
         assert len(self.bytestring) == len(self._temp_bytestring), "%s:\n%s\n%s" % (self, self.bytestring, self._temp_bytestring)
         destination_block.blockstring += self.bytestring
 

@@ -31,36 +31,29 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x11d42, 0x1204e)),  # error block
                'ST2.EXE': ((0xc23b, 0xc27c),   # environment
                            (0xc2bc, 0xd5ae),   # evo files, dialogue
-                           (0xd5b9, 0xd757),   # dialogue
-                           (0xd757, 0xd894),   # evolution, menu
+                           (0xd5b9, 0xd894),   # evolution, menu
                            (0xd8c6, 0xdd50),   # battle stuff
-                           (0xde35, 0xe5fd),   # dialogue/AV (split at AV206/stone image)
-                           (0xe5fd, 0xf165),   # dialogue/AV screens
-                           (0xf171, 0xf8c9),   # dialogue
-                           (0xf8f5, 0xf948),   # just one environment msg
-                           (0xf980, 0xfaa2),   # enviro
+                           (0xde35, 0xfaa2),   # enviro
                            (0xfae4, 0xfe50),   # creature block
                            (0x10004, 0x10095), # Y/N/C, "evolved too far"
                            (0x100d1, 0x101e1), # battle stuff
-                           (0x10570, 0x1087d)), # error block
-               'ST3.EXE': ((0xb49d, 0xb548),   # environment
+                           (0x10570, 0x1087d),  # error block
+                           (0x10922, 0x109c1),), # black spare-ish block
+               'ST3.EXE': ((0xb49d, 0xb54a),   # environment
                            (0xb58a, 0xbccb),    # evo files, dialogue
-                           (0xbccb, 0xbe16),
-                           (0xbe22, 0xc01d),
+                           (0xbccb, 0xc01d),
                            (0xc046, 0xc5d3),
-                           (0xc607, 0xcaaf),
-                           (0xcaaf, 0xcfe6),
-                           (0xcfff, 0xd7ef),
-                           (0xd7ef, 0xd963),
-                           (0xd963, 0xda0d),
+                           (0xc607, 0xcfe6),
+                           (0xcfff, 0xda0d),
                            (0xda0d, 0xdb3b),  # enviro
                            (0xdb7e, 0xe2d5),  # creature block
                            (0xe617, 0xe6a7),    # Y/N/C, "evolved too far"
                            (0xe6e3, 0xe7f3),
-                           (0xeb82, 0xee8e)),
+                           (0xeb82, 0xee8e),
+                           (0xef34, 0xefd3)), # spare-ish block
                'ST4.EXE': ((0xe263, 0xe2a3), # enviro
-                           (0xe2f4, 0xe8ab),
-                           (0xe8ab, 0xea47), # evolution, menus
+                           (0xe2f4, 0xe90e),
+                           (0xe90e, 0xea47), # evolution, menus
                            (0xea4b, 0x102cb),
                            (0x102cb, 0x120a1), # dialogue... ends at crazy control codes/table
                            (0x12115, 0x12925),
@@ -72,7 +65,8 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x14a28, 0x15a1e), # creature block
                            (0x16031, 0x160c1), # Y/N/C, evolved too far
                            (0x160fd, 0x1620d), # battle msgs
-                           (0x1659c, 0x168a8)), # error block
+                           (0x1659c, 0x168a8), # error block
+                           (0x1694e, 0x169ed)), # spare-r block
                'ST5.EXE': ((0xcc02, 0xcc63), # dialogue?
                            (0xccf3, 0xcd34), # enviro
                            (0xcd74, 0xcedc),
@@ -123,6 +117,11 @@ SPARE_BLOCK = {'OPENING.EXE': (0x55e9, 0x5639),
                'ST5.EXE': (0x11ef2, 0x121fe),
                'ST6.EXE': (0xd44a, 0xd756),}
  # Usually the last block. (But not in OPENNING.EXE).
+
+#OTHER_SPARE_BLOCK = {}
+OTHER_SPARE_BLOCK = {'ST2.EXE': (0x10922, 0x109c1),
+                     'ST3.EXE': (0xef34, 0xefd3),
+                     'ST4.EXE': (0x1694e, 0x169ed),}
 
 CREATURE_BLOCK = {'ST1.EXE': (0x10fca, 0x11595),
                   'ST2.EXE': (0xfae4, 0xfe50),
@@ -199,3 +198,4 @@ STARTING_MAP_NUMBER_LOCATION = {
     'ST1.EXE': 0xedaa,
     'ST5.EXE': 0xcf04,
 }
+

@@ -1,6 +1,18 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
+* Ch2 map crash after leaving the 2nd ichthyostega cave.
+    * Erase block ending in 0xd5ae.
+        * Not that one.
+    * Erase block ending in 0xd894.
+        * Not that one either.
+    * Not the other one either.
+    * Problem goes away when removing the other spare block trick...
+        * It's not the call to the map that crashes, it's the call to the protophasma image/text.
+        * The image pointer is not being written correctly.
+            * Discovered a large problem in the overflow mover: it doesn't move stuff that lacks a translation object! So that's why maps and images would crash sometimes, but only some of them - the ones that got caught in overflows but their pointers were never adjusted.
+
+
 * Losing the ability to navigate menus in Ch3 after a few battles...??
     * Also happened in Ch4 after a lot of battles...?
 

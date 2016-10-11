@@ -14,7 +14,6 @@ def word_at_offset(filename, offset):
         data = f.read(2)
         for b in data:
             result += "%02x" % ord(b)
-        print result
         return unpack(result[0:2], result[2:])
 
 def text_at_offset(filename, offset):
