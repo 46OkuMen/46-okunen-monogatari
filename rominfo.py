@@ -40,7 +40,8 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x100d1, 0x101e1), # battle stuff
                            (0x10570, 0x1087d),  # error block
                            (0x10922, 0x109c1),), # black spare-ish block
-               'ST3.EXE': ((0xb49d, 0xb54a),   # environment
+               'ST3.EXE': ((0xb49d, 0xb4c6),
+                           (0xb4c6, 0xb54a),   # Gaia's Heart
                            (0xb58a, 0xbccb),    # evo files, dialogue
                            (0xbccb, 0xc01d),
                            (0xc046, 0xc5d3),
