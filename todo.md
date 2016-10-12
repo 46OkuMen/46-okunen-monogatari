@@ -1,43 +1,29 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
-* Ch2 map crash after leaving the 2nd ichthyostega cave.
-    * Erase block ending in 0xd5ae.
-        * Not that one.
-    * Erase block ending in 0xd894.
-        * Not that one either.
-    * Not the other one either.
-    * Problem goes away when removing the other spare block trick...
-        * It's not the call to the map that crashes, it's the call to the protophasma image/text.
-        * The image pointer is not being written correctly.
-            * Discovered a large problem in the overflow mover: it doesn't move stuff that lacks a translation object! So that's why maps and images would crash sometimes, but only some of them - the ones that got caught in overflows but their pointers were never adjusted.
-
-
 * Losing the ability to navigate menus in Ch3 after a few battles...??
     * Also happened in Ch4 after a lot of battles...?
+    * Check if this still happens after fixing the overflow filename strings bug.
 
-* Menu pointers are messed up in Ch6.
+* Crash on selecting "EVO Encyclopedia" in Ch6.
 
 * Ch2 crash right after "The gigantic rock lost its balance and fell into the river of magama below."
     * This is going to be quite annoying to fix - it's super late into the chapter...
     * Pointer-peek 0x6457, 0x6468, 0x649a, 0x64cc, ...
     * 0x6468 points to 0x1078d, which is nothing
     * 0x64cc points to 0x10789, which is also nothing
+    * Check if this still happens after fixing the overflow filename strings bug.
 
 ## Non-Crash Glitches
 * Random "u" being shown during the Ending.
 
-* Gotta fix the Ch3 and Ch4 menu item alignments again. Ugh.
-    * Ch3 done.
-
 * There's an extra string at the end of the Ch3 "You found Gaia's Heart" msg.
 
-* One entry in the credits (character digitizing) is being skipped.
+* Ch4 menu items are misaligned.
 
-## Block Layout
-* I should put stuff that comes before Gaia's Heart text in a separate block! That will remove the super awkward constraints I'm facing.
-* Looks like I need to be stricter with splitting the blocks at map files as well. I thought I fixed that, but I guess not enough...
-    * This might be a </<= error with the new way I'm handling overflow and editing pointers and stuff. I am having mroe of those problems now than I did before.
+* Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
+
+* One entry in the credits (character digitizing) is being skipped.
 
 ## Tools
 
@@ -100,6 +86,7 @@
 
 ### other
 * Figure out if "Cannot save EVO" msg appears anywhere in Ch6.
+    * Nope! You can save everywhere, so we can rewrite the message.
 * Will the game display the umlaut in "Dusseldorf" correctly?
 * What is the ST1S1.EXE, ST1S2.EXE, etc. that gets pointed to in ST1.EXE?
 

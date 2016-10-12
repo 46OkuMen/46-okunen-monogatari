@@ -92,7 +92,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                'ST6.EXE': ((0xa51b, 0xa55c), # enviro
                            (0xa59c, 0xa5e9), # evo files
                            (0xa5e9, 0xaf5b), # stats/evolution
-                           (0xaf59, 0xb066), # menu
+                           (0xaf5b, 0xb066), # menu
                            (0xb072, 0xb459), # dialogue
                            (0xb489, 0xb8d3), # dialogue
                            (0xb8ea, 0xccb1), # dialogue 
