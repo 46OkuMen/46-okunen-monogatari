@@ -19,6 +19,8 @@
 
 * There's an extra string at the end of the Ch3 "You found Gaia's Heart" msg.
 
+* One creature is "Goaton" in game but "Hitsujion" in the encyclopedia.
+
 * Ch4 menu items are misaligned.
 
 * Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
@@ -85,8 +87,9 @@
     * When and why does the codec return "Sequence contains no elements"??
 
 ### other
-* Figure out if "Cannot save EVO" msg appears anywhere in Ch6.
-    * Nope! You can save everywhere, so we can rewrite the message.
+* Figure out which "You defeated the demon!" strings in Ch5 actually get used.
+    * Americas, Russia use ST5S3 battle mssages.
+    * Continue investigating from the save file alt+f6.
 * Will the game display the umlaut in "Dusseldorf" correctly?
 * What is the ST1S1.EXE, ST1S2.EXE, etc. that gets pointed to in ST1.EXE?
 
