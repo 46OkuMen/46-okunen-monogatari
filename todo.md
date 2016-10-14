@@ -1,11 +1,17 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
+* Ch5 crash on entering Shambahla.
+    * So much progress lost...
+    
 * Losing the ability to navigate menus in Ch3 after a few battles...??
     * Also happened in Ch4 after a lot of battles...?
     * Check if this still happens after fixing the overflow filename strings bug.
 
 * Crash on selecting "EVO Encyclopedia" in Ch6.
+
+* Crash on reading the encyclopedia entry for Dino Hominid/Dinosaur Man.
+    * I think that SINKA.DAT was impropertly reinserted - some older strings are showing up in the game that are definitely not in the real translation, but were probably in the placeholder one.
 
 * Ch2 crash right after "The gigantic rock lost its balance and fell into the river of magama below."
     * This is going to be quite annoying to fix - it's super late into the chapter...
@@ -27,26 +33,14 @@
 
 * One entry in the credits (character digitizing) is being skipped.
 
+* "Wisdom" runs against the stat number, any way to realign it?
+
 ## Tools
 
 ### disk.py
-* Looks like most chapter scripts will be too long. Is there any other way for me to get space?
-    * Definitely can't expand into the block of 00s and various other data right after the last block... causes graphical errors.
-    * Can I use the small block of 20s after that?
-        * No - the chapter doesn't even boot if there's anything in that area.
-    * How much space is taken up by the text padding I create when I slice the blocks that overflow in the first place?
-        * I could try inserting shorter overflow bytestrings there in the first place before I even move to the spare block.
-            * In progress. Requires a lot of restructuring how overflow works.
-    * I can probably trim the spaces from some of the AV events that use spaces to center text...
-        * Can I use tabs to achieve a similar effect without using so much space?
-
 * Allow a "blank" translation entry rather than just doing the one-space thing I'm doing now.
     * Currently a blank entry just means no translation is provided, so the text remains japanese.
     * I should implement a control code like <blank> for this.
-
-### test.py
-* Assert that a blank translation sheet returns no overflow errors.
-    * If there are errors, that means that block is a byte or two too short in rominfo.py.
 
 ### length validation
 * What is the best way to do editing for line lengths and such?
@@ -88,7 +82,7 @@
 
 ### other
 * Figure out which "You defeated the demon!" strings in Ch5 actually get used.
-    * Americas, Russia use ST5S3 battle mssages.
+    * Americas, Asia use ST5S3 battle mssages.
     * Continue investigating from the save file alt+f6.
 * Will the game display the umlaut in "Dusseldorf" correctly?
 * What is the ST1S1.EXE, ST1S2.EXE, etc. that gets pointed to in ST1.EXE?
