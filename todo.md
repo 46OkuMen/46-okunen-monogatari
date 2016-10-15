@@ -3,6 +3,14 @@
 
 * Ch5 crash on entering Shambahla.
     * So much progress lost...
+        * Not quite. You can reload the EXE file by ingame saving, loading an empty save and switching to Disk 2, then loading the original save again and switching disks. Great!
+    * Looks like a problem with the image, not the map. Should be the very first thing in ST5S2.
+    * That image pointer looks fine too, as does the text...
+    * Is it a problem with ST5S2 reinsertion?
+        * Yeah, somehow - it works fine when I delete all the ST5S2 text.
+        * How about reinserting everything except the first string?
+            * Nope.
+        * It's not that I overwrote the memory error either.
     
 * Losing the ability to navigate menus in Ch3 after a few battles...??
     * Also happened in Ch4 after a lot of battles...?
@@ -88,6 +96,8 @@
 * What is the ST1S1.EXE, ST1S2.EXE, etc. that gets pointed to in ST1.EXE?
 
 * Looks like the .gitignore is on the fritz...
+
+* ST5S2 has like 100 pointers to 0x2360 (Turbo-C compiler message), all 4 apart (like in a table). Is this normal?
 
 ### common problems and their solutions
 * If a "&" appears before a string when it gets replaced:

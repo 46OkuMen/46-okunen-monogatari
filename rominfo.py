@@ -74,8 +74,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xcd74, 0xcedc),
                            (0xcf16, 0xea57),
                            (0xea57, 0xeac4), # dialogue
-                           (0xebbe, 0x1061e), # dialogue
-                           (0x10682, 0x107a4), # enviro
+                           (0xebbe, 0x107a4), # enviro
                            (0x107e6, 0x11467), # creature block
                            (0x11977, 0x11a07), # y/n/c, evolved too far
                            (0x11a43, 0x11b54), # battle msgs

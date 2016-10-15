@@ -5,10 +5,10 @@
 # For this case, unit tests are not useful - I need to check things about the data itself.
 # Unit tests stop after one thing is wrong; I need a list of all things that are wrong.
 
-from utils import DUMP_XLS, WORKBOOK_XLS, onscreen_length
+from utils import DUMP_XLS, POINTER_XLS, onscreen_length
 from openpyxl import load_workbook
 from rominfo import file_blocks, CREATURE_BLOCK, CREATURE_MAX_LENGTH, DIALOGUE_MAX_LENGTH, DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH
-from pointer_peek import word_at_offset, text_at_offset
+from pointer_peek import word_at_offset, text_at_offset, text_with_pointer
 
 def test_increasing_offsets():
     """Make sure the offsets are strictly increasing - so that no strings are mislabeled."""
@@ -106,6 +106,7 @@ def test_all_string_lengths():
                 if onscreen_length(row[4].value) > FULLSCREEN_MAX_LENGTH:
                     print "%s %s: %s has length %s" % (sheet, row[0].value, row[4].value, onscreen_length(row[4].value))
 
+
 def test_creature_string_lengths():
     """No creature name can have a name longer than 21."""
     wb = load_workbook(DUMP_XLS)
@@ -118,6 +119,7 @@ def test_creature_string_lengths():
                 if row[4].value:
                     assert onscreen_length(row[4].value) <= CREATURE_MAX_LENGTH, "In sheet %s, shorten string at row %s" % (sheet, index+2)
 
+
 def test_dat_string_lengths():
     """No encyclopedia string should be longer than 68."""
     wb = load_workbook(DUMP_XLS)
@@ -127,6 +129,7 @@ def test_dat_string_lengths():
         for index, row in enumerate(ws.rows[1:]):
             if row[4].value:
                 assert onscreen_length(row[4].value) <= DAT_MAX_LENGTH, "In sheet %s, shorten string at row %s" % (sheet, index+2)
+
 
 def test_game_string_lengths():
     """
@@ -161,16 +164,37 @@ def test_map_locations():
     If not, the game will probably crash when trying to load it.
     """
     wb = load_workbook(POINTER_XLS)
-    ws = wb.sheets[0]
-    for row in ws.rows[1:]):
-        if row[3].value.endswith('.MAP'):
-            print row[3].value
-            # build a list of stuff that's maps
-            # pointer-peek int he pathced fiels to make sure they're still maps
+    ws = wb.get_sheet_by_name('Sheet1')
+    for row in ws.rows[1:]:
+        if row[3].value:
+            if row[3].value.endswith('.MAP'):
+                src_filename = row[0].value
+                pointer_location = row[2].value
+                expected_text = row[3].value
+
+                assert expected_text == text_with_pointer(src_filename, pointer_location), "pointer %s has the wrong value: %s" % (pointer_location, text_with_pointer(src_filename, pointer_location))
+
+def test_image_locations():
+    """
+    Pointers to .GDT files should return the same pointed text after reinsertion.
+    If not, the game will probably crash when trying to load it.
+    """
+    wb = load_workbook(POINTER_XLS)
+    ws = wb.get_sheet_by_name('Sheet1')
+    for row in ws.rows[1:]:
+        if row[3].value:
+            if row[3].value.endswith('.GDT'):
+                src_filename = row[0].value
+                pointer_location = row[2].value
+                expected_text = row[3].value
+
+                assert expected_text == text_with_pointer(src_filename, pointer_location), "pointer %s has the wrong value: %s" % (pointer_location, text_with_pointer(src_filename, pointer_location))
 
 
 if __name__ == '__main__':
     #test_increasing_offsets()
     #test_game_string_lengths()
     #test_substrings_of_earlier_strings()
-    test_duplicate_strings()
+    #est_duplicate_strings()
+    test_map_locations()
+    test_image_locations()

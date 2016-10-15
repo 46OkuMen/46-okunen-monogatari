@@ -4,7 +4,7 @@ Takes a file and an offset of a pointer and returns what that pointer points to,
 
 import sys
 import os
-from utils import DEST_PATH, unpack
+from utils import SRC_PATH, DEST_PATH, unpack
 from rominfo import POINTER_CONSTANT
 
 def word_at_offset(filename, offset):
@@ -32,6 +32,20 @@ def text_at_offset(filename, offset):
         data = f.read(1)
     f.close()
     return result
+
+def text_with_pointer(filename, pointer_offset):
+    pointer_offset = int(pointer_offset, 16)
+    constant = POINTER_CONSTANT[filename]
+    try: 
+        f = open(filename, 'rb')
+        f.close()
+    except IOError:
+        filename = os.path.join(DEST_PATH, filename)
+
+        destination = word_at_offset(filename, pointer_offset) + constant
+
+        return text_at_offset(filename, destination)
+
 
 if __name__ == '__main__':
     filename = sys.argv[1]
