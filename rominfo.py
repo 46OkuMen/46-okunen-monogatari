@@ -70,7 +70,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x1659c, 0x168a8), # error block
                            (0x1694e, 0x169ed)), # spare-r block
                'ST5.EXE': ((0xcc02, 0xcc63), # dialogue?
-                           (0xccf3, 0xcd34), # enviro
+                           (0xccf3, 0xcd34), # Gaia's Heart
                            (0xcd74, 0xcedc),
                            (0xcf16, 0xea57),
                            (0xea57, 0xeac4), # dialogue
@@ -82,7 +82,8 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x122a4, 0x12343)), # otherspare
                'ST5S1.EXE': ((0x24e8, 0x39bb),
                              (0x39cc, 0x3af2),),
-               'ST5S2.EXE': ((0x23f9, 0x3798),),
+               'ST5S2.EXE': ((0x23f9, 0x364d),
+                             (0x3672, 0x3798)),
                'ST5S3.EXE': ((0x3db9, 0x3dc6),
                              (0x3e30, 0x3f65),
                              (0x3f97, 0x4daa),

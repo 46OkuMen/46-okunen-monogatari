@@ -11,6 +11,9 @@
         * How about reinserting everything except the first string?
             * Nope.
         * It's not that I overwrote the memory error either.
+    * It was a block-splitting problem, since the file was all one block. Fixed.
+
+* Ch5 Gaia's Heart transaprency.
     
 * Losing the ability to navigate menus in Ch3 after a few battles...??
     * Also happened in Ch4 after a lot of battles...?
