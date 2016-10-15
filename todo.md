@@ -1,18 +1,6 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
-* Ch5 crash on entering Shambahla.
-    * So much progress lost...
-        * Not quite. You can reload the EXE file by ingame saving, loading an empty save and switching to Disk 2, then loading the original save again and switching disks. Great!
-    * Looks like a problem with the image, not the map. Should be the very first thing in ST5S2.
-    * That image pointer looks fine too, as does the text...
-    * Is it a problem with ST5S2 reinsertion?
-        * Yeah, somehow - it works fine when I delete all the ST5S2 text.
-        * How about reinserting everything except the first string?
-            * Nope.
-        * It's not that I overwrote the memory error either.
-    * It was a block-splitting problem, since the file was all one block. Fixed.
-
 * Ch5 Gaia's Heart transaprency.
     
 * Losing the ability to navigate menus in Ch3 after a few battles...??

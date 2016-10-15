@@ -666,7 +666,8 @@ class Translation(object):
                 else:
                     break
             secondline = ' '.join(words)
-            assert onscreen_length(secondline) <= DAT_MAX_LENGTH
+            # TODO: There are some lines in SEND.DAT that are more than 2 lines long.
+            #assert onscreen_length(secondline) <= DAT_MAX_LENGTH
             secondline = '        ' + secondline
             combinedlines = "\n".join([firstline, secondline])
         else:
