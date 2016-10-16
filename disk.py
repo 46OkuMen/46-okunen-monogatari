@@ -104,6 +104,7 @@ class Disk(object):
         print 'E.V.O.: The Theory of Evolution', str(percentage), "% complete",
         print "(%s / %s)\n" % (self.translated_strings, self.total_strings)
 
+
 class Gamefile(object):
     """
     Any file on the disk targeted for reinsertion.
@@ -654,8 +655,9 @@ class Translation(object):
         Only aware of the current translation; can't prepend excess to the next translation.
         """
         if isinstance(self.english, long):
-            return None
+            return self.english
         if onscreen_length(self.english) > DAT_MAX_LENGTH:
+            #lines = self.english.split('\n')
             words = self.english.split(' ')
             firstline = ''
             while onscreen_length(firstline) <= DAT_MAX_LENGTH:

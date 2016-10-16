@@ -1,16 +1,11 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
-* Ch5 Gaia's Heart transaprency.
+* Ch5 Gaia's Heart transaprency, but only in Shambahla.
     
 * Losing the ability to navigate menus in Ch3 after a few battles...??
     * Also happened in Ch4 after a lot of battles...?
     * Check if this still happens after fixing the overflow filename strings bug.
-
-* Crash on selecting "EVO Encyclopedia" in Ch6.
-
-* Crash on reading the encyclopedia entry for Dino Hominid/Dinosaur Man.
-    * I think that SINKA.DAT was impropertly reinserted - some older strings are showing up in the game that are definitely not in the real translation, but were probably in the placeholder one.
 
 * Ch2 crash right after "The gigantic rock lost its balance and fell into the river of magama below."
     * This is going to be quite annoying to fix - it's super late into the chapter...
@@ -20,11 +15,18 @@
     * Check if this still happens after fixing the overflow filename strings bug.
 
 ## Non-Crash Glitches
+* Strings with numbers which get displayed more than once have the numbers get corrupted into ASCII letters.
+    * "One pillar alone was over (10m) P0m, at the very least."
+    * "R.T (3.5) billion years"
+    * "STT (5) evolve"
+    * O, P, (Q), R, S, T
+    * 0, 1, (2), 3, 4, 5
+    * ASCII letters: 79, 80, 81, 82, 83, 84
+    * ASCII numbers: 48, 49, 50, 51, 52, 53
+
 * Random "u" being shown during the Ending.
 
-* There's an extra string at the end of the Ch3 "You found Gaia's Heart" msg.
-
-* One creature is "Goaton" in game but "Hitsujion" in the encyclopedia.
+* Turn off the automatic SJIS space reclaiming in .DAT files - it messes up the "10m long.         Omnivore." type lines.
 
 * Ch4 menu items are misaligned.
 
@@ -71,6 +73,7 @@
     * Text at 0xb531, pointer at 0x162a.
     * Text at 0xd252, pointer at 0x59ae.
     * Text at 0xdb25, pointer at 0x652e.
+* ST5S1.EXE, 'The frenzied Carnivorous Primate Boss attacks!'
 * ST5S3.EXE, 'Demon'
 * ST5S3.EXE, 'The enemy'
 * ST5S3.EXE, duplicate skill name strings
