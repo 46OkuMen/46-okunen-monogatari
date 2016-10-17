@@ -14,7 +14,7 @@
     * 0x64cc points to 0x10789, which is also nothing
     * Check if this still happens after fixing the overflow filename strings bug.
 
-## Non-Crash Glitches
+## Text Oddities
 * Strings with numbers which get displayed more than once have the numbers get corrupted into ASCII letters.
     * "One pillar alone was over (10m) P0m, at the very least."
     * "R.T (3.5) billion years"
@@ -36,6 +36,12 @@
 
 * "Wisdom" runs against the stat number, any way to realign it?
 
+## Freeing Space
+* What locations actually have the "Can't save EVO" restriction? That string and the "curse" string can be blanked in chapters without it.
+    * The Hemicyclapsis cave in Ch1.
+    * Nothing in Ch5.
+    * Nothing in Ch6.
+
 ## Tools
 
 ### disk.py
@@ -43,23 +49,17 @@
     * Currently a blank entry just means no translation is provided, so the text remains japanese.
     * I should implement a control code like <blank> for this.
 
-### length validation
-* What is the best way to do editing for line lengths and such?
-    * The simplest is that all strings definitely can't be over 76. (max for bottom narration)
-        * All strings in SINKA.DAT and SEND.DAT must be below 68. (bottom narration - indent)
-    * Strings in creature block <= 22.
-    * Strings in battle block <= 42.
-    * Strings in the menu block <= 42. (Since evolution messages, etc.)
-    * Strings in opening/ending <= 76. (It loops around at that point and looks ugly)
-    * Stamina/Strength/Attack are fine, but Intelligence needs to be 5-6 chars or less.
-
-* Looks like there are simply SJIS spaces after newlines, which means I can remove those if I want.
-    * That means the max length of a dialogue is 44, but 42 excluding that space.
-    * Do we want to keep that space?
-
+### Typesetting
 * Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
     * No more than 3 lines between <WAIT>s?
-        * I can insert new <LN>s in the middle of lines, but that means I should remove the later one.
+
+* Determine the widths of every string in the game.
+    * Chapter 1: done.
+    * Chapter 2: partially done, up until the giant boulder falling.
+    * Chapter 3: not started.
+    * Chapter 4: not started.
+    * Chapter 5: partially done, from the Carnivorous Primate Boss forward.
+    * Chapter 6: done.
 
 ### rerouting pointers for duplicate strings 
 * ST1.EXE, "Got %dp. EVO Genes."
@@ -83,10 +83,6 @@
     * When and why does the codec return "Sequence contains no elements"??
 
 ### other
-* Figure out which "You defeated the demon!" strings in Ch5 actually get used.
-    * Americas, Asia use ST5S3 battle mssages.
-    * Continue investigating from the save file alt+f6.
-* Will the game display the umlaut in "Dusseldorf" correctly?
 * What is the ST1S1.EXE, ST1S2.EXE, etc. that gets pointed to in ST1.EXE?
 
 * Looks like the .gitignore is on the fritz...
