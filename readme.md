@@ -7,7 +7,7 @@ Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory 
 | Segment      | %    | Strings      |
 | -------------|-----:|:------------:|
 | Opening      |100%  |  (45 / 45)   |
-| Chapter 1    |100%  | (501 / 501)  |
+| Chapter 1    |100%  | (500 / 500)  |
 | Chapter 2    | 99%  | (430 / 434)  |
 | Chapter 3    | 98%  | (334 / 338)  |
 | Chapter 4    | 92%  | (689 / 747)  |
@@ -17,8 +17,8 @@ Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory 
 | System       |100%  |   (5 / 5)    |
 | Images       | 89%  |   (8 / 9)    |
 | Encyclopedia |100%  | (935 / 935)  |
-| Game Overs   |100%  | (729 / 729)  |
-| Total        | 96%  |(5192 / 5373) |
+| Game Overs   | 99%  | (729 / 730)  |
+| Total        | 97%  |(5215 / 5374) |
 
 ## How do I use this?
 * There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. And I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!" The game will almost certainly crash at some point!!
