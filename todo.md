@@ -1,12 +1,6 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
-* Ch5 Gaia's Heart transaprency, but only in Shambahla.
-    
-* Losing the ability to navigate menus in Ch3 after a few battles...??
-    * Also happened in Ch4 after a lot of battles...?
-    * Check if this still happens after fixing the overflow filename strings bug.
-
 * Ch2 crash right after "The gigantic rock lost its balance and fell into the river of magama below."
     * This is going to be quite annoying to fix - it's super late into the chapter...
     * Pointer-peek 0x6457, 0x6468, 0x649a, 0x64cc, ...
@@ -25,6 +19,8 @@
     * ASCII numbers: 48, 49, 50, 51, 52, 53
     * Do you get the same effects if you just insert the fullwidth numbers in those places to begin with?
         * Looks like it crashes when it tries to render the fullwidth numbers in a string with ASCII stuff.
+
+* Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
 * Random "u" being shown during the Ending.
 
@@ -46,11 +42,6 @@
     * Nothing in Ch6.
 
 ## Tools
-
-### disk.py
-* Allow a "blank" translation entry rather than just doing the one-space thing I'm doing now.
-    * Currently a blank entry just means no translation is provided, so the text remains japanese.
-    * I should implement a control code like <blank> for this.
 
 ### Typesetting
 * Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.

@@ -381,7 +381,7 @@ class Block(object):
 
     def get_pointers(self):
         file_pointers = self.gamefile.pointers
-        block_pointers = [p for p in file_pointers if p >= self.start and p <= self.stop]
+        block_pointers = [p for p in file_pointers if self.start <= p <= self.stop] # p is text offset
         block_pointers.sort()
         return block_pointers
 
@@ -432,106 +432,103 @@ class Block(object):
                 
 
     def edit_text(self):
-        """Replace each japanese string in the block with the translated english string."""
+        """Replace strings, edit pointers, and perform typesetting."""
         pointer_diff = 0
         previous_text_offset = self.start
         is_overflowing = False
 
         overflow_location = self.overflow_location()
 
-        for trans in self.translations:
-            jp_bytestring, en_bytestring = trans.jp_bytestring, trans.en_bytestring
+        print "\n", self
 
-            # jp_bytestring might include ASCII; if it's not found, try the ascii preserving method.
-            try:
-                #print jp_bytestring
-                j = self.blockstring.index(jp_bytestring)
-            except ValueError: # substring not found
-                #print "using alt jp string"
-                jp_bytestring = trans.jp_bytestring_alt
+        for p in self.get_pointers():
+            print hex(p)
+            pointer = self.gamefile.pointers[p] 
+            for pointer_loc in pointer:
+                pointer_loc.edit(pointer_diff)
 
-            if (trans.location >= overflow_location) and overflow_location:
-                #print "%s >= %s" % (hex(trans.location), hex(overflow_location))
-                is_overflowing = True
+            print pointer[0].translations
 
-                recent_string = self.gamefile.most_recent_string(previous_text_offset, 
-                                                                 trans.location)
-                recent_pointer = overflow_location
+            for trans in pointer[0].translations:
+                if not self.start <= trans.location <= self.stop:
+                    print "translation", trans.english, "probably got translated somewhere else"
+                    continue
+                location_in_blockstring = (trans.location * 2) - self.start
+                jp_bytestring, en_bytestring = trans.jp_bytestring, trans.en_bytestring
 
-                start_in_block = (recent_pointer - self.start)*2
-                overflow_bytestring = self.original_blockstring[start_in_block:]
-                # Store the start and end of the overflow bytestring, 
-                # to make sure all pointers are adjusted in the range.
-                overflow_lo, overflow_hi = recent_pointer, self.stop
+                try:
+                    j = self.blockstring.index(jp_bytestring)
+                except ValueError:
+                    jp_bytestring = trans.jp_bytestring_alt
 
-                overflow_pointers = [p for p in self.get_pointers() if overflow_lo <= p <= overflow_hi]
-                if self.stop not in overflow_pointers:
-                    overflow_pointers.append(self.stop)
+                if trans.location >= overflow_location and overflow_location is not None:
+                    is_overflowing = True
 
-                for i, p in enumerate(overflow_pointers):
-                    if i == len(overflow_pointers)-1:
-                        break
-                    next_p = overflow_pointers[i+1]
-                    #print hex(p), hex(next_p)
-                    start_in_block = (p - self.start)*2
-                    stop_in_block = (next_p - self.start)*2
+                    recent_pointer = overflow_location
 
-                    this_bytestring = self.original_blockstring[start_in_block:stop_in_block]
-                    #print this_bytestring
-                    this_overflow = Overflow(self.gamefile, (p, next_p), this_bytestring)
-                    self.gamefile.overflows.append(this_overflow)
+                    start_in_block = (recent_pointer - self.start)*2
+                    overflow_bytestring = self.original_blockstring[start_in_block:]
+                    # Store the start and end of the overflow bytestring, 
+                    # to make sure all pointers are adjusted in the range.
+                    overflow_lo, overflow_hi = recent_pointer, self.stop
 
-                #this_overflow = Overflow(self.gamefile, (overflow_lo, overflow_hi), overflow_bytestring)
-               
-                #self.gamefile.overflows.append(this_overflow)
+                    overflow_pointers = [p for p in self.get_pointers() if overflow_lo <= p <= overflow_hi]
+                    if self.stop not in overflow_pointers:
+                        print "appended stop"
+                        overflow_pointers.append(self.stop)
 
-            self.gamefile.edit_pointers_in_range((previous_text_offset, trans.location), pointer_diff)
+                    for i, p in enumerate(overflow_pointers):
+                        if i == len(overflow_pointers)-1:
+                            break
+                        next_p = overflow_pointers[i+1]
+                        #print hex(p), hex(next_p)
+                        start_in_block = (p - self.start)*2
+                        stop_in_block = (next_p - self.start)*2
 
-            previous_text_offset = trans.location
+                        this_bytestring = self.original_blockstring[start_in_block:stop_in_block]
+                        #print this_bytestring
+                        this_overflow = Overflow(self.gamefile, (p, next_p), this_bytestring)
+                        self.gamefile.overflows.append(this_overflow)
 
-            # "eng" is an ugly way of doing this. But we want to be able to do the thing where, if
-            # it's overflowing, do a "translation" of the overflow bytestring into "".
-            # If we set trans.english to "", it wouldn't get translated later.
-            # So use a separate temporary "eng" variable which can be english or blank, but don't lose data.
-            eng = trans.english
-            if eng == "":
-                # No replacement necessary - pointers are edited, so we're done here.
-                continue
+                previous_text_offset = trans.location
 
-            if eng == '[BLANK]':
-                eng = ""
+                eng = trans.english
+                if eng == '':
+                    # No translation necessary. Pointers already edited, so continue.
+                    continue 
 
-            if is_overflowing:
-                # Then we want to blank the entire overflow bytestring.
-                # So use the rest of the function already there to do that.
-                eng = ""
-                jp_bytestring = overflow_bytestring
+                if eng == '[BLANK]':
+                    # Translate the Japanese string into a blank string.
+                    eng == ''
 
-            # Recalculate in case it got altered due to overflow.
-            en_bytestring = ascii_to_hex_string(eng)
-            this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
+                if is_overflowing:
+                    # 'Translate' the entire overflow bytestring into a blank string.
+                    # Delay translation until the overflow-handling functions.
+                    eng = ''
+                    jp_bytestring = overflow_bytestring
 
-            # Predict where the string should be, then start looking there.
-            # Not really sure why these estimations are wrong sometimes...
-            location_in_blockstring = ((pointer_diff + trans.location - self.start) * 2)
-            old_slice = self.blockstring[location_in_blockstring:]
+                en_bytestring = ascii_to_hex_string(eng)
+                this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
 
-            try:
-                i = old_slice.index(jp_bytestring)//2
-            except ValueError:
-                old_slice = self.blockstring
-                i = old_slice.index(jp_bytestring)//2
+                location_in_blockstring = ((pointer_diff + trans.location - self.start) * 2)
+                old_slice = self.blockstring[location_in_blockstring:]
+                try:
+                    i = old_slice.index(jp_bytestring)//2
+                except ValueError:
+                    old_slice = self.blockstring
+                    i = old_slice.index(jp_bytestring)//2
 
-            new_slice = old_slice.replace(jp_bytestring, en_bytestring, 1)
+                new_slice = old_slice.replace(jp_bytestring, en_bytestring, 1)
 
-            self.blockstring = self.blockstring.replace(old_slice, new_slice, 1)
+                self.blockstring = self.blockstring.replace(old_slice, new_slice, 1)
 
-            pointer_diff += this_string_diff
+                pointer_diff += this_string_diff
 
-            if is_overflowing:
-                break
+                if is_overflowing:
+                    break
 
         self.identify_spares()
+
 
     def incorporate(self):
         """Write the new block to the source gamefile."""
@@ -876,8 +873,6 @@ class PointerExcel(object):
             text_offset = int(row[1].value, 16)
             pointer_offset = int(row[2].value, 16)
             ptr = Pointer(gamefile, pointer_offset, text_offset)
-            # TODO: Any better way of querying? Seems redundant to store offset 
-            # in ptrs and the Pointer() itself.
 
             if text_offset in ptrs:
                 ptrs[text_offset].append(ptr)
@@ -946,8 +941,6 @@ class Overflow(object):
 
                         if en_bytestring == '':
                             en_bytestring = jp_bytestring
-
-                        #print "looking for", trans.english
 
                         this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
 
