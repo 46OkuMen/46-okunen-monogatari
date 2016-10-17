@@ -625,7 +625,8 @@ class Translation(object):
         self.jp_bytestring_alt = sjis_to_hex_string(japanese, preserve_spaces=True)
 
         self.spaces = 0
-        self.integrate_spaces()
+        if isinstance(block.gamefile, EXEFile):
+            self.integrate_spaces()
 
     def integrate_spaces(self):
         """

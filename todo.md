@@ -23,10 +23,13 @@
     * 0, 1, (2), 3, 4, 5
     * ASCII letters: 79, 80, 81, 82, 83, 84
     * ASCII numbers: 48, 49, 50, 51, 52, 53
+    * Do you get the same effects if you just insert the fullwidth numbers in those places to begin with?
+        * Looks like it crashes when it tries to render the fullwidth numbers in a string with ASCII stuff.
 
 * Random "u" being shown during the Ending.
 
-* Turn off the automatic SJIS space reclaiming in .DAT files - it messes up the "10m long.         Omnivore." type lines.
+* "Swift AttackLeap"
+    * "Swift AttacGo Around" in Ch1, above in Ch3
 
 * Ch4 menu items are misaligned.
 
@@ -56,7 +59,7 @@
 * Determine the widths of every string in the game.
     * Chapter 1: done.
     * Chapter 2: partially done, up until the giant boulder falling.
-    * Chapter 3: not started.
+    * Chapter 3: done.
     * Chapter 4: not started.
     * Chapter 5: partially done, from the Carnivorous Primate Boss forward.
     * Chapter 6: done.
@@ -88,6 +91,8 @@
 * Looks like the .gitignore is on the fritz...
 
 * ST5S2 has like 100 pointers to 0x2360 (Turbo-C compiler message), all 4 apart (like in a table). Is this normal?
+
+* Flashing lights warning?
 
 ### common problems and their solutions
 * If a "&" appears before a string when it gets replaced:

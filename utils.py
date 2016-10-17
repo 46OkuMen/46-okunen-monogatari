@@ -108,7 +108,11 @@ def ascii_to_hex_string(eng):
     if not eng:
         return ""
     else:
-        eng = str(eng)
+        try:
+            eng = str(eng)
+        except UnicodeEncodeError:
+            # Using fullwidth numbers.
+            pass
         for char in eng:
             eng_bytestring += "%02x" % ord(char)
         return eng_bytestring
