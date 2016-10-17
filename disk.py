@@ -467,7 +467,6 @@ class Block(object):
                 overflow_pointers = [p for p in self.get_pointers() if overflow_lo <= p <= overflow_hi]
                 if self.stop not in overflow_pointers:
                     overflow_pointers.append(self.stop)
-                #print [hex(x) for x in overflow_pointers]
 
                 for i, p in enumerate(overflow_pointers):
                     if i == len(overflow_pointers)-1:
@@ -498,6 +497,9 @@ class Block(object):
             if eng == "":
                 # No replacement necessary - pointers are edited, so we're done here.
                 continue
+
+            if eng == '[BLANK]':
+                eng = ""
 
             if is_overflowing:
                 # Then we want to blank the entire overflow bytestring.

@@ -97,8 +97,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xb489, 0xb8d3), # dialogue
                            (0xb8ea, 0xccb1), # dialogue 
                            (0xcd14, 0xce25), # creature block
-                           (0xcedf, 0xcf6f), # y/n/c, "evolved too far"
-                           (0xcfab, 0xd0bc), # enviro, battle text
+                           (0xcedf, 0xd0bc),  # just the demon text
                            (0xd44a, 0xd756), # error block
                            (0xd7fc, 0xd89b)), # otherspare
                'ENDING.EXE': ((0x3c4e, 0x4b20),),
