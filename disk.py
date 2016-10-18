@@ -12,7 +12,7 @@ from utils import sjis_to_hex_string, ascii_to_hex_string, get_current_block
 from utils import onscreen_length
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
 from rominfo import SPARE_BLOCK, OTHER_SPARE_BLOCK, CREATURE_BLOCK
-from rominfo import DAT_MAX_LENGTH
+from rominfo import DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH, DIALOGUE_MAX_LENGTH
 
 from pointer_peek import text_at_offset, word_at_offset
 
@@ -75,6 +75,7 @@ class Disk(object):
             else:
                 for block in gamefile.blocks:
                     block.edit_text()
+                    block.typeset()
                 try:
                     gamefile.creature_block.edit_text()
                 except AttributeError:
@@ -481,10 +482,6 @@ class Block(object):
                     this_overflow = Overflow(self.gamefile, (p, next_p), this_bytestring)
                     self.gamefile.overflows.append(this_overflow)
 
-                #this_overflow = Overflow(self.gamefile, (overflow_lo, overflow_hi), overflow_bytestring)
-               
-                #self.gamefile.overflows.append(this_overflow)
-
             self.gamefile.edit_pointers_in_range((previous_text_offset, trans.location), pointer_diff)
 
             previous_text_offset = trans.location
@@ -565,6 +562,12 @@ class Block(object):
 
         assert len(self.original_blockstring) == len(self.blockstring)
 
+    def typeset(self):
+        """Typeset the block's text by pointer."""
+        for p in self.get_pointers():
+            for loc in self.gamefile.pointers[p]:
+                loc.typeset()
+
     def __repr__(self):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))
 
@@ -612,12 +615,13 @@ class CreatureBlock(Block):
 
 class Translation(object):
     """Has an offset, a SJIS japanese string, and an ASCII english string."""
-    def __init__(self, block, location, japanese, english):
+    def __init__(self, block, location, japanese, english, is_wide):
         self.location = location
         self.block = block
         self.japanese = japanese
         self.english = english
         self.block = block
+        self.is_wide = is_wide
 
         self.location_in_blockstring = (location - block.start) * 2
 
@@ -702,6 +706,14 @@ class Pointer(object):
 
         self.translations = self.get_translations()
 
+        if self.translations:
+            if self.translations[0].is_wide:
+                self.max_width = FULLSCREEN_MAX_LENGTH
+            else:
+                self.max_width = DIALOGUE_MAX_LENGTH
+        else:
+            self.max_width = 1000
+
     def get_translations(self):
         result = []
         for b in self.gamefile.blocks:
@@ -780,36 +792,41 @@ class Pointer(object):
         Get the text, and print a representation of how it looks in a dialogue window.
         """
         lines = self.text().splitlines()
-        print "-"*44
+
+        print "-"*self.max_width
         for l in lines:
-            print "|" + l.ljust(43, " ") + "|"
-        print "-"*44
+            print "|" + l.ljust(self.max_width-1, " ") + "|"
+        print "-"*self.max_width
 
     def typeset(self):
         """
         Find all the newlines in the pointer, then move them around.
         """
-        # skip error messages
-        if spare_start < self.pointed_location < spare_stop:
-            return None
-        original_text = p.text()
+        if self.translations:
+            if not self.translations[0].english:
+                return None
+
+        original_text = self.text()
+        try:
+            final_newline = original_text[-1] == '\n'
+        except IndexError:
+            final_newline = False
         textlines = original_text.splitlines()
         print original_text
         for i, line in enumerate(textlines):
-            if onscreen_length(line) > 44:
+            if onscreen_length(line) > self.max_width:
                 if i == len(textlines) - 1:
                     joinedlines = line
                 else:
                     joinedlines = line + "\n" + textlines[i+1]
                 words = joinedlines.split(' ')
                 firstline = ''
-                while onscreen_length(firstline + " ") <= 44:
-                    if onscreen_length(firstline) + onscreen_length(words[0]) <= 44:
+                while onscreen_length(firstline + " ") <= self.max_width:
+                    if onscreen_length(firstline) + onscreen_length(words[0]) <= self.max_width:
                         # Only add a space if it's not empty to begin with.
                         if len(firstline) > 0:
                             firstline += " "
                         firstline += words.pop(0)
-                        print firstline
                     else:
                         break
                 secondline = ' '.join(words)
@@ -818,7 +835,19 @@ class Pointer(object):
                 
                 textlines[i], textlines[i+1] = firstline, secondline
         new_text = '\n'.join(textlines)
+        if final_newline:
+            new_text += "\n"
+        # So even adding one newline changes the length of the total text, of course.
+        # So pointers still need to be adjusted.
         print new_text
+
+        old_bytestring = ascii_to_hex_string(original_text)
+        print old_bytestring
+        new_bytestring = ascii_to_hex_string(new_text)
+        print new_bytestring
+
+        if len(original_text) != len(new_text):
+            assert len(old_bytestring) != len(new_bytestring)
 
     def __repr__(self):
         return "%s pointing to %s" % (hex(self.location), hex(self.text_location))
@@ -847,6 +876,10 @@ class DumpExcel(object):
             if block.start <= offset < block.stop:
                 japanese = row[2].value
                 english = row[4].value
+                if row[6].value:
+                    is_wide = True
+                else:
+                    is_wide = False
 
                 if isinstance(japanese, float):
                     # Causes some encoding problems? Trying to skip them for now
@@ -856,7 +889,7 @@ class DumpExcel(object):
                 if not english:
                     english = ""
 
-                trans.append(Translation(block, offset, japanese, english))
+                trans.append(Translation(block, offset, japanese, english, is_wide))
         return trans
 
 class PointerExcel(object):
