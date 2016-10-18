@@ -75,13 +75,15 @@ class Disk(object):
             else:
                 for block in gamefile.blocks:
                     block.edit_text()
-                    block.typeset()
                 try:
                     gamefile.creature_block.edit_text()
                 except AttributeError:
                     # Doesn't have a creature block. Don't worry about it.
                     pass
                 gamefile.move_overflow()
+                gamefile.incorporate()
+                for block in gamefile.blocks:
+                    block.typeset()
                 gamefile.incorporate()
                 gamefile.write()
                 gamefile.report_progress()
@@ -157,7 +159,11 @@ class Gamefile(object):
         for b in self.blocks:
             b.incorporate()
 
+        i = self.disk.romstring.index(self.original_filestring)
         self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring)
+
+        # Set the "original filestring" to the current one to incorporate again after typesetting.
+        self.original_filestring = self.filestring
 
     def write(self):
         """Write the new data to an independent file for later inspection."""
@@ -533,8 +539,10 @@ class Block(object):
     def incorporate(self):
         """Write the new block to the source gamefile."""
         self.pad()
+        i = self.gamefile.filestring.index(self.original_blockstring)
         self.gamefile.filestring = self.gamefile.filestring.replace(self.original_blockstring, 
                                                                     self.blockstring)
+        self.original_blockstring = self.blockstring
 
     def identify_spares(self):
         """
@@ -812,13 +820,15 @@ class Pointer(object):
         except IndexError:
             final_newline = False
         textlines = original_text.splitlines()
-        print original_text
+        if len(textlines) > 5:
+            # Probably a pointer table
+            return None
         for i, line in enumerate(textlines):
             if onscreen_length(line) > self.max_width:
                 if i == len(textlines) - 1:
                     joinedlines = line
                 else:
-                    joinedlines = line + "\n" + textlines[i+1]
+                    joinedlines = line + " " + textlines[i+1]
                 words = joinedlines.split(' ')
                 firstline = ''
                 while onscreen_length(firstline + " ") <= self.max_width:
@@ -839,15 +849,21 @@ class Pointer(object):
             new_text += "\n"
         # So even adding one newline changes the length of the total text, of course.
         # So pointers still need to be adjusted.
-        print new_text
 
         old_bytestring = ascii_to_hex_string(original_text)
-        print old_bytestring
         new_bytestring = ascii_to_hex_string(new_text)
-        print new_bytestring
 
-        if len(original_text) != len(new_text):
-            assert len(old_bytestring) != len(new_bytestring)
+        if len(old_bytestring) != len(new_bytestring):
+            print "probably don't replace that one, needs a pointer change"
+        else:
+            if old_bytestring != new_bytestring:
+                print original_text
+                print new_text
+
+                i = self.gamefile.filestring.index(old_bytestring)
+                b = self.gamefile.blocks[get_current_block(i//2, self.gamefile)]
+                bi = b.blockstring.index(old_bytestring)
+                b.blockstring = b.blockstring.replace(old_bytestring, new_bytestring)
 
     def __repr__(self):
         return "%s pointing to %s" % (hex(self.location), hex(self.text_location))
@@ -965,11 +981,6 @@ class Overflow(object):
             for i, p in enumerate(self.gamefile.pointers[pointer]):
                 # Don't double-edit the text in pointers
                 if i < 1:
-                    #print p
-                    #print p.text()
-                    #print "got translations between", hex(p.text_location), hex(p.text_location_stop)
-                    #print "calculated the last number with", hex(p._true_location()), len(p.jp_text())
-                    #print p.translations
                     for trans in p.translations:
                         # need to move pointers even when the text remains the same!!
                         # do a loop over pointers instead of translations
@@ -979,8 +990,6 @@ class Overflow(object):
 
                         if en_bytestring == '':
                             en_bytestring = jp_bytestring
-
-                        #print "looking for", trans.english
 
                         this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
 

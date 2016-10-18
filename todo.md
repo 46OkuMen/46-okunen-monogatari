@@ -44,6 +44,8 @@
 ## Tools
 
 ### Typesetting
+* Why does it alternate between typesetting everything and typesetting nothing?
+
 * Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
     * No more than 3 lines between <WAIT>s?
 
