@@ -82,8 +82,10 @@ class Disk(object):
                     pass
                 gamefile.move_overflow()
                 gamefile.incorporate()
-                for block in gamefile.blocks:
-                    block.typeset()
+
+                if gamefile.filename != 'OPENING.EXE' and gamefile.filename != 'ENDING.EXE':
+                    for block in gamefile.blocks:
+                        block.typeset()
                 gamefile.incorporate()
                 gamefile.write()
                 gamefile.report_progress()
@@ -501,8 +503,10 @@ class Block(object):
                 # No replacement necessary - pointers are edited, so we're done here.
                 continue
 
-            if eng == '[BLANK]':
-                eng = ""
+            #if eng == '[BLANK]':
+            #    print "[BLANK] found in eng at %s" % hex(trans.location)
+            #    print en_bytestring
+            #    eng = ""  # Is this necessary? The real work needs to be done in en_bytestring.
 
             if is_overflowing:
                 # Then we want to blank the entire overflow bytestring.

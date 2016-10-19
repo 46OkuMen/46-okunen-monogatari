@@ -115,6 +115,20 @@ def ascii_to_hex_string(eng):
             pass
         for char in eng:
             eng_bytestring += "%02x" % ord(char)
+
+        # handle [BLANK] control code
+        if '5b424c414e4b5d' == eng_bytestring:
+            print "blank found"
+            eng_bytestring = ''
+
+        # handle [DEGC] control code
+        if '5b444547435d' in eng_bytestring:
+            eng_bytestring = eng_bytestring.replace('5b444547435d', '818e')
+
+        ## handle [UUML] control code
+        #if '5b55554d4c5d' in eng_bytestring:
+        #    eng_bytestring = eng_bytestring.replace('5b55554d4c5d', '814e8290')
+
         return eng_bytestring
 
 def sjis_to_hex_string(jp, preserve_spaces=False):

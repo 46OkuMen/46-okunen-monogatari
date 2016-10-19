@@ -9,13 +9,15 @@ CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 CREATURE_MAX_LENGTH = 21
 DIALOGUE_MAX_LENGTH = 43
 FULLSCREEN_MAX_LENGTH = 76
+CINEMATIC_MAX_LENGTH = 76
 DAT_MAX_LENGTH = 71   # TODO: Check on SEND.DAT, see if they're indented.
 
 # TODO: Why did I use tuples of tuples? Why not a list of tuples? Less confusing that way.
 # How the files themselves get broken up for reinsertion.
 file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                                (0x55e9, 0x5639), # spare block
-                               (0x5657, 0x586a)), # cut scenes
+                               (0x5657, 0x586a), # cut scenes
+                               (0x590e, 0x59ad)), # other spare
                #'46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
                'ST1.EXE': ((0xd873, 0xd8b3),  # fresh water messages
                            (0xd8f3, 0xd934),  # Gaia's Heart
@@ -122,8 +124,8 @@ SPARE_BLOCK = {'OPENING.EXE': (0x55e9, 0x5639),
                'ST6.EXE': (0xd44a, 0xd756),}
  # Usually the last block. (But not in OPENNING.EXE).
 
-#OTHER_SPARE_BLOCK = {}
-OTHER_SPARE_BLOCK = {'ST2.EXE': (0x10922, 0x109c1),
+OTHER_SPARE_BLOCK = {'OPENING.EXE': (0x590e, 0x59ad),
+                     'ST2.EXE': (0x10922, 0x109c1),
                      'ST3.EXE': (0xef34, 0xefd3),
                      'ST4.EXE': (0x1694e, 0x169ed),
                      'ST5.EXE': (0x122a4, 0x12343),

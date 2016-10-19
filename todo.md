@@ -9,6 +9,18 @@
     * Check if this still happens after fixing the overflow filename strings bug.
 
 ## Text Oddities
+* The pointers for OPENING.EXE seem fine, but lots of stuff is going wrong.
+    * A few missing entries in the credits - Creator, Character Digitizing. ( Creators howed up fine)
+        * Oh actually this is fine now.
+    * Two missing strings right after the credits - "With a crust forged", "oceans, and air over".
+        * These need prepended spaces in order to work.
+    * I think the text alignment is forced to be a little smaller in the cellular evolution section.
+        * "self-replic"
+        * "to a mul"
+        * .
+        * "formed it"
+        * in the"
+
 * Strings with numbers which get displayed more than once have the numbers get corrupted into ASCII letters.
     * "One pillar alone was over (10m) P0m, at the very least."
     * "R.T (3.5) billion years"
@@ -31,7 +43,8 @@
 
 * Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
 
-* One entry in the credits (character digitizing) is being skipped.
+* Lots of entries in the credits being skipped.
+    * Creator, Character Digitizing, "With a crust forged", "oceans, and air over"
 
 * "Wisdom" runs against the stat number, any way to realign it?
 
