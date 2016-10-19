@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS, SRC_PATH, DEST_PATH
 from utils import sjis_to_hex_string, ascii_to_hex_string, get_current_block
 from utils import onscreen_length
-from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT
+from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, POINTER_ABSORB
 from rominfo import SPARE_BLOCK, OTHER_SPARE_BLOCK, CREATURE_BLOCK
 from rominfo import DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH, DIALOGUE_MAX_LENGTH
 
@@ -83,7 +83,7 @@ class Disk(object):
                 gamefile.move_overflow()
                 gamefile.incorporate()
 
-                if gamefile.filename != 'OPENING.EXE' and gamefile.filename != 'ENDING.EXE':
+                if gamefile.filename != 'OPENING.EXE' and gamefile.filename != 'ENDING.EXE' and gamefile.filename != 'ST5S3.EXE':
                     for block in gamefile.blocks:
                         block.typeset()
                 gamefile.incorporate()
@@ -215,6 +215,8 @@ class EXEFile(Gamefile):
         self.disk = disk
         self.pointer_constant = POINTER_CONSTANT[filename]
         self.pointers = self.get_pointers()
+        for p in sorted(self.pointers.itervalues()):
+            print p
 
         # Look for a spare block and designate it as such.
         self.spares = []
@@ -740,19 +742,13 @@ class Pointer(object):
             new_value = self.old_value + diff
             new_bytes = pack(new_value)
             new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
+            #print self.old_bytestring
+            #print new_bytestring
 
             string_before = self.gamefile.filestring[0:location_in_string]
             string_after = self.gamefile.filestring[location_in_string+4:]
                 
             self.gamefile.filestring = string_before + new_bytestring + string_after
-
-    def absorb(self, other):
-        """
-        Set the other pointer's value equal to this one.
-        Useful for saving space when dealing with duplicates/similar bits of text.
-        """
-        # 
-        pass
 
     def _true_location(self):
         """
@@ -772,6 +768,7 @@ class Pointer(object):
         pointer_value = word_at_offset(gamefile_path, self.location)
         pointer_location = pointer_value + POINTER_CONSTANT[self.gamefile.filename]
 
+        #print gamefile_path, hex(pointer_location)
         result = text_at_offset(gamefile_path, pointer_location)
 
         # Sometimes there are pointers to control code right before an END.
@@ -790,6 +787,7 @@ class Pointer(object):
         pointer_value = word_at_offset(gamefile_path, self.location)
         pointer_location = pointer_value + POINTER_CONSTANT[self.gamefile.filename]
 
+        print gamefile_path, hex(pointer_location)
         result = text_at_offset(self.gamefile, pointer_location)
 
         # Sometimes there are pointers to control code right before an END.
@@ -928,9 +926,24 @@ class PointerExcel(object):
         for row in [r for r in self.pointer_sheet.rows if r[0].value == gamefile.filename]:
             text_offset = int(row[1].value, 16)
             pointer_offset = int(row[2].value, 16)
+
             ptr = Pointer(gamefile, pointer_offset, text_offset)
-            # TODO: Any better way of querying? Seems redundant to store offset 
-            # in ptrs and the Pointer() itself.
+
+            try:
+                # Look for this pointer in the list of pointers to be absorbed.
+                receiver_offset = POINTER_ABSORB[(gamefile.filename, pointer_offset)]
+                receiver = ptrs[receiver_offset][0]
+
+                # Edit this pointer to point to the same location as the receiver.
+                diff = receiver.text_location - text_offset
+                ptr.edit(diff)
+
+                # Now discard the old pointer and create a new one with the updated location.
+                ptr = Pointer(gamefile, pointer_offset, receiver.text_location)
+                text_offset = receiver.text_location
+
+            except KeyError:
+                pass
 
             if text_offset in ptrs:
                 ptrs[text_offset].append(ptr)

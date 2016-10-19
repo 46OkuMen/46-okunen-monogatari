@@ -38,6 +38,7 @@
 
 * "Swift AttackLeap"
     * "Swift AttacGo Around" in Ch1, above in Ch3
+    * I think there's an 11-char limit for skill names. There are 11 ASCII spaces between those numbers 0-8 near "Cancel" and skill names in some files, so I think that's a memory block for the skills a creature has...
 
 * Ch4 menu items are misaligned.
 
@@ -95,8 +96,6 @@
 * What is the ST1S1.EXE, ST1S2.EXE, etc. that gets pointed to in ST1.EXE?
 
 * Looks like the .gitignore is on the fritz...
-
-* ST5S2 has like 100 pointers to 0x2360 (Turbo-C compiler message), all 4 apart (like in a table). Is this normal?
 
 * Flashing lights warning?
 

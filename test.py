@@ -5,9 +5,10 @@
 # For this case, unit tests are not useful - I need to check things about the data itself.
 # Unit tests stop after one thing is wrong; I need a list of all things that are wrong.
 
-from utils import DUMP_XLS, POINTER_XLS, onscreen_length
+import os
+from utils import DUMP_XLS, POINTER_XLS, onscreen_length, DEST_PATH
 from openpyxl import load_workbook
-from rominfo import file_blocks, CREATURE_BLOCK, CREATURE_MAX_LENGTH, DIALOGUE_MAX_LENGTH, DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH
+from rominfo import file_blocks, POINTER_CONSTANT, CREATURE_BLOCK, CREATURE_MAX_LENGTH, DIALOGUE_MAX_LENGTH, DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH
 from pointer_peek import word_at_offset, text_at_offset, text_with_pointer
 
 def test_increasing_offsets():
@@ -68,7 +69,7 @@ def test_duplicate_strings():
     If multiple English strings are duplicates, we can reroute the pointers to just one and gain space.
     """
 
-    # TODO: It's just picking up all of the nametags right now, which isn't helpful...
+    # TODO: Remove nametags from consideration.
     wb = load_workbook(DUMP_XLS)
     sheets = wb.get_sheet_names()
     sheets.remove('ORIGINAL')
@@ -190,6 +191,19 @@ def test_image_locations():
 
                 assert expected_text == text_with_pointer(src_filename, pointer_location), "pointer %s has the wrong value: %s" % (pointer_location, text_with_pointer(src_filename, pointer_location))
 
+def test_merged_pointers():
+    """Assert that two originally seperate pointers now point to the same text location.
+    """
+    from rominfo import POINTER_ABSORB
+    # So, one issue is that the "Cancel" strings are the first one in their block, which means
+    # no diff is ever calculated for them.
+
+    # I need to do this as a part of the reinserter, not just the pointer sheet.
+    # When absorbing a pointer, set its value equal before adjusting both.
+    for (filename, a), b_text_offset in POINTER_ABSORB.iteritems():
+        gamefile_path = os.path.join(DEST_PATH, filename)
+        first = word_at_offset(gamefile_path, a) + POINTER_CONSTANT[filename]
+        assert first == b_text_offset, '%s: %s, %s' % (hex(a), hex(first + POINTER_CONSTANT[filename]), hex(b_text_offset))
 
 if __name__ == '__main__':
     #test_increasing_offsets()
@@ -198,3 +212,4 @@ if __name__ == '__main__':
     #est_duplicate_strings()
     test_map_locations()
     test_image_locations()
+    test_merged_pointers()

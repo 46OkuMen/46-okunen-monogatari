@@ -7,7 +7,28 @@ import os
 from utils import SRC_PATH, DEST_PATH, unpack
 from rominfo import POINTER_CONSTANT
 
+def ensure_src_file_path(str):
+    try:
+        f = open(str, 'r')
+        f.close()
+    except IOError:
+        str = os.path.join(SRC_PATH, str)
+        f = open(str, 'r')
+        f.close()
+    return str
+
+def ensure_dest_file_path(str):
+    try:
+        f = open(str, 'r')
+        f.close()
+    except IOError:
+        str = os.path.join(DEST_PATH, str)
+        f = open(str, 'r')
+        f.close()
+    return str
+
 def word_at_offset(filename, offset):
+    #filename = ensure_src_file_path(filename)
     with open(filename, 'rb') as f:
         result = ""
         f.seek(offset)
@@ -23,7 +44,6 @@ def text_at_offset(filename, offset):
         filename = os.path.join(DEST_PATH, filename.filename)
         f = open(filename, 'rb')
 
-    
     f.seek(offset)
     result = ""
     data = f.read(1)

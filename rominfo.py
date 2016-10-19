@@ -208,3 +208,11 @@ STARTING_MAP_NUMBER_LOCATION = {
     'ST5.EXE': 0xcf04,
 }
 
+# Which pointers should absorb others.
+POINTER_ABSORB = {
+#  filename   | ptrloc | text location of the pointer it gets absorbed into
+  ('ST5S3.EXE', 0x3f3): 0x3e40,  # Item
+  ('ST5S3.EXE', 0x4c3): 0x3e4a,  # Escape
+  ('ST5S3.EXE', 0x3f66): 0x3db9, # Cancel (Tablet)
+  ('ST5S3.EXE', 0x3f7e): 0x3db9, # Cancel (Items)
+}
