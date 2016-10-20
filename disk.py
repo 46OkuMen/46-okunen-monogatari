@@ -166,7 +166,7 @@ class Gamefile(object):
         for b in self.blocks:
             b.incorporate()
 
-        i = self.disk.romstring.index(self.original_filestring)
+        #i = self.disk.romstring.index(self.original_filestring)
         self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring, 1)
 
         # Set the "original filestring" to the current one to incorporate again after typesetting.
@@ -465,6 +465,7 @@ class Block(object):
                 jp_bytestring = trans.jp_bytestring_alt
 
             if (trans.location >= overflow_location) and overflow_location:
+                #print "overflow starting with", trans
                 is_overflowing = True
 
                 recent_string = self.gamefile.most_recent_string(previous_text_offset, 
@@ -481,6 +482,8 @@ class Block(object):
                 if self.stop not in overflow_pointers:
                     overflow_pointers.append(self.stop)
 
+                #print [self.game for p in overflow_pointers]
+
                 for i, p in enumerate(overflow_pointers):
                     if i == len(overflow_pointers)-1:
                         break
@@ -489,7 +492,11 @@ class Block(object):
                     stop_in_block = (next_p - self.start)*2
 
                     this_bytestring = self.original_blockstring[start_in_block:stop_in_block]
+                    #print this_bytestring
+                    #print "all pointers in overflow:", [hex(p) for p in overflow_pointers]
+                    #print hex(p), hex(next_p)
                     this_overflow = Overflow(self.gamefile, (p, next_p), this_bytestring)
+                    #print this_overflow 
                     self.gamefile.overflows.append(this_overflow)
 
             self.gamefile.edit_pointers_in_range((previous_text_offset, trans.location), pointer_diff)
@@ -524,10 +531,10 @@ class Block(object):
             try:
                 i = old_slice.index(jp_bytestring)//2
             except ValueError:
-                print hex(trans.location), trans.english
-                print "overflowing?", is_overflowing
-                print "looking for", jp_bytestring
-                print "in the string:", old_slice
+                #print hex(trans.location), trans.english
+                #print "overflowing?", is_overflowing
+                #print "looking for", jp_bytestring
+                #print "in the string:", old_slice
                 old_slice = self.blockstring
                 i = old_slice.index(jp_bytestring)//2
 
@@ -1008,6 +1015,7 @@ class Overflow(object):
                     try:
                         j = self.bytestring.index(jp_bytestring)
                     except ValueError:
+                        #print "having problems in the overflow get_length search now"
                         #print hex(self.start), hex(self.stop), trans.english
                         #print jp_bytestring
                         jp_bytestring = trans.jp_bytestring_alt

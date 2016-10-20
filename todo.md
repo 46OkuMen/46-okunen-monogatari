@@ -8,18 +8,7 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
-* Ch2 crash right after "The gigantic rock lost its balance and fell into the river of magama below."
-    * This is going to be quite annoying to fix - it's super late into the chapter...
-    * Pointer-peek 0x6457, 0x6468, 0x649a, 0x64cc, ...
-    * 0x6468 points to 0x1078d, which is nothing
-    * 0x64cc points to 0x10789, which is also nothing
-    * Check if this still happens after fixing the overflow filename strings bug.
-
 ## Text Oddities
-* Why is "You headed toward the valley connected to the marshland" and friends getting moved twice??
-     * It's the overflow 0xf8f5 0xf948. It's the 139-length one, the longest in the file. APparently it goes in the spare 0x10922 0x109c1. (which is the otherspare)
-     * ALWAYS USE REPLACE(x, y, 1)!!! Gotta make sure not to replace stuff more than once. It's really hard to debug that.
-
 * Strings with numbers which get displayed more than once have the numbers get corrupted into ASCII letters.
     * "One pillar alone was over (10m) P0m, at the very least."
     * "R.T (3.5) billion years"
@@ -54,7 +43,10 @@
 ## Tools
 
 ### Typesetting
-* Why does it alternate between typesetting everything and typesetting nothing?
+* Be able to adjust pointers, and add more <LN> and <WAIT> control codes.
+    * Adding another <LN> at the end seems necessary...
+
+* See what's going wrong in the weird replacement scenarios.
 
 * Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
     * No more than 3 lines between <WAIT>s?
@@ -115,3 +107,6 @@
 * If a block is "too long" despite all the countermeasures:
     * It's probably ending at the wrong place, go fix that.
     * Or there are a bunch of untranslated strings right at the end of the block, so it can't tell that it overflows.
+
+* If it can't find the string when it's creating overflows/checking their new length:
+    * Check the overflow pointers and see if some random pointer is breaking up the text before the next text pointer. Absorb that pointer into the one at the beginning of the text.

@@ -218,4 +218,8 @@ POINTER_ABSORB = {
   ('ST5S3.EXE', 0x1d7d): 0x4774, # Live COals
   ('ST5S3.EXE', 0x1d96): 0x477b, # Fur
   ('ST5S3.EXE', 0x1daf): 0x4782, # Tablet
+  ('ST3.EXE', 0x0365): 0xd8b8,   # randomly in middle of Lucier's speech 1
+  ('ST3.EXE', 0x0370): 0xd8b8,   # 2
+  ('ST3.EXE', 0x037b): 0xd8b8,   # 3
+  ('ST3.EXE', 0x0386): 0xd8b8,   # 4
 }
