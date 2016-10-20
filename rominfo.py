@@ -44,8 +44,7 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0x10922, 0x109c1),), # black spare-ish block
                'ST3.EXE': ((0xb49d, 0xb4c6),
                            (0xb4c6, 0xb54a),   # Gaia's Heart
-                           (0xb58a, 0xbccb),    # evo files, dialogue
-                           (0xbccb, 0xc01d),
+                           (0xb58a, 0xc01d),
                            (0xc046, 0xc5d3),
                            (0xc607, 0xcfe6),
                            (0xcfff, 0xda0d),

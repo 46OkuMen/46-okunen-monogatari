@@ -124,10 +124,6 @@ def ascii_to_hex_string(eng):
         if '5b444547435d' in eng_bytestring:
             eng_bytestring = eng_bytestring.replace('5b444547435d', '818e')
 
-        ## handle [UUML] control code
-        #if '5b55554d4c5d' in eng_bytestring:
-        #    eng_bytestring = eng_bytestring.replace('5b55554d4c5d', '814e8290')
-
         return eng_bytestring
 
 def sjis_to_hex_string(jp, preserve_spaces=False):

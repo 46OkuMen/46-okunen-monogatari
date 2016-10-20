@@ -510,6 +510,7 @@ class Block(object):
                 # So use the rest of the function already there to do that.
                 eng = ""
                 jp_bytestring = overflow_bytestring
+                #print "jp bytestring is an overflow bytestring"
 
             # Recalculate in case it got altered due to overflow.
             en_bytestring = ascii_to_hex_string(eng)
@@ -523,6 +524,10 @@ class Block(object):
             try:
                 i = old_slice.index(jp_bytestring)//2
             except ValueError:
+                print hex(trans.location), trans.english
+                print "overflowing?", is_overflowing
+                print "looking for", jp_bytestring
+                print "in the string:", old_slice
                 old_slice = self.blockstring
                 i = old_slice.index(jp_bytestring)//2
 
@@ -998,7 +1003,7 @@ class Overflow(object):
 
                     jp_bytestring = trans.jp_bytestring
                     en_bytestring = trans.en_bytestring
-                    if en_bytestring == "":
+                    if en_bytestring == "" and trans.english != "[BLANK]":
                         en_bytestring = jp_bytestring
                     try:
                         j = self.bytestring.index(jp_bytestring)
@@ -1036,7 +1041,7 @@ class Overflow(object):
                         jp_bytestring = trans.jp_bytestring
                         en_bytestring = trans.en_bytestring
 
-                        if en_bytestring == '':
+                        if en_bytestring == '' and trans.english != '[BLANK]':
                             en_bytestring = jp_bytestring
 
                         this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
