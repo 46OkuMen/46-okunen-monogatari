@@ -1,3 +1,10 @@
+# Priorities
+* Playable game all the way through
+* Whole game is English
+* Good presentation
+* Minimizing arbitrary limits on the translation
+* Having a nice codebase
+
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
@@ -9,17 +16,9 @@
     * Check if this still happens after fixing the overflow filename strings bug.
 
 ## Text Oddities
-* The pointers for OPENING.EXE seem fine, but lots of stuff is going wrong.
-    * A few missing entries in the credits - Creator, Character Digitizing. ( Creators howed up fine)
-        * Oh actually this is fine now.
-    * Two missing strings right after the credits - "With a crust forged", "oceans, and air over".
-        * These need prepended spaces in order to work.
-    * I think the text alignment is forced to be a little smaller in the cellular evolution section.
-        * "self-replic"
-        * "to a mul"
-        * .
-        * "formed it"
-        * in the"
+* Why is "You headed toward the valley connected to the marshland" and friends getting moved twice??
+     * It's the overflow 0xf8f5 0xf948. It's the 139-length one, the longest in the file. APparently it goes in the spare 0x10922 0x109c1. (which is the otherspare)
+     * ALWAYS USE REPLACE(x, y, 1)!!! Gotta make sure not to replace stuff more than once. It's really hard to debug that.
 
 * Strings with numbers which get displayed more than once have the numbers get corrupted into ASCII letters.
     * "One pillar alone was over (10m) P0m, at the very least."
@@ -43,9 +42,6 @@
 * Ch4 menu items are misaligned.
 
 * Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
-
-* Lots of entries in the credits being skipped.
-    * Creator, Character Digitizing, "With a crust forged", "oceans, and air over"
 
 * "Wisdom" runs against the stat number, any way to realign it?
 

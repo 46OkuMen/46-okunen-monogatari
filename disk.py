@@ -83,10 +83,6 @@ class Disk(object):
                 gamefile.move_overflow()
                 gamefile.incorporate()
 
-                if gamefile.filename != 'OPENING.EXE' and gamefile.filename != 'ENDING.EXE' and gamefile.filename != 'ST5S3.EXE':
-                    for block in gamefile.blocks:
-                        block.typeset()
-                gamefile.incorporate()
                 gamefile.write()
                 gamefile.report_progress()
         try:
@@ -95,6 +91,15 @@ class Disk(object):
             raw_input("You have the game open; close it and hit Enter to continue")
             self.write()
         self.report_progress()
+
+    def typeset(self):
+        """Perform typesetting."""
+        for gamefile in self.gamefiles:
+            if gamefile.filename not in ('OPENING.EXE', 'ENDING.EXE', 'ST5S3.EXE'):
+                for block in gamefile.blocks:
+                    block.typeset()
+                gamefile.incorporate()
+        self.write()
 
     def write(self):
         """Write the patched bytes to a new FDI."""
@@ -162,7 +167,7 @@ class Gamefile(object):
             b.incorporate()
 
         i = self.disk.romstring.index(self.original_filestring)
-        self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring)
+        self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring, 1)
 
         # Set the "original filestring" to the current one to incorporate again after typesetting.
         self.original_filestring = self.filestring
@@ -182,7 +187,6 @@ class Gamefile(object):
 
     def report_progress(self):
         """Calculate and print the progress made in translating this file."""
-
         percentage = int(floor((self.translated_strings / self.total_strings * 100)))
         print self.filename, str(percentage), "% complete",
         print "(%s / %s)" % (self.translated_strings, self.total_strings),
@@ -214,9 +218,6 @@ class EXEFile(Gamefile):
         Gamefile.__init__(self, disk, filename)
         self.disk = disk
         self.pointer_constant = POINTER_CONSTANT[filename]
-        self.pointers = self.get_pointers()
-        for p in sorted(self.pointers.itervalues()):
-            print p
 
         # Look for a spare block and designate it as such.
         self.spares = []
@@ -250,6 +251,8 @@ class EXEFile(Gamefile):
                     self.blocks.remove(block)
         except KeyError:
             self.creature_block = None
+
+        self.pointers = self.get_pointers()
 
         self.overflows = []
 
@@ -314,7 +317,6 @@ class EXEFile(Gamefile):
         self.spares.sort(key=lambda x: x[1] - x[0])
         
         while len(self.overflows) > 0:
-
             #print "Overflow:", [p.new_length for p in self.overflows]
             #print "Spares:", [s[1] - s[0] for s in self.spares]
             overflow = self.overflows.pop()
@@ -330,6 +332,7 @@ class EXEFile(Gamefile):
                     self.spares.sort(key=lambda x: x[1] - x[0])
                     overflow_stored = True
                     break
+
             if not overflow_stored:
                 raise Exception("That overflow didn't fit anywhere")
 
@@ -462,7 +465,6 @@ class Block(object):
                 jp_bytestring = trans.jp_bytestring_alt
 
             if (trans.location >= overflow_location) and overflow_location:
-                #print "%s >= %s" % (hex(trans.location), hex(overflow_location))
                 is_overflowing = True
 
                 recent_string = self.gamefile.most_recent_string(previous_text_offset, 
@@ -483,12 +485,10 @@ class Block(object):
                     if i == len(overflow_pointers)-1:
                         break
                     next_p = overflow_pointers[i+1]
-                    #print hex(p), hex(next_p)
                     start_in_block = (p - self.start)*2
                     stop_in_block = (next_p - self.start)*2
 
                     this_bytestring = self.original_blockstring[start_in_block:stop_in_block]
-                    #print this_bytestring
                     this_overflow = Overflow(self.gamefile, (p, next_p), this_bytestring)
                     self.gamefile.overflows.append(this_overflow)
 
@@ -504,11 +504,6 @@ class Block(object):
             if eng == "":
                 # No replacement necessary - pointers are edited, so we're done here.
                 continue
-
-            #if eng == '[BLANK]':
-            #    print "[BLANK] found in eng at %s" % hex(trans.location)
-            #    print en_bytestring
-            #    eng = ""  # Is this necessary? The real work needs to be done in en_bytestring.
 
             if is_overflowing:
                 # Then we want to blank the entire overflow bytestring.
@@ -545,10 +540,15 @@ class Block(object):
     def incorporate(self):
         """Write the new block to the source gamefile."""
         self.pad()
-        i = self.gamefile.filestring.index(self.original_blockstring)
-        self.gamefile.filestring = self.gamefile.filestring.replace(self.original_blockstring, 
-                                                                    self.blockstring)
-        self.original_blockstring = self.blockstring
+        try:
+            i = self.gamefile.filestring.index(self.original_blockstring)
+            self.gamefile.filestring = self.gamefile.filestring.replace(self.original_blockstring, 
+                                                                    self.blockstring, 1)
+        except ValueError:
+            print "Couldn't find that for some reason, let's try just replacing it"
+            self.gamefile.filestring = self.gamefile.filestring.replace(self.gamefile.filestring[self.start*2:self.stop*2], self.blockstring)
+ 
+        self.original_blockstring = str(self.blockstring)
 
     def identify_spares(self):
         """
@@ -579,8 +579,8 @@ class Block(object):
     def typeset(self):
         """Typeset the block's text by pointer."""
         for p in self.get_pointers():
-            for loc in self.gamefile.pointers[p]:
-                loc.typeset()
+            # Only need to typeset the text with one of its locations.
+            self.gamefile.pointers[p][0].typeset()
 
     def __repr__(self):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))
@@ -662,8 +662,6 @@ class Translation(object):
         while snippet_right_before == '8140':
             self.jp_bytestring = '8140' + self.jp_bytestring
             self.jp_bytestring_alt = '8140' + self.jp_bytestring_alt
-            #print hex(self.location), self.block.gamefile
-            #print 'sjis space found at %s and prepended' % hex(self.location+scan)
             self.spaces += 1
 
             scan += 4
@@ -742,8 +740,6 @@ class Pointer(object):
             new_value = self.old_value + diff
             new_bytes = pack(new_value)
             new_bytestring = "{:02x}".format(new_bytes[0]) + "{:02x}".format(new_bytes[1])
-            #print self.old_bytestring
-            #print new_bytestring
 
             string_before = self.gamefile.filestring[0:location_in_string]
             string_after = self.gamefile.filestring[location_in_string+4:]
@@ -787,13 +783,11 @@ class Pointer(object):
         pointer_value = word_at_offset(gamefile_path, self.location)
         pointer_location = pointer_value + POINTER_CONSTANT[self.gamefile.filename]
 
-        print gamefile_path, hex(pointer_location)
         result = text_at_offset(self.gamefile, pointer_location)
 
         # Sometimes there are pointers to control code right before an END.
         # Look a bit further in these cases.
         if len(result) < 2:
-            #print "super short text; let's go a little further"
             result = text_at_offset(self.gamefile, pointer_location+2)
         return result
 
@@ -817,14 +811,24 @@ class Pointer(object):
                 return None
 
         original_text = self.text()
+
+        if original_text.isspace():
+            return None
+
+        textlines = original_text.splitlines()
+
+        if len(textlines) > 5:
+            # Probably a pointer table
+            return None
+
+        if "Cancel" in original_text:
+            return None
+
         try:
             final_newline = original_text[-1] == '\n'
         except IndexError:
             final_newline = False
-        textlines = original_text.splitlines()
-        if len(textlines) > 5:
-            # Probably a pointer table
-            return None
+
         for i, line in enumerate(textlines):
             if onscreen_length(line) > self.max_width:
                 if i == len(textlines) - 1:
@@ -846,6 +850,8 @@ class Pointer(object):
                     textlines.append('')
                 
                 textlines[i], textlines[i+1] = firstline, secondline
+            else:
+                pass
         new_text = '\n'.join(textlines)
         if final_newline:
             new_text += "\n"
@@ -859,13 +865,25 @@ class Pointer(object):
             print "probably don't replace that one, needs a pointer change"
         else:
             if old_bytestring != new_bytestring:
-                print original_text
-                print new_text
-
-                i = self.gamefile.filestring.index(old_bytestring)
+                #print original_text
+                #print new_text
+                try:
+                    i = self.gamefile.filestring.index(old_bytestring)
+                except ValueError:
+                    print "Couldn't find it in the whole block for some reason"
+                    return None
                 b = self.gamefile.blocks[get_current_block(i//2, self.gamefile)]
-                bi = b.blockstring.index(old_bytestring)
-                b.blockstring = b.blockstring.replace(old_bytestring, new_bytestring)
+                # it's in the filestring, but not the blockstring...
+                #print "found old bytestring at", hex(i//2)
+                #print b
+                #print b.blockstring
+                #print old_bytestring
+                try:
+                    bi = b.blockstring.index(old_bytestring)
+                    b.blockstring = b.blockstring.replace(old_bytestring, new_bytestring, 1)
+                except ValueError:
+                    print "Couldn't find it in that block for some reason"
+                #b.incorporate()
 
     def __repr__(self):
         return "%s pointing to %s" % (hex(self.location), hex(self.text_location))
@@ -923,9 +941,20 @@ class PointerExcel(object):
         """Retrieve all relevant pointers from the pointer sheet."""
         ptrs = {}
 
+        try:
+            spare_start, spare_stop = SPARE_BLOCK[gamefile.filename]
+        except KeyError:
+            spare_start, spare_stop = None, None
+
         for row in [r for r in self.pointer_sheet.rows if r[0].value == gamefile.filename]:
             text_offset = int(row[1].value, 16)
             pointer_offset = int(row[2].value, 16)
+
+            # Don't ingest the pointers that point to error messages!
+            # They stick around and point to random locations in the spare block,
+            # and they mess up the typesetting process.
+            if spare_start <= text_offset <= spare_stop:
+                continue
 
             ptr = Pointer(gamefile, pointer_offset, text_offset)
 
@@ -974,13 +1003,13 @@ class Overflow(object):
                     try:
                         j = self.bytestring.index(jp_bytestring)
                     except ValueError:
-                        print hex(self.start), hex(self.stop), trans.english
-                        print jp_bytestring
+                        #print hex(self.start), hex(self.stop), trans.english
+                        #print jp_bytestring
                         jp_bytestring = trans.jp_bytestring_alt
-                        print jp_bytestring
-                        print self.bytestring
+                        #print jp_bytestring
+                        #print self.bytestring
                         j = self.bytestring.index(jp_bytestring)
-                    self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring)
+                    self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring, 1)
 
         # return the length of the new bytestring, but restore the original bytestring first
         result = len(self.bytestring) // 2
@@ -991,6 +1020,8 @@ class Overflow(object):
     def move(self, location):
         destination_block = self.gamefile.blocks[get_current_block(location, self.gamefile)]
         #print "\nmoving", self, "to location", hex(location), "\n"
+
+        assert hex(location) != 0x10783 # I guess it didn't get here in this method
 
         pointer_diff = location - self.start
 
@@ -1011,7 +1042,7 @@ class Overflow(object):
                         this_string_diff = (len(en_bytestring) - len(jp_bytestring)) // 2
 
                         j = self.bytestring.index(jp_bytestring)
-                        self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring)
+                        self.bytestring = self.bytestring.replace(jp_bytestring, en_bytestring, 1)
                         #pointer_diff += this_string_diff
 
                 # When there are multiple translated strings in an overflow bytestring,

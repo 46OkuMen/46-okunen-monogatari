@@ -20,12 +20,15 @@
 * Use the padding right before the footer of certain files as another overflow container.
 	* Impact: 159 characters in all files but the opening, ending, ST5S1, and ST5S2.
 
+* Eliminating duplicate strings ("Got $d EVO Genes.")
+
 * Removing error messages in the menu text block.
 	* Impact: 13-26 more characters per file.
 
+* Using a [BLANK] control code, which is processed into an empty string, instead of a single space.
+	* Impact: 1-8 characters per file. Really scraping the bottom of the barrel.
+
 ## Other things I might try
-* Using a "second spare block" (159 characters) right before the footer.
-	* I must have tried this before, did this give me graphical glitches? It seems fine so far in Ch2.
 * ~~Rewriting the spare-block pointer table, which immediately precedes it.~~
 	* Yeah that definitely doesn't work. The game boots but it corrupts particular bits of text...
 		* Not even bits of text that get moved to that location, either. I wonder what's going on?
@@ -33,12 +36,9 @@
 * ~~Using the Borland compiler message as a spare block.~~
 	* Changed it to "Barland", now the chapter won't boot.
 	* Changed one character of "Abnormal program termination." as well, also won't boot.
-* Eliminating duplicate strings ("Got $d EVO Genes.")
 * Using tab characters to indent stuff rather than the 4-5 SJIS spaces.
 	* Not as easy to insert in Excel as newlines...
 	* \t just shows up ingame as a yen symbol. Maybe it's something else?
-* Allowing truly "blank" translations instead of the one space I use for them currently.
-	* Really scraping the bottom of the barrel.
 * NightWolve's recommendation - implementing a space text compressor/decompressor in the main text routine.
 
 * Expanding files!! This would be the hardest thing to do, maybe, but would solve all the problems. 

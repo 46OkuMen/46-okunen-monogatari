@@ -118,7 +118,6 @@ def ascii_to_hex_string(eng):
 
         # handle [BLANK] control code
         if '5b424c414e4b5d' == eng_bytestring:
-            print "blank found"
             eng_bytestring = ''
 
         # handle [DEGC] control code
