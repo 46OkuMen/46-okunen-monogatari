@@ -5,17 +5,11 @@ from cheats import change_starting_map
 
 from disk import Disk, EXEFile, DATFile
 
-#FILES_TO_TRANSLATE = ['OPENING.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S3.EXE']
-
 FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
                       'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'OPENING.EXE', 'SINKA.DAT',
                       'ST6.EXE', 'OPENING.EXE', 'ENDING.EXE', 'SEND.DAT']
-#                     'OPENING.EXE', 'ENDING.EXE', 'SEND.DAT']
 
-FILES_TO_TYPESET = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE']
-
-# for testing the oh-so-problematic Ch5:
-#FILES_TO_TRANSLATE = ['ST5.EXE',]# 'ST5S1.EXE', 'ST5S2.EXE', 'ST5S3.EXE']
+FILES_TO_TYPESET = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST6.EXE']
 
 
 if __name__ == '__main__':

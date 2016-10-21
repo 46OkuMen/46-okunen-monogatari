@@ -1,9 +1,12 @@
 # shank-a-rom
-Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory of Evolution*, otherwise known as *46 Okunen Monogatari: The Shinkaron*, the 1990 Japan-only predecessor to *E.V.O: Search for Eden* for the SNES.
+![screen from mid-Chapter 1, translated](img/evidence_02.png)
 
-![screen from mid-Chapter 1, translated](https://raw.githubusercontent.com/hollowaytape/shank-a-rom/master/img/evidence_02.png)
+Notes and utilities for the English Translation patch for *E.V.O.: The Theory of Evolution*, otherwise known as *46 Okunen Monogatari: The Shinkaron*, the 1990 Japan-only predecessor to *E.V.O: Search for Eden* for the SNES. The patch has been under active development since October 2015.
 
-## Draft Reinsertion Progress:
+
+### Progress
+Here's how much of the script currently fits in the game:
+
 | Segment      | %    | Strings      |
 | -------------|-----:|:------------:|
 | Opening      |100%  |  (42 / 42)   |
@@ -20,10 +23,13 @@ Romhacking notes and text dumping/reinserting utilities for *E.V.O.: The Theory 
 | Game Overs   |100%  | (729 / 729)  |
 | Total        | 98%  |(5298 / 5367) |
 
-## How do I use this?
-* There is a development IPS patch in the "patch" folder. It's not a release, it's just a proof-of-concept. And I don't recommend playing with it, other than to confirm for yourself "hey, this project really is getting somewhere!" The game will almost certainly crash at some point!!
-* Use LunarIPS (or whatever other IPS program you have) to patch your Disk A image.
-* The patch targets these disk images:
+This doesn't count typesetting, editing, or bugfixes. There's a lot of text, so those will take a while!
+
+For more details on the state of the project, [here is the current TODO list](docs/todo.md).
+
+### How do I use this?
+* Wait for it to be released!
+* The patch will target these disk images:
 	* 46 Okunen Monogatari - The Sinkaron (J) A user.FDI `md5: CA56B37F74885C40EDC9B1D2AACB5DA6`
 	* 46 Okunen Monogatari - The Sinkaron (J) B 1.FDI `md5: EE852EC006ACD94C9CFB04B2505A51D7`
 	* 46 Okunen Monogatari - The Sinkaron (J) B 2.FDI `md5: 3C1C0FBE1CF0A4C1B4574FFC26A490AB`

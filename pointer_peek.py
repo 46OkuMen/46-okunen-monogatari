@@ -72,7 +72,16 @@ if __name__ == '__main__':
     constant = POINTER_CONSTANT[filename]
 
     offset = int(sys.argv[2], 16)
-    filepath = os.path.join(DEST_PATH, filename)
+    if len(sys.argv) > 3:
+        original = sys.argv[3] == '--original'
+    else:
+        original = False
+
+    if original:
+        filepath = os.path.join(SRC_PATH, filename)
+    else:
+        filepath = os.path.join(DEST_PATH, filename)
+        
     pointer_value =  word_at_offset(filepath, offset)
 
     print "value:", hex(pointer_value)
