@@ -72,12 +72,9 @@
     * Text at 0xd252, pointer at 0x59ae.
     * Text at 0xdb25, pointer at 0x652e.
 * ST5S1.EXE, 'The frenzied Carnivorous Primate Boss attacks!'
-* ST5S3.EXE, 'Demon'
-* ST5S3.EXE, 'The enemy'
-* ST5S3.EXE, duplicate skill name strings
 
 ### images
-* 46 OK gdt is completely illegible, of course.
+* AV04.GDT is completely illegible, of course.
     * When and why does the codec return "Sequence contains no elements"??
 
 ### other

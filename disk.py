@@ -92,13 +92,14 @@ class Disk(object):
             self.write()
         self.report_progress()
 
-    def typeset(self):
+    def typeset(self, files):
         """Perform typesetting."""
-        for gamefile in self.gamefiles:
-            if gamefile.filename not in ('OPENING.EXE', 'ENDING.EXE', 'ST5S3.EXE'):
-                for block in gamefile.blocks:
-                    block.typeset()
-                gamefile.incorporate()
+        for filename in files:
+            gamefile = [g for g in self.gamefiles if g.filename == filename][0]
+            for block in gamefile.blocks:
+                block.typeset()
+            gamefile.incorporate()
+            print "typeset", filename
         self.write()
 
     def write(self):
