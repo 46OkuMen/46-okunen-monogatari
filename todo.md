@@ -9,11 +9,6 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
-* Ch6 NPC movement bug is unrelated to typesetting. Is it some map thing going wrong?
-    * All three map filenames should be separate already...
-
-## Other really quite bad stuff
-
 ## Text Oddities
 * Strings with numbers which get displayed more than once have the numbers get corrupted into ASCII letters.
     * "One pillar alone was over (10m) P0m, at the very least."
@@ -52,6 +47,8 @@
     * Adding another <LN> at the end seems necessary...
 
 * See what's going wrong in the weird replacement scenarios.
+
+* Text reaching the end of a line automatically inserts a line break, so the limits are usually 1 less than I currently have them...
 
 * Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
     * No more than 3 lines between <WAIT>s?
@@ -108,6 +105,11 @@
             * 380-400 all don't work
             * 500 also doesn't work
 
+### tech debt
+* Change the pointers API to store Pointer objs, not integers corresponding to text location.
+
+* Unify spare_block and other_spare_block.
+
 ### other
 * Looks like the .gitignore is on the fritz...
 
@@ -136,3 +138,7 @@
 
 * If it can't find the string when it's creating overflows/checking their new length:
     * Check the overflow pointers and see if some random pointer is breaking up the text before the next text pointer. Absorb that pointer into the one at the beginning of the text.
+
+* If NPC movement is broken:
+    * Make sure map pointers are ok.
+    * Make sure "You evolved further..." is untouched/the SEND.DAT, rb, ISIWAKU.GDT, etc. strings before the battle block are ok.

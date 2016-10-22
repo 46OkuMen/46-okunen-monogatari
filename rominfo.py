@@ -14,6 +14,9 @@ DAT_MAX_LENGTH = 71   # TODO: Check on SEND.DAT, see if they're indented.
 
 # TODO: Why did I use tuples of tuples? Why not a list of tuples? Less confusing that way.
 # How the files themselves get broken up for reinsertion.
+
+# TODO: EVO Files don't need to be a separate block.
+
 file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                                (0x55e9, 0x5639), # spare block
                                (0x5657, 0x586a), # cut scenes
@@ -90,17 +93,17 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                              (0x3f97, 0x4daa),
                              (0x4dba, 0x4ee0),
                              (0x503c, 0x50db)), # otherspare
-               'ST6.EXE': ((0xa51b, 0xa55c), # enviro
-                           (0xa59c, 0xa5e9), # evo files
-                           (0xa5e9, 0xaf5b), # stats/evolution
-                           (0xaf5b, 0xb066), # menu
-                           (0xb072, 0xb459), # dialogue
-                           (0xb489, 0xb8d3), # dialogue
-                           (0xb8ea, 0xccb1), # dialogue 
+               'ST6.EXE': ((0xa51b, 0xa55c), # enviro # bug not in this one
+                           (0xa59c, 0xaf5b), # stats/evolution # bug not in this one
+                           (0xaf5b, 0xb066), # ends at TITLE6.GDT
+                           (0xb072, 0xb459), # ends at MAP601.MAP
+                           (0xb489, 0xb8d3), # ends at some pointers
+                           (0xb8ea, 0xccb1), # ends at some other maps
                            (0xcd14, 0xce25), # creature block
-                           (0xcedf, 0xd0bc),  # just the demon text
+                           (0xcedf, 0xcf6f),
+                           (0xcfab, 0xd0bc),  # battle text
                            (0xd44a, 0xd756), # error block
-                           (0xd7fc, 0xd89b)), # otherspare
+                           (0xd7fc, 0xd89c)), # otherspare
                'ENDING.EXE': ((0x3c4e, 0x4b20),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
                'SEND.DAT': ((0x000, 0x8740),)}

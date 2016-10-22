@@ -187,6 +187,7 @@ class Gamefile(object):
             fileopen.write(data)
 
     def get_spaces(self):
+        """Count the number of characters freed from SJIS spaces in the file."""
         for b in self.blocks:
             for t in b.translations:
                 self.spaces += t.spaces
@@ -265,7 +266,7 @@ class EXEFile(Gamefile):
         except KeyError:
             self.creature_block = None
 
-        self.pointers = self.get_pointers()
+        self.pointers = self._get_pointers()
 
         self.overflows = []
 
@@ -291,7 +292,7 @@ class EXEFile(Gamefile):
                 for ptr in self.pointers[offset]:
                     ptr.edit(diff)
 
-    def get_pointers(self):
+    def _get_pointers(self):
         """Retrieve all relevant pointers from the pointer sheet."""
         # The pointers in a given file will never change. But the pointer objects and values will...
         result = self.disk.pointer_excel.get_pointers(self)
@@ -587,9 +588,11 @@ class Block(object):
             this_pointer = self.gamefile.pointers[p][0]
 
             # Hmm. Make sure to update pointers' text location even when they overflow/change blocks and such...
-            print self, hex(this_pointer.text_location)
-            block_of_pointer = self.gamefile.block_at(this_pointer.text_location)
-            assert block_of_pointer == (self.start, self.stop), "%s %s" % (block_of_pointer, self)
+            # I may as well do something to just reload all the pointer locations, maybe using word_at_offset.
+            # It's a huge pain to mess with the pointer functions in a way that doesn't break reinsertion...
+            #print self, hex(this_pointer.text_location)
+            #block_of_pointer = self.gamefile.block_at(this_pointer.text_location)
+            #assert block_of_pointer == self, "%s %s" % (block_of_pointer, self)
 
             # Don't try to typeset stuff that has no real text in it.
             # That would break things like NPC movement code...
@@ -734,8 +737,21 @@ class Pointer(object):
                 
             self.gamefile.filestring = string_before + new_bytestring + string_after
 
-            self.text_location += diff
-            # TODO: Update the old text location and new text location blocks so they know this pointer has left/entered it in their block_pointers attribute.
+            ## TODO: Update the old text location and new text location blocks so they know this pointer has left/entered it in their block_pointers attribute.
+            #try: # (gotta check this; some pointers are moved around before they are assigned to files due to absorption)
+            #    self.gamefile.pointers[self.text_location].remove(self)
+            #    self.text_location += diff
+            #    if self.text_location in self.gamefile.pointers:
+            #        self.gamefile.pointers[self.text_location].append(self)
+            #    else:
+            #        self.gamefile_pointers[self.text_location] = [self,]
+            #    print "succeeded"
+            #except AttributeError:
+            #    pass
+            #except KeyError:
+            #    print "couldn't find that pointer"
+            
+            #self.text_location += diff
 
     def _true_location(self):
         """
