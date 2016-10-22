@@ -489,8 +489,6 @@ class Block(object):
                 if self.stop not in overflow_pointers:
                     overflow_pointers.append(self.stop)
 
-                #print [self.game for p in overflow_pointers]
-
                 for i, p in enumerate(overflow_pointers):
                     if i == len(overflow_pointers)-1:
                         break
@@ -598,8 +596,12 @@ class Block(object):
     def typeset(self):
         """Typeset the block's text by pointer."""
         for p in self.get_pointers():
-            # Only need to typeset the text with one of its locations.
-            self.gamefile.pointers[p][0].typeset()
+            this_pointer = self.gamefile.pointers[p][0]
+
+            # Don't try to typeset stuff that has no real text in it.
+            # That would break things like NPC movement code...
+            if len(this_pointer.translations) > 0:
+                this_pointer.typeset()
 
     def __repr__(self):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))

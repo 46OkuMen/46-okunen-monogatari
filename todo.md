@@ -9,22 +9,8 @@
 ## Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
-* Moving during conversations (Thelodus on the right in the first dialogue) got broken during something I did recently...
-    * Was it putting SINKA and SEND in the intermediate roms?
-        * Nope
-    * Was it the Ch1 script changes?
-        * I don't think it was that either...
-    * It works in the intermediate rom... So it's not any of the images or SINKA/SEND.
-    * It wasn't in build 285 which I sent last week.
-    * It's not a bug in the typesetter.
-    * Oh, also it affects the movement of entrances and exits, which makes Ch6 unplayable...
-    * What pointers are involved in this?
-        * ST1.EXE first cutscene:
-            * 0x52e8 (moving code)
-            * 0x52fc (empty space...?)
-            * 0x52f2 ("Elder!")
-            * 0x5306 (second moving code)
-    * IT IS TYPESETTING THE MOVEMENT CONTROL CODES.
+* Ch6 NPC movement bug is unrelated to typesetting. Is it some map thing going wrong?
+    * All three map filenames should be separate already...
 
 ## Other really quite bad stuff
 
