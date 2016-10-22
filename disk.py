@@ -100,6 +100,7 @@ class Disk(object):
                 block.typeset()
             gamefile.incorporate()
             print "typeset", filename
+            gamefile.write()
         self.write()
 
     def write(self):
@@ -167,8 +168,13 @@ class Gamefile(object):
         for b in self.blocks:
             b.incorporate()
 
-        #i = self.disk.romstring.index(self.original_filestring)
-        self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring, 1)
+        try:
+            i = self.disk.romstring.index(self.original_filestring)
+            self.disk.romstring = self.disk.romstring.replace(self.original_filestring, self.filestring, 1)
+        except ValueError:
+            print "Can't find that file, try replacing it instead"
+            # Do pointers get updated in the filestring as well?
+            self.disk.romstring = self.disk.romstring.replace(self.disk.romstring[self.location*2:(self.location+self.length)*2], self.filestring)
 
         # Set the "original filestring" to the current one to incorporate again after typesetting.
         self.original_filestring = self.filestring
@@ -561,7 +567,7 @@ class Block(object):
             print "Couldn't find that for some reason, let's try just replacing it"
             self.gamefile.filestring = self.gamefile.filestring.replace(self.gamefile.filestring[self.start*2:self.stop*2], self.blockstring)
  
-        self.original_blockstring = str(self.blockstring)
+        #self.original_blockstring = str(self.blockstring)
 
     def identify_spares(self):
         """

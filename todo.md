@@ -24,6 +24,7 @@
             * 0x52fc (empty space...?)
             * 0x52f2 ("Elder!")
             * 0x5306 (second moving code)
+    * IT IS TYPESETTING THE MOVEMENT CONTROL CODES.
 
 ## Other really quite bad stuff
 
