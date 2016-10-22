@@ -8,7 +8,7 @@ from math import floor
 from openpyxl import load_workbook
 
 from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS, SRC_PATH, DEST_PATH
-from utils import sjis_to_hex_string, ascii_to_hex_string, get_current_block
+from utils import sjis_to_hex_string, ascii_to_hex_string
 from utils import onscreen_length
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, POINTER_ABSORB
 from rominfo import SPARE_BLOCK, OTHER_SPARE_BLOCK, CREATURE_BLOCK
@@ -192,6 +192,13 @@ class Gamefile(object):
                 self.spaces += t.spaces
         return self.spaces*2
 
+    def block_at(self, offset):
+        """Return the block object of a given offset in this file."""
+        for block in self.blocks:
+            lo, hi = block.start, block.stop
+            if (offset >= lo) and (offset < hi):
+                return block
+
     def report_progress(self):
         """Calculate and print the progress made in translating this file."""
         percentage = int(floor((self.translated_strings / self.total_strings * 100)))
@@ -216,7 +223,6 @@ class EXEFile(Gamefile):
     Methods:
         edit_pointers_in_range: Adjust the pointers which point between (lo, hi) with a given diff.
         get_pointers: Retrive a dict of Pointer objects.
-        most_recent_pointer: Grabs a pointer one pointer before the given one... within certain limts.
         move_overflow: Move overflow to the spare block and adjust pointers.
         (change_starting_map: Cheat and change the beginning-of-chapter spawn point. (Not implemented yet))
          """
@@ -287,28 +293,9 @@ class EXEFile(Gamefile):
 
     def get_pointers(self):
         """Retrieve all relevant pointers from the pointer sheet."""
+        # The pointers in a given file will never change. But the pointer objects and values will...
         result = self.disk.pointer_excel.get_pointers(self)
         return result
-
-    def most_recent_pointer(self, start, stop):
-        """Return the highest offset with a pointer in the given range."""
-        offset = stop+1
-        while offset not in self.pointers:
-            offset -= 1
-        return offset
-
-    def most_recent_string(self, start, stop):
-        """Return the highest offset with a pointer in the given range."""
-        # Gets called with args lo = previous_text_offset, hi=original_location.
-        # What's with the +1s???
-        # The lo is +1 here because we don't want to include the previous text that was replaced.
-        # The hi is +1 here because we do want to include the original location as a possibility...
-        for offset in reversed(range(start+1, stop+1)):
-            if offset in self.pointers:
-                return offset
-        # If there are no other pointers, just return the hi value.
-        return stop
-
 
     def move_overflow(self):
         """
@@ -360,13 +347,14 @@ class DATFile(Gamefile):
         self.src_path = os.path.join(self.disk.src_path, filename)
 
     def translate(self):
-        """Replace all japanese strings with english ones."""
+        """Replace all japanese strings with english ones.
+        If only it were always that easy!"""
         for trans in self.blocks[0].get_translations():
             if trans.english == "":
                 continue
             jp_bytestring = sjis_to_hex_string(trans.japanese)
 
-            trans.english = trans.simple_typeset()
+            #trans.english = trans.simple_typeset()
             en_bytestring = ascii_to_hex_string(trans.english)
 
             self.filestring = self.filestring.replace(jp_bytestring, en_bytestring, 1)
@@ -475,8 +463,6 @@ class Block(object):
                 #print "overflow starting with", trans
                 is_overflowing = True
 
-                recent_string = self.gamefile.most_recent_string(previous_text_offset, 
-                                                                 trans.location)
                 recent_pointer = overflow_location
 
                 start_in_block = (recent_pointer - self.start)*2
@@ -595,13 +581,21 @@ class Block(object):
 
     def typeset(self):
         """Typeset the block's text by pointer."""
+
+        pointer_diff = 0
         for p in self.get_pointers():
             this_pointer = self.gamefile.pointers[p][0]
+
+            # Hmm. Make sure to update pointers' text location even when they overflow/change blocks and such...
+            print self, hex(this_pointer.text_location)
+            block_of_pointer = self.gamefile.block_at(this_pointer.text_location)
+            assert block_of_pointer == (self.start, self.stop), "%s %s" % (block_of_pointer, self)
 
             # Don't try to typeset stuff that has no real text in it.
             # That would break things like NPC movement code...
             if len(this_pointer.translations) > 0:
                 this_pointer.typeset()
+                pointer_diff += 0
 
     def __repr__(self):
         return "(%s, %s)" % (hex(self.start), hex(self.stop))
@@ -679,42 +673,15 @@ class Translation(object):
             self.jp_bytestring = self.jp_bytestring[4:]
 
         scan = 0
-        snippet_right_before = self.block.blockstring[self.location_in_blockstring:self.location_in_blockstring+4]
+        loc = self.location_in_blockstring
+        snippet_right_before = self.block.blockstring[loc:loc+4]
         while snippet_right_before == '8140':
             self.jp_bytestring = '8140' + self.jp_bytestring
             self.jp_bytestring_alt = '8140' + self.jp_bytestring_alt
             self.spaces += 1
 
             scan += 4
-            snippet_right_before = self.block.blockstring[self.location_in_blockstring+scan:self.location_in_blockstring+4+scan]
-
-    def simple_typeset(self):
-        """
-        Typeset a simple DAT string.
-        No pointer-editing or length checking beyond 2 lines.
-        Only aware of the current translation; can't prepend excess to the next translation.
-        """
-        if isinstance(self.english, long):
-            return self.english
-        if onscreen_length(self.english) > DAT_MAX_LENGTH:
-            #lines = self.english.split('\n')
-            words = self.english.split(' ')
-            firstline = ''
-            while onscreen_length(firstline) <= DAT_MAX_LENGTH:
-                if onscreen_length(firstline + " " + words[0]) <= DAT_MAX_LENGTH:
-                    if len(firstline) > 0:
-                        firstline += " "
-                    firstline += words.pop(0)
-                else:
-                    break
-            secondline = ' '.join(words)
-            # TODO: There are some lines in SEND.DAT that are more than 2 lines long.
-            #assert onscreen_length(secondline) <= DAT_MAX_LENGTH
-            secondline = '        ' + secondline
-            combinedlines = "\n".join([firstline, secondline])
-        else:
-            return self.english
-        return combinedlines
+            snippet_right_before = self.block.blockstring[loc+scan:loc+scan+4]
 
     def __repr__(self):
         return hex(self.location) + " " + self.english
@@ -766,6 +733,9 @@ class Pointer(object):
             string_after = self.gamefile.filestring[location_in_string+4:]
                 
             self.gamefile.filestring = string_before + new_bytestring + string_after
+
+            self.text_location += diff
+            # TODO: Update the old text location and new text location blocks so they know this pointer has left/entered it in their block_pointers attribute.
 
     def _true_location(self):
         """
@@ -828,8 +798,9 @@ class Pointer(object):
         Find all the newlines in the pointer, then move them around.
         """
         if self.translations:
-            if not self.translations[0].english:
-                return None
+            for t in self.translations:
+                if not t.english:
+                    return None
 
         original_text = self.text()
 
@@ -838,17 +809,22 @@ class Pointer(object):
 
         textlines = original_text.splitlines()
 
-        if len(textlines) > 5:
-            # Probably a pointer table
+        if "Cancel" in original_text:
             return None
 
-        if "Cancel" in original_text:
+        if len(textlines) > 5:
+            # Probably a pointer table
             return None
 
         try:
             final_newline = original_text[-1] == '\n'
         except IndexError:
             final_newline = False
+
+        try:
+            final_double_newline = original_text[-3:] == '\n\x13\n'
+        except IndexError:
+            final_double_newline = False
 
         for i, line in enumerate(textlines):
             if onscreen_length(line) > self.max_width:
@@ -871,16 +847,20 @@ class Pointer(object):
                     textlines.append('')
                 
                 textlines[i], textlines[i+1] = firstline, secondline
-            else:
-                pass
+
         new_text = '\n'.join(textlines)
-        if final_newline:
+        if final_double_newline:
+            new_text += "\n\x13\n"
+        elif final_newline:
             new_text += "\n"
         # So even adding one newline changes the length of the total text, of course.
         # So pointers still need to be adjusted.
 
         old_bytestring = ascii_to_hex_string(original_text)
         new_bytestring = ascii_to_hex_string(new_text)
+
+        print old_bytestring
+        print new_bytestring
 
         if len(old_bytestring) != len(new_bytestring):
             print "probably don't replace that one, needs a pointer change"
@@ -893,7 +873,7 @@ class Pointer(object):
                 except ValueError:
                     print "Couldn't find it in the whole block for some reason"
                     return None
-                b = self.gamefile.blocks[get_current_block(i//2, self.gamefile)]
+                b = self.gamefile.block_at(i//2)
                 # it's in the filestring, but not the blockstring...
                 #print "found old bytestring at", hex(i//2)
                 #print b
@@ -1040,10 +1020,8 @@ class Overflow(object):
         return result
 
     def move(self, location):
-        destination_block = self.gamefile.blocks[get_current_block(location, self.gamefile)]
+        destination_block = self.gamefile.block_at(location)
         #print "\nmoving", self, "to location", hex(location), "\n"
-
-        assert hex(location) != 0x10783 # I guess it didn't get here in this method
 
         pointer_diff = location - self.start
 
