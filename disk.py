@@ -832,13 +832,21 @@ class Pointer(object):
             # Probably a pointer table
             return None
 
+        #print textlines
+        #print repr(original_text[-4:])
+
         try:
             final_newline = original_text[-1] == '\n'
+            #final_double_newline = original_text[-2] == '\n'
         except IndexError:
             final_newline = False
+            #final_double_newline = False
 
         try:
             final_double_newline = original_text[-3:] == '\n\x13\n'
+            if final_double_newline:
+                #print "final double newline is true", repr(textlines[-1])
+                textlines.pop(-1)
         except IndexError:
             final_double_newline = False
 
@@ -857,13 +865,15 @@ class Pointer(object):
                             firstline += " "
                         firstline += words.pop(0)
                     else:
+                        firstline.rstrip(" ")
                         break
                 secondline = ' '.join(words)
                 if i == len(textlines) - 1:
                     textlines.append('')
                 
                 textlines[i], textlines[i+1] = firstline, secondline
-
+        if textlines[-1].endswith(" "):
+            textlines[-1].rstrip()
         new_text = '\n'.join(textlines)
         if final_double_newline:
             new_text += "\n\x13\n"
@@ -875,8 +885,8 @@ class Pointer(object):
         old_bytestring = ascii_to_hex_string(original_text)
         new_bytestring = ascii_to_hex_string(new_text)
 
-        print old_bytestring
-        print new_bytestring
+        #print old_bytestring
+        #print new_bytestring
 
         if len(old_bytestring) != len(new_bytestring):
             print "probably don't replace that one, needs a pointer change"
