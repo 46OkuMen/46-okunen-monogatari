@@ -57,16 +57,12 @@ file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                            (0xe6e3, 0xe7f3),
                            (0xeb82, 0xee8e),
                            (0xef34, 0xefd3)), # spare-ish block
-               'ST4.EXE': ((0xe263, 0xe2a3), # enviro
+               'ST4.EXE': ((0xe263, 0xe2a4), # enviro
                            (0xe2f4, 0xe90e),
                            (0xe90e, 0xea47), # evolution, menus
                            (0xea4b, 0x102cb),
                            (0x102cb, 0x120a1), # dialogue... ends at crazy control codes/table
-                           (0x12115, 0x12925),
-                           (0x12925, 0x134d9), # dialogue
-                           (0x134f6, 0x13c25), # dialogue
-                           (0x13e97, 0x13fed), # dialogue
-                           (0x14026, 0x1485f), # dialogue
+                           (0x12115, 0x1485f), # dialogue
                            (0x148c1, 0x149e5), # enviro
                            (0x14a28, 0x15a1e), # creature block
                            (0x16031, 0x160c1), # Y/N/C, evolved too far

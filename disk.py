@@ -836,9 +836,11 @@ class Pointer(object):
         #print repr(original_text[-4:])
 
         try:
+            initial_newline = original_text[0] == '\n'
             final_newline = original_text[-1] == '\n'
             #final_double_newline = original_text[-2] == '\n'
         except IndexError:
+            initial_newline = False
             final_newline = False
             #final_double_newline = False
 
@@ -857,6 +859,7 @@ class Pointer(object):
                 else:
                     joinedlines = line + " " + textlines[i+1]
                 words = joinedlines.split(' ')
+                #print words
                 firstline = ''
                 while onscreen_length(firstline + " ") <= self.max_width:
                     if onscreen_length(firstline) + onscreen_length(words[0]) <= self.max_width:
@@ -875,10 +878,15 @@ class Pointer(object):
         if textlines[-1].endswith(" "):
             textlines[-1].rstrip()
         new_text = '\n'.join(textlines)
+
+        if initial_newline:
+            new_text = "\n" + new_text
+            
         if final_double_newline:
             new_text += "\n\x13\n"
         elif final_newline:
             new_text += "\n"
+
         # So even adding one newline changes the length of the total text, of course.
         # So pointers still need to be adjusted.
 
@@ -892,8 +900,8 @@ class Pointer(object):
             print "probably don't replace that one, needs a pointer change"
         else:
             if old_bytestring != new_bytestring:
-                #print original_text
-                #print new_text
+                print original_text
+                print new_text
                 try:
                     i = self.gamefile.filestring.index(old_bytestring)
                 except ValueError:
