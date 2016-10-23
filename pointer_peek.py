@@ -4,7 +4,7 @@ Takes a file and an offset of a pointer and returns what that pointer points to,
 
 import sys
 import os
-from utils import SRC_PATH, DEST_PATH, unpack
+from utils import SRC_PATH, DEST_PATH, unpack, ascii_to_hex_string
 from rominfo import POINTER_CONSTANT
 
 def ensure_src_file_path(str):
@@ -66,6 +66,8 @@ def text_with_pointer(filename, pointer_offset):
 
         return text_at_offset(filename, destination)
 
+def bytestring_at_offset(filename, offset):
+    return ascii_to_hex_string(text_at_offset(filename, offset))
 
 if __name__ == '__main__':
     filename = sys.argv[1]
@@ -92,3 +94,4 @@ if __name__ == '__main__':
     pointed_location = pointer_value + constant
     print "points to:", hex(pointed_location)
     print text_at_offset(filepath, pointed_location)
+    print bytestring_at_offset(filepath, pointed_location)

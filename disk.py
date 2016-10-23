@@ -823,17 +823,38 @@ class Pointer(object):
         if original_text.isspace():
             return None
 
-        textlines = original_text.splitlines()
-
         if "Cancel" in original_text:
             return None
 
-        if len(textlines) > 5:
+        windows = original_text.split('\x13')  # split by <WAIT> conrol codes
+        # In the original text, this should just be one window with the strings,
+        # then one 'window' that's blank or a newline.
+        # As the text gets lengthened, it needs to be split into 3-line windows.
+        # Gotta figure out how to pick a spot for splitting...
+
+        textlines = original_text.splitlines()
+
+        if len(textlines) > 10:
             # Probably a pointer table
             return None
 
-        #print textlines
-        #print repr(original_text[-4:])
+        for w in windows:
+            assert len(w.splitlines()) <= 5, (w.splitlines(), self.gamefile, hex(self.text_location))
+        # Maximum length of window:
+        # (1) <LN>
+        # (2) <LN>
+        # (3) "Wah!!"
+        # (4) <LN>
+        # (5) <LN><END>
+        # ...??? They're usually just 3 lines. I think the Lunarian/Mu war has 
+        # a few strings like this for some reason. I wonder why?
+
+        assert len(textlines) <= 4, textlines
+        # Maximum length of textlines:
+        # (1) Eusthenopteron A
+        # (2) "Hey you. Are you going into the light
+        # (3) to change your body...?"<WAIT>
+        # (4) <LN>
 
         try:
             initial_newline = original_text[0] == '\n'
@@ -868,20 +889,21 @@ class Pointer(object):
                             firstline += " "
                         firstline += words.pop(0)
                     else:
-                        firstline.rstrip(" ")
+                        firstline = firstline.rstrip(" ")
                         break
                 secondline = ' '.join(words)
+                #secondline = secondline.rstrip()
                 if i == len(textlines) - 1:
                     textlines.append('')
                 
                 textlines[i], textlines[i+1] = firstline, secondline
         if textlines[-1].endswith(" "):
-            textlines[-1].rstrip()
+            textlines[-1] = textlines[-1].rstrip()
         new_text = '\n'.join(textlines)
 
         if initial_newline:
             new_text = "\n" + new_text
-            
+
         if final_double_newline:
             new_text += "\n\x13\n"
         elif final_newline:
