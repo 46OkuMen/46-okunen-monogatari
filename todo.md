@@ -10,6 +10,11 @@
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
 ## Text Oddities
+* Ch4: Work, Refuse, d
+* Ch4: "I believe I can thiank you properly now." "Hold on to me!" have a text leak of EVO Encyclopedia after them.
+* Ch4: "Fellas! With me!" is followed by "Are you stupid? YOu're so disgusting I don't even feel like eating you!" which probably doesn't belong there.
+* Ch4: "Let's go, fellas!" is followed by 'However..."'
+
 * Strings with numbers which get displayed more than once have the numbers get corrupted into ASCII letters.
     * "One pillar alone was over (10m) P0m, at the very least."
     * "R.T (3.5) billion years"
@@ -57,7 +62,7 @@
     * Chapter 1: done.
     * Chapter 2: done.
     * Chapter 3: done.
-    * Chapter 4: not started.
+    * Chapter 4: done.
     * Chapter 5: partially done, from the Carnivorous Primate Boss forward.
     * Chapter 6: done.
 
@@ -114,6 +119,30 @@
 * Looks like the .gitignore is on the fritz...
 
 * Flashing lights warning?
+
+### portuguese stuff
+* What characters go unused in the game script? Need maybe 26 of them.
+    * 23 #
+    * 24 $
+    * 25 %
+    * 26 &
+    * 2B +
+    * 2F /
+    * 3C <
+    * 3D =
+    * 3E >
+    * 40 @
+    * 5B [
+    * 5C yen
+    * 5D ]
+    * 5E ^
+    * 5F _
+    * 60 `
+    * 7B {
+    * 7C |
+    * 7D }
+    * 7E overscore
+    * Actually less complicated to implement would be A1-DF, which are half-width kana.
 
 ### common problems and their solutions
 * If a "&" appears before a string when it gets replaced:
