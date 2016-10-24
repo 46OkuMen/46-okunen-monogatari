@@ -31,13 +31,14 @@
 
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
-* Random "u" being shown during the Ending.
-
 * "Wisdom" runs against the stat number, any way to realign it?
 
 * Ch4 "Load EVO" menu option has a space in front of it.
 
 * Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
+
+* Is there supposed to be a GEAGR message at the end of the game? (Check the original JP version)
+    * Yes. (Only if you press a key?)
 
 ## Freeing Space
 * What locations actually have the "Can't save EVO" restriction? That string and the "curse" string can be blanked in chapters without it.
@@ -55,8 +56,7 @@
 
 * Text reaching the end of a line automatically inserts a line break, so the limits are usually 1 less than I currently have them...
 
-* Because text speed=0 makes some text unreadable if arranged improperly, I need to nail down the rules.
-    * No more than 3 lines between <WAIT>s?
+* Split text into 3-line windows. 
 
 * Determine the widths of every string in the game.
     * Chapter 1: done.
@@ -65,6 +65,10 @@
     * Chapter 4: done.
     * Chapter 5: partially done, from the Carnivorous Primate Boss forward.
     * Chapter 6: done.
+
+* Determine alignment of ENDING credits entries. (Lots of text is already centered)
+
+* Center ENDING story text.
 
 * If space permits, I should add the capability to indent, center, or right-align to text of importance.
 

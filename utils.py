@@ -67,13 +67,6 @@ def pointer_value_from_location(offset, constant):
     # Subtract the constant, pack it. Then that's the value to look for among the pointers already mapped out in excel.
     return offset - constant
 
-def get_current_block(file, text_offset ):
-    """Return the block object of a given offset."""
-    for index, block in enumerate(file.blocks):
-        lo, hi = block.start, block.stop
-        if (text_offset >= lo) and (text_offset < hi):
-            return index
-
 def first_offset_in_block(file, block_index, offsets):
     if not offsets:
         return None
