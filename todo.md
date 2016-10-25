@@ -6,10 +6,20 @@
 * Minimizing arbitrary limits on the translation
 * Having a nice codebase
 
-## Crashes
+### Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
-## Text Oddities
+### Text Oddities
+* I messed up the menu items again when I synced the translation sheets...
+    * Chapter 1: fixed
+    * Chapter 2: fixed
+    * Chapter 3: fixed
+    * Chapter 4: fixed
+    * Chapter 5: fixed
+    * Chapter 6: fixed
+
+* Ch2: Blank text in marshland after the Cacops Crew.
+
 * Ch4: Work, Refuse, d
 * Ch4: "I believe I can thiank you properly now." "Hold on to me!" have a text leak of EVO Encyclopedia after them.
 * Ch4: "Fellas! With me!" is followed by "Are you stupid? YOu're so disgusting I don't even feel like eating you!" which probably doesn't belong there.
@@ -33,20 +43,16 @@
 
 * "Wisdom" runs against the stat number, any way to realign it?
 
-* Ch4 "Load EVO" menu option has a space in front of it.
-
 * Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
 
-* Is there supposed to be a GEAGR message at the end of the game? (Check the original JP version)
-    * Yes. (Only if you press a key?)
-
-## Freeing Space
+### Freeing Space
 * What locations actually have the "Can't save EVO" restriction? That string and the "curse" string can be blanked in chapters without it.
     * The Hemicyclapsis cave in Ch1.
     * Nothing in Ch5.
     * Nothing in Ch6.
 
-## Tools
+### Tools
+* write() for .DAT files seems to write files of their original length, not their expanded length...
 
 ### Typesetting
 * Be able to adjust pointers, and add more <LN> and <WAIT> control codes.
@@ -58,19 +64,12 @@
 
 * Split text into 3-line windows. 
 
-* Determine the widths of every string in the game.
-    * Chapter 1: done.
-    * Chapter 2: done.
-    * Chapter 3: done.
-    * Chapter 4: done.
-    * Chapter 5: partially done, from the Carnivorous Primate Boss forward.
-    * Chapter 6: done.
-
 * Determine alignment of ENDING credits entries. (Lots of text is already centered)
 
 * Center ENDING story text.
 
 * If space permits, I should add the capability to indent, center, or right-align to text of importance.
+    * Use integrate_spaces() to note the number of spaces before a string, that'll be easier than playing through the game in JP again.
 
 ### rerouting pointers for duplicate strings 
 * ST1.EXE, "Got %dp. EVO Genes."

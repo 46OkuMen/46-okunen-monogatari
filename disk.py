@@ -359,7 +359,7 @@ class DATFile(Gamefile):
                 continue
             jp_bytestring = sjis_to_hex_string(trans.japanese)
 
-            #trans.english = trans.simple_typeset()
+            trans.english = trans.simple_typeset()
             en_bytestring = ascii_to_hex_string(trans.english)
 
             self.filestring = self.filestring.replace(jp_bytestring, en_bytestring, 1)
@@ -689,6 +689,38 @@ class Translation(object):
 
             scan += 4
             snippet_right_before = self.block.blockstring[loc+scan:loc+scan+4]
+
+
+    def simple_typeset(self):
+        """
+        Typeset a simple DAT string.
+        No pointer-editing or length checking beyond 2 lines.
+        Only aware of the current translation; can't prepend excess to the next translation.
+        """
+        if isinstance(self.english, long):
+            return self.english
+        if onscreen_length(self.english) > DAT_MAX_LENGTH:
+            #lines = self.english.split('\n')
+            words = self.english.split(' ')
+            firstline = ''
+            while onscreen_length(firstline) <= DAT_MAX_LENGTH:
+                if onscreen_length(firstline + " " + words[0]) <= DAT_MAX_LENGTH:
+                    if len(firstline) > 0:
+                        firstline += " "
+                    firstline += words.pop(0)
+                else:
+                    firstline = firstline.rstrip(' ')
+                    break
+            secondline = ' '.join(words)
+            # TODO: There are some lines in SEND.DAT that are more than 2 lines long.
+            #assert onscreen_length(secondline) <= DAT_MAX_LENGTH
+            if self.block.gamefile.filename == 'SINKA.DAT':
+                secondline = '        ' + secondline
+                
+            combinedlines = "\n".join([firstline, secondline])
+        else:
+            return self.english
+        return combinedlines
 
     def __repr__(self):
         return hex(self.location) + " " + self.english
