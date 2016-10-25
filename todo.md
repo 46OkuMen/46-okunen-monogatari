@@ -10,14 +10,6 @@
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
 ### Text Oddities
-* I messed up the menu items again when I synced the translation sheets...
-    * Chapter 1: fixed
-    * Chapter 2: fixed
-    * Chapter 3: fixed
-    * Chapter 4: fixed
-    * Chapter 5: fixed
-    * Chapter 6: fixed
-
 * Ch2: Blank text in marshland after the Cacops Crew.
 
 * Ch4: Work, Refuse, d
@@ -86,7 +78,7 @@
 * ST5S1.EXE, 'The frenzied Carnivorous Primate Boss attacks!'
 
 ### images
-* AV04.GDT is completely illegible, of course.
+* AV04B.GDT is completely illegible, of course.
     * When and why does the codec return "Sequence contains no elements"??
 
 * Let's try just getting the logo in the game as a placeholder.
@@ -112,6 +104,7 @@
             * 378 is closer still
             * 380-400 all don't work
             * 500 also doesn't work
+* With the luck I'm having, I may just want to try the whole damn thing. If I get lucky and it works, I'd like to only need to get lucky once.
 
 ### tech debt
 * Change the pointers API to store Pointer objs, not integers corresponding to text location.
@@ -125,27 +118,9 @@
 
 ### portuguese stuff
 * What characters go unused in the game script? Need maybe 26 of them.
-    * 23 #
-    * 24 $
-    * 25 %
-    * 26 &
-    * 2B +
-    * 2F /
-    * 3C <
-    * 3D =
-    * 3E >
-    * 40 @
-    * 5B [
-    * 5C yen
-    * 5D ]
-    * 5E ^
-    * 5F _
-    * 60 `
-    * 7B {
-    * 7C |
-    * 7D }
-    * 7E overscore
     * Actually less complicated to implement would be A1-DF, which are half-width kana.
+    * Anex86 needs anex86.bmp edits.
+    * np2 needs FONT.ROM edits.
 
 ### common problems and their solutions
 * If a "&" appears before a string when it gets replaced:
