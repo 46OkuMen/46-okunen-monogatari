@@ -2,19 +2,34 @@
     Typesetting tools for E.V.O.: The Theory of Evolution.
 """
 
-from utils import SRC_ROM_PATH, DEST_ROM_PATH, onscreen_length
+from utils import SRC_ROM_PATH, DEST_ROM_PATH, TYPESET_ROM_PATH, onscreen_length
 from rominfo import DAT_MAX_LENGTH
 
 from disk import Disk, EXEFile, DATFile, Pointer
 
-FILES_TO_TYPESET = ['SINKA.DAT', ]
+FILES_TO_TYPESET = ['ST1.EXE', ]
 
-def is_dialogue(str):
-    pass
+PATCHED_ROM_PATH = DEST_ROM_PATH
+TYPESET_ROM_PATH = TYPESET_ROM_PATH
 
 if __name__ == '__main__':
-    DiskA = Disk(SRC_ROM_PATH, DEST_ROM_PATH, FILES_TO_TYPESET)
+    DiskA = Disk(DEST_ROM_PATH, TYPESET_ROM_PATH, FILES_TO_TYPESET)
     for gamefile in DiskA.gamefiles:
+        gamefile.refresh_pointers()
+        for b in gamefile.blocks:
+            print "NEW BLOCK"
+            diff = 0
+            for p_int in b.get_pointers():
+                for pointer in gamefile.pointers[p_int]:
+                    pointer.edit(diff)
+                try:
+                    print gamefile.pointers[p_int][0].text()
+                    diff += gamefile.pointers[p_int][0].typeset()
+                    print gamefile.pointers[p_int][0].text()
+                except TypeError:
+                    pass
+
+"""
         if gamefile.filename.endswith('DAT'):
             for t in gamefile.blocks[0].translations:
                 t.english = t.simple_typeset()
@@ -61,3 +76,4 @@ if __name__ == '__main__':
                     # I can filter those out with a list comp, I think.
 
                     # I need to edit pointers as well, since I might add more line breaks. Tricky!
+"""

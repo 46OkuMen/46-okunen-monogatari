@@ -298,6 +298,10 @@ class EXEFile(Gamefile):
         result = self.disk.pointer_excel.get_pointers(self)
         return result
 
+    def refresh_pointers(self):
+        self.pointers = self.disk.pointer_excel.get_pointers(self, refresh=True)
+        return self.pointers
+
     def move_overflow(self):
         """
         Move the overflows to the spares, then reroute the pointers.
@@ -883,7 +887,7 @@ class Pointer(object):
                 #print words
                 firstline = ''
                 while onscreen_length(firstline + " ") <= self.max_width:
-                    if onscreen_length(firstline) + onscreen_length(words[0]) <= self.max_width:
+                    if onscreen_length(firstline) + onscreen_length(words[0]) < self.max_width:
                         # Only add a space if it's not empty to begin with.
                         if len(firstline) > 0:
                             firstline += " "
@@ -918,29 +922,27 @@ class Pointer(object):
         #print old_bytestring
         #print new_bytestring
 
-        if len(old_bytestring) != len(new_bytestring):
-            print "probably don't replace that one, needs a pointer change"
-        else:
-            if old_bytestring != new_bytestring:
-                print original_text
-                print new_text
-                try:
-                    i = self.gamefile.filestring.index(old_bytestring)
-                except ValueError:
-                    print "Couldn't find it in the whole block for some reason"
-                    return None
-                b = self.gamefile.block_at(i//2)
-                # it's in the filestring, but not the blockstring...
-                #print "found old bytestring at", hex(i//2)
-                #print b
-                #print b.blockstring
-                #print old_bytestring
-                try:
-                    bi = b.blockstring.index(old_bytestring)
-                    b.blockstring = b.blockstring.replace(old_bytestring, new_bytestring, 1)
-                except ValueError:
-                    print "Couldn't find it in that block for some reason"
-                #b.incorporate()
+        if old_bytestring != new_bytestring:
+            print original_text
+            print new_text
+            try:
+                i = self.gamefile.filestring.index(old_bytestring)
+            except ValueError:
+                print "Couldn't find it in the whole block for some reason"
+                return None
+            b = self.gamefile.block_at(i//2)
+            # it's in the filestring, but not the blockstring...
+            #print "found old bytestring at", hex(i//2)
+            #print b
+            #print b.blockstring
+            #print old_bytestring
+            try:
+                bi = b.blockstring.index(old_bytestring)
+                b.blockstring = b.blockstring.replace(old_bytestring, new_bytestring, 1)
+            except ValueError:
+                print "Couldn't find it in that block for some reason"
+            #b.incorporate()
+            return len(new_bytestring) - len(old_bytestring) # for pointer adjustment
 
     def __repr__(self):
         return "%s pointing to %s" % (hex(self.location), hex(self.text_location))
@@ -985,6 +987,7 @@ class DumpExcel(object):
                 trans.append(Translation(block, offset, japanese, english, is_wide))
         return trans
 
+
 class PointerExcel(object):
     """
     Takes a pointer dump excel path, and lets you grab the relevant pointers from it.
@@ -994,7 +997,7 @@ class PointerExcel(object):
         self.pointer_wb = load_workbook(self.path)
         self.pointer_sheet = self.pointer_wb.worksheets[0]
 
-    def get_pointers(self, gamefile):
+    def get_pointers(self, gamefile, refresh=False):
         """Retrieve all relevant pointers from the pointer sheet."""
         ptrs = {}
 
@@ -1031,11 +1034,18 @@ class PointerExcel(object):
             except KeyError:
                 pass
 
+            if refresh:
+                # Grab the text offset from the filestring instead.
+                pointer_word = gamefile.filestring[pointer_offset*2:(pointer_offset+2)*2]
+                pointer_value = unpack(pointer_word[:2], pointer_word[2:])
+                text_offset = pointer_value + POINTER_CONSTANT[gamefile.filename]
+
             if text_offset in ptrs:
                 ptrs[text_offset].append(ptr)
             else:
                 ptrs[text_offset] = [ptr]
         return ptrs
+
 
 class Overflow(object):
     """A string of data that must be repositioned elsewhere."""

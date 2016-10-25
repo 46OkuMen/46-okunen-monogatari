@@ -15,7 +15,7 @@ FILES_TO_TYPESET = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S
 if __name__ == '__main__':
     DiskA = Disk(SRC_ROM_PATH, DEST_ROM_PATH, FILES_TO_TRANSLATE)
     DiskA.translate()
-    DiskA.typeset(FILES_TO_TYPESET)
+    #DiskA.typeset(FILES_TO_TYPESET)
 
     #change_starting_map('ST1.EXE', 101)
     #change_starting_map('ST5.EXE', 600)
