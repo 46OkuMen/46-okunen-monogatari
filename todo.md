@@ -42,19 +42,15 @@
 ### Freeing Space
 * What locations actually have the "Can't save EVO" restriction? That string and the "curse" string can be blanked in chapters without it.
     * The Hemicyclapsis cave in Ch1.
-    * Nothing in Ch5.
     * Nothing in Ch6.
 
 ### Tools
 * write() for .DAT files seems to write files of their original length, not their expanded length...
 
 ### Typesetting
-* Be able to adjust pointers, and add more <LN> and <WAIT> control codes.
-    * Adding another <LN> at the end seems necessary...
+* What's causing the infinite loops in ST2, ST3, ST4, ST5 typesetting?
 
-* See what's going wrong in the weird replacement scenarios.
-
-* Text reaching the end of a line automatically inserts a line break, so the limits are usually 1 less than I currently have them...
+* ST5S1 has an assertion error about too many textlines in a pointer.
 
 * Split text into 3-line windows. 
 
@@ -62,8 +58,7 @@
 
 * Center ENDING story text.
 
-* If space permits, I should add the capability to indent, center, or right-align to text of importance.
-    * Use integrate_spaces() to note the number of spaces before a string, that'll be easier than playing through the game in JP again.
+* Undo integrate_spaces() if possible.
 
 ### rerouting pointers for duplicate strings 
 * ST1.EXE, "Got %dp. EVO Genes."

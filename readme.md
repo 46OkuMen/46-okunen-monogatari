@@ -14,14 +14,14 @@ Here's how much of the script currently fits in the game:
 | Chapter 2    |100%  | (434 / 434)  |
 | Chapter 3    |100%  | (338 / 338)  |
 | Chapter 4    |100%  | (747 / 747)  |
-| Chapter 5    | 98%  | (877 / 892)  |
+| Chapter 5    |100%  | (892 / 892)  |
 | Chapter 6    | 97%  | (312 / 319)  |
 | Ending       |100%  |  (70 / 70)   |
 | System       |100%  |   (5 / 5)    |
 | Images       | 89%  |   (8 / 9)    |
 | Encyclopedia |100%  | (935 / 935)  |
 | Game Overs   |100%  | (729 / 729)  |
-| Total        | 99%  |(5338 / 5367) |
+| Total        | 99%  |(5353 / 5367) |
 
 This doesn't count typesetting, editing, or bugfixes. There's a lot of text, so those will take a while!
 
