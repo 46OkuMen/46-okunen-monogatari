@@ -37,6 +37,8 @@
 
 * Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
 
+* Add a space after the number in the switch disks message in 46.EXE
+
 ### Freeing Space
 * What locations actually have the "Can't save EVO" restriction? That string and the "curse" string can be blanked in chapters without it.
     * The Hemicyclapsis cave in Ch1.

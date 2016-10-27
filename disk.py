@@ -849,17 +849,13 @@ class Pointer(object):
         """
         Find all the newlines in the pointer, then move them around.
         """
-        if self.translations:
-            for t in self.translations:
-                if not t.english:
-                    return None
-
         original_text = self.text()
 
-        if original_text.isspace():
+        if original_text.isspace() or "Cancel" in original_text:
             return None
 
-        if "Cancel" in original_text:
+        # Bad stuff happens if this method gets its hands on menu options
+        if "EVO" in original_text:
             return None
 
         windows = original_text.split('\x13')  # split by <WAIT> conrol codes
@@ -902,12 +898,17 @@ class Pointer(object):
             #final_double_newline = False
 
         try:
-            final_double_newline = original_text[-3:] == '\n\x13\n'
-            if final_double_newline:
+            final_ln_wait_ln = original_text[-3:] == '\n\x13\n'
+            final_wait_ln_ln = original_text[-3:] == '\x13\n\n'
+            if final_ln_wait_ln:
                 #print "final double newline is true", repr(textlines[-1])
                 textlines.pop(-1)
+            if final_wait_ln_ln:
+                textlines.pop(-1)
+                textlines = [t.rstrip('\x13') for t in textlines]
         except IndexError:
-            final_double_newline = False
+            final_ln_wait_ln = False
+            final_wait_ln_ln = False
 
         for i, line in enumerate(textlines):
             if onscreen_length(line) > self.max_width:
@@ -937,11 +938,14 @@ class Pointer(object):
             textlines[-1] = textlines[-1].rstrip()
         new_text = '\n'.join(textlines)
 
-        if initial_newline:
-            new_text = "\n" + new_text
+        # TODO: Disabling this temporarily.
+        #if initial_newline:
+        #    new_text = "\n" + new_text
 
-        if final_double_newline:
+        if final_ln_wait_ln:
             new_text += "\n\x13\n"
+        elif final_wait_ln_ln:
+            new_text += "\x13\n\n"
         elif final_newline:
             new_text += "\n"
 
@@ -951,10 +955,10 @@ class Pointer(object):
         old_bytestring = ascii_to_hex_string(original_text)
         new_bytestring = ascii_to_hex_string(new_text)
 
-        #print old_bytestring
-        #print new_bytestring
-
         if old_bytestring != new_bytestring:
+            print old_bytestring
+            print new_bytestring
+
             print original_text
             print new_text
             try:
@@ -962,18 +966,16 @@ class Pointer(object):
             except ValueError:
                 print "Couldn't find it in the whole block for some reason"
                 return None
+
             b = self.gamefile.block_at(i//2)
-            # it's in the filestring, but not the blockstring...
-            #print "found old bytestring at", hex(i//2)
-            #print b
-            #print b.blockstring
-            #print old_bytestring
+
             try:
                 bi = b.blockstring.index(old_bytestring)
                 b.blockstring = b.blockstring.replace(old_bytestring, new_bytestring, 1)
             except ValueError:
                 print "Couldn't find it in that block for some reason"
-            #b.incorporate()
+            b.incorporate()
+
             return len(new_bytestring) - len(old_bytestring) # for pointer adjustment
 
     def __repr__(self):

@@ -18,16 +18,19 @@ if __name__ == '__main__':
         gamefile.refresh_pointers()
         for b in gamefile.blocks:
             print "NEW BLOCK"
-            diff = 0
             for p_int in b.get_pointers():
-                for pointer in gamefile.pointers[p_int]:
-                    pointer.edit(diff)
-                try:
-                    print gamefile.pointers[p_int][0].text()
-                    diff += gamefile.pointers[p_int][0].typeset()
-                    print gamefile.pointers[p_int][0].text()
-                except TypeError:
-                    pass
+                first_pointer = gamefile.pointers[p_int][0]
+                if len(first_pointer.translations) > 0:
+                    try:
+                        original_text = str(first_pointer.text())
+                        first_pointer.typeset()
+                        #if original_text != first_pointer.text():
+                        #    print original_text
+                        #    print first_pointer.text()
+                    except TypeError:
+                        pass
+        gamefile.incorporate()
+    DiskA.write()
 
 """
         if gamefile.filename.endswith('DAT'):

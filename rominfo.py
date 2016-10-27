@@ -213,10 +213,10 @@ POINTER_ABSORB = {
   ('ST5S3.EXE', 0x4c3): 0x3e4a,  # Escape
   ('ST5S3.EXE', 0x3f66): 0x3db9, # Cancel (Tablet)
   ('ST5S3.EXE', 0x3f7e): 0x3db9, # Cancel (Items)
-  ('ST5S3.EXE', 0x1d64): 0x476d, # Bone
-  ('ST5S3.EXE', 0x1d7d): 0x4774, # Live COals
-  ('ST5S3.EXE', 0x1d96): 0x477b, # Fur
-  ('ST5S3.EXE', 0x1daf): 0x4782, # Tablet
+ # ('ST5S3.EXE', 0x1d64): 0x476d, # Bone
+ # ('ST5S3.EXE', 0x1d7d): 0x4774, # Live COals
+ # ('ST5S3.EXE', 0x1d96): 0x477b, # Fur
+ # ('ST5S3.EXE', 0x1daf): 0x4782, # Tablet
   ('ST3.EXE', 0x0365): 0xd8b8,   # randomly in middle of Lucier's speech 1
   ('ST3.EXE', 0x0370): 0xd8b8,   # 2
   ('ST3.EXE', 0x037b): 0xd8b8,   # 3
