@@ -9,8 +9,27 @@
 ### Crashes
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
+* Crash after defeating final boss on kuoushi's end.
+
 ### Text Oddities
+* Ending: 'u' problem showing up again.
+    * Text is at 0x3e41, so the pointer value is a1-04
+    * Pointer at 0x3b92
+    * Pointer at 0x3bb6
+    * Pointer at 0x3bce
+    * Pointer at 0x3be6
+    * Pointer at 0x3c2e
+    * What do these pointers originally point to?
+        * Looks like they point to the last character of "Enix Staff - Mochizuki Keizou"... as expected?
+        * Can I just change that to an <END> control code?
+            * Nope, that starts up the indigo children earth glowing sequence for some reason.
+            * I can just insert a 4f byte where that pointer goes, though.
+                * And I can put an 00 <END> right before it to make sure it doesn't show up.
+                * And thus the [004F] control code was born.
+
 * Ch2: Blank text in marshland after the Cacops Crew.
+
+* Ch6: Text leak on delivering the final blow.
 
 * Ch4: Work, Refuse, d
 * Ch4: "I believe I can thiank you properly now." "Hold on to me!" have a text leak of EVO Encyclopedia after them.

@@ -17,7 +17,8 @@ DAT_MAX_LENGTH = 71   # TODO: Check on SEND.DAT, see if they're indented.
 
 # TODO: EVO Files don't need to be a separate block.
 
-file_blocks = {'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
+file_blocks = {'46.EXE': ((0x94ba, 0x94e9),),
+               'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                                (0x55e9, 0x5639), # spare block
                                (0x5657, 0x586a), # cut scenes
                                (0x590e, 0x59ad)), # other spare
@@ -139,7 +140,8 @@ CREATURE_BLOCK = {'ST1.EXE': (0x10fca, 0x11595),
 # Usually the third-to-last block.
 
 # Starting position, in bytes, of each file within the Disk A rom.
-file_location = {'OPENING.EXE': 0x58800,
+file_location = {'46.EXE': 0x43c00,
+                 'OPENING.EXE': 0x58800,
                  'ST1.EXE': 0x5e800,
                  'ST2.EXE': 0x70c00,
                  'ST3.EXE': 0x81800,
@@ -154,7 +156,8 @@ file_location = {'OPENING.EXE': 0x58800,
                  'SEND.DAT': 0x34800,}
 
 # Length in bytes.
-file_length = {'OPENING.EXE': 0x5e4c,
+file_length = {'46.EXE': 0xa1d3,
+               'OPENING.EXE': 0x5e4c,
                'ST1.EXE': 0x121a8,
                'ST2.EXE': 0x109d6,
                'ST3.EXE':  0xefe8,
