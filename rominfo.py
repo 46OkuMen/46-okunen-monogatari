@@ -99,8 +99,8 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94e9),),
                            (0xcd14, 0xce25), # creature block
                            (0xcedf, 0xcf6f),
                            (0xcfab, 0xd0bc),  # battle text
-                           (0xd44a, 0xd756), # error block
-                           (0xd7fc, 0xd89c)), # otherspare
+                           (0xd44a, 0xd755), # error block
+                           (0xd7fc, 0xd89b)), # otherspare
                'ENDING.EXE': ((0x3c4e, 0x4b20),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
                'SEND.DAT': ((0x000, 0x8740),)}

@@ -753,6 +753,8 @@ class Pointer(object):
         else:
             self.max_width = 1000
 
+        self.new_text_location = self.text_location
+
     def get_translations(self):
         result = []
         for b in self.gamefile.blocks:
@@ -788,6 +790,8 @@ class Pointer(object):
             #    print "couldn't find that pointer"
             
             #self.text_location += diff
+
+            self.new_text_location += diff
 
     def _true_location(self):
         """
@@ -1147,6 +1151,7 @@ class Overflow(object):
 
                 # When there are multiple translated strings in an overflow bytestring,
                 p.edit(pointer_diff)
+                #print hex(p.new_text_location)
 
 
         assert len(self.bytestring) == len(self._temp_bytestring), "%s:\n%s\n%s" % (self, self.bytestring, self._temp_bytestring)
