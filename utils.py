@@ -124,6 +124,8 @@ def ascii_to_hex_string(eng):
         if '5b303034465d' in eng_bytestring:
             eng_bytestring = eng_bytestring.replace('5b303034465d', '004f')
 
+       # if '5b313632305d' in eng_bytestring:
+       #     eng_bytestring = eng_bytestring.replace('5b313632305d', '1620')
         return eng_bytestring
 
 def sjis_to_hex_string(jp, preserve_spaces=False):

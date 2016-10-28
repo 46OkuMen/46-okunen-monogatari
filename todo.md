@@ -10,6 +10,18 @@
 * The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
 
 * Crash after defeating final boss.
+    * Yep, it's definitely something in ST6 - a blank translation doesn't have this problem.
+    * Deleted strings 118-227, can't remember if worked
+    * Deleted strings 118-157, didn't work
+    * Deleted strings 159-301: works
+        * Deleted strings 289-301: doesn't work
+        * Deleted strings 159-200: works
+            * Deleted strings 159-176: works
+                * Deleted strings 175-176: Doesn't work
+                * Deleted strings 159-169: Doesn't work
+                * Deleted strings 170-174: works
+                    * Deleted strings 172-174:
+
 
 ### Text Oddities
 * Ch4: Work, Refuse, d
@@ -38,11 +50,6 @@
 * Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
 
 * Add a space after the number in the switch disks message in 46.EXE.
-
-### Freeing Space
-* What locations actually have the "Can't save EVO" restriction? That string and the "curse" string can be blanked in chapters without it.
-    * The Hemicyclapsis cave in Ch1.
-    * Nothing in Ch6.
 
 ### Tools
 * write() for .DAT files seems to write files of their original length, not their expanded length...

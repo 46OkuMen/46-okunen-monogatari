@@ -21,11 +21,11 @@ Here's how much of the script currently fits in the game:
 | Images       | 89%  |   (8 / 9)    |
 | Encyclopedia |100%  | (935 / 935)  |
 | Game Overs   |100%  | (729 / 729)  |
-| Total        | 99%  |(5366 / 5367) |
+| Total        | 99%  |(5056 / 5057) |
 
 This doesn't count typesetting, editing, or bugfixes. There's a lot of text, so those will take a while!
 
-For more details on the state of the project, [here is the current TODO list](../master/docs/todo.md).
+For more details on the state of the project, [here is the current TODO list](../master/todo.md).
 
 ### How do I use this?
 * Wait for it to be released!
