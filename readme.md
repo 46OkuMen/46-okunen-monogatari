@@ -25,7 +25,7 @@ Here's how much of the script currently fits in the game:
 
 This doesn't count typesetting, editing, or bugfixes. There's a lot of text, so those will take a while!
 
-For more details on the state of the project, [here is the current TODO list](../blob/master/docs/todo.md).
+For more details on the state of the project, [here is the current TODO list](../master/docs/todo.md).
 
 ### How do I use this?
 * Wait for it to be released!
