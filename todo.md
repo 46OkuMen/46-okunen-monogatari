@@ -20,7 +20,13 @@
                 * Deleted strings 175-176: Doesn't work
                 * Deleted strings 159-169: Doesn't work
                 * Deleted strings 170-174: works
-                    * Deleted strings 172-174:
+                    * Deleted strings 172-174: doesn't work
+                    * Deleted strings 170-171: doesn't work
+                    * Deleted strings 171-173: doesn't work
+                    * Deleted strings 171-172: doesn't work
+                    * Set strings 170-174 to the same length: works
+                        * (That could be a workaround.)
+                    * Split the block after string 174: works with full translation
 
 
 ### Text Oddities

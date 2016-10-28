@@ -94,7 +94,8 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94e9),),
                            (0xa59c, 0xaf5b), # stats/evolution # bug not in this one
                            (0xaf5b, 0xb459), # ends at MAP601.MAP
                            (0xb489, 0xb8d3), # ends at some pointers
-                           (0xb8ea, 0xccb1), # ends at some other maps
+                           (0xb8ea, 0xbb17), # ends after the crash text
+                           (0xbb17, 0xccd2), # ends at some code
                            (0xcd14, 0xce25), # creature block
                            (0xcedf, 0xcf6f),
                            (0xcfab, 0xd0bc),  # battle text
