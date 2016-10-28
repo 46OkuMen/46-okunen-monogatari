@@ -92,8 +92,7 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94e9),),
                              (0x503c, 0x50db)), # otherspare
                'ST6.EXE': ((0xa51b, 0xa55c), # enviro # bug not in this one
                            (0xa59c, 0xaf5b), # stats/evolution # bug not in this one
-                           (0xaf5b, 0xb066), # ends at TITLE6.GDT
-                           (0xb072, 0xb459), # ends at MAP601.MAP
+                           (0xaf5b, 0xb459), # ends at MAP601.MAP
                            (0xb489, 0xb8d3), # ends at some pointers
                            (0xb8ea, 0xccb1), # ends at some other maps
                            (0xcd14, 0xce25), # creature block

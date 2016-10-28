@@ -330,6 +330,7 @@ class EXEFile(Gamefile):
                     self.spares[i] = s[0] + overflow_length, s[1]
                     self.spares.sort(key=lambda x: x[1] - x[0])
                     overflow_stored = True
+                    print hex(s[0])
                     break
 
             if not overflow_stored:
@@ -548,15 +549,12 @@ class Block(object):
     def incorporate(self):
         """Write the new block to the source gamefile."""
         self.pad()
-        try:
-            i = self.gamefile.filestring.index(self.original_blockstring)
-            self.gamefile.filestring = self.gamefile.filestring.replace(self.original_blockstring, 
-                                                                    self.blockstring, 1)
-        except ValueError:
-            print "Couldn't find that for some reason, let's try just replacing it"
-            self.gamefile.filestring = self.gamefile.filestring.replace(self.gamefile.filestring[self.start*2:self.stop*2], self.blockstring)
- 
-        #self.original_blockstring = str(self.blockstring)
+
+        start_in_file = self.start*2
+        stop_in_file = self.stop*2
+
+        self.gamefile.filestring = self.gamefile.filestring[:start_in_file] + self.blockstring + self.gamefile.filestring[stop_in_file:]
+        assert len(self.gamefile.original_filestring) == len(self.gamefile.filestring)
 
     def identify_spares(self):
         """

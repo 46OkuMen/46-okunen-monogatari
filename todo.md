@@ -12,21 +12,6 @@
 * Crash after defeating final boss.
 
 ### Text Oddities
-* Ch2: Blank text upon entering the marshland, 0xf709, "You headed towards the valley leading to the marshlands.<LN>THe surroundings had a horrible stench like none you'd ever..."
-    * Pointer 0x6d5a (0x6d59) points to a bunch of spaces instead  of the text.
-        * It's pointing to the second spare block (0x10922) instead of the first, where it is (~0x106e3)
-        * Workaround: remove the other spare block.
-            * Still enough room to center and indent a lot of stuff, if not all stuff.
-        * But why is it happening in the first place?
-            * 0x106e3 is after all of the other overflow strings.
-            * This string is the only one that goes into the other spare block in the first place. When does it get moved out??
-
-* Ch6: Text leak on delivering the final blow.
-* Ch6: "Received %d damage" scrolls away too fast during hopeless battle.
-    * Is the string too long? Or does it just need a terminal newline removed?
-* Ch6: "The power of Dinosaur-life struck Devil(green flash)hed Enemy"
-    * Clearly some kind of pointer issue.
-
 * Ch4: Work, Refuse, d
 * Ch4: "I believe I can thiank you properly now." "Hold on to me!" have a text leak of EVO Encyclopedia after them.
 * Ch4: "Fellas! With me!" is followed by "Are you stupid? YOu're so disgusting I don't even feel like eating you!" which probably doesn't belong there.
@@ -52,7 +37,7 @@
 
 * Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
 
-* Add a space after the number in the switch disks message in 46.EXE
+* Add a space after the number in the switch disks message in 46.EXE.
 
 ### Freeing Space
 * What locations actually have the "Can't save EVO" restriction? That string and the "curse" string can be blanked in chapters without it.
