@@ -16,7 +16,8 @@ DAT_MAX_LENGTH = 71   # TODO: Check on SEND.DAT, see if they're indented.
 
 # TODO: EVO Files don't need to be a separate block.
 
-file_blocks = {'46.EXE': ((0x94ba, 0x94e9),),
+file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
+                          (0x96b0, 0x96be)),
                'OPENING.EXE': ((0x4ddb, 0x555f), # cut scene
                                (0x55e9, 0x5639), # spare block
                                (0x5657, 0x586a), # cut scenes

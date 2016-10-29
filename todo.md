@@ -31,17 +31,26 @@
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
 * "Wisdom" runs against the stat number, any way to realign it?
+    * Add another spreadsheet entry for "%d (%d)", and add spaces to the front of it.
+    * Chapter 1: done
+    * Chapter 2: done
+    * Chapter 3:
+    * Chapter 4:
+    * Chapter 5:
+    * Chapter 6:
 
 * Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
-
-* Add a space after the number in the switch disks message in 46.EXE.
+    * Chapter 1: done
+    * Chapter 2: ?
+    * Chapter 3: ?
+    * Chapter 4: ?
+    * Chapter 5: ?
+    * Chapter 6: ?
 
 ### Tools
 * write() for .DAT files seems to write files of their original length, not their expanded length...
 
 ### Typesetting
-* What's causing the infinite loops in ST2, ST3, ST4, ST5 typesetting?
-
 * So it looks like ST6.EXE has a lot of lines that end in <LN><END>, which means pointer_peek never looks past the end of that line. So that's why you get really short middle lines when it gets typeset.
     * Ah, sage. The planet's balance is beginning to crumble everywhere<LN><END>
     * due to the influence of the Witch's evil waves."<WAIT><LN><END>
@@ -50,6 +59,7 @@
 * ST5S1 has an assertion error about too many textlines in a pointer.
 
 * Split text into 3-line windows.
+    * Even including the nametag... very tricky.
 
 * Center ENDING story text.
 

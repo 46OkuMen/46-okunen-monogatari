@@ -857,7 +857,6 @@ class Pointer(object):
         Find all the newlines in the pointer, then move them around.
         """
         original_text = self.text()
-
         if original_text.isspace() or "Cancel" in original_text:
             return None
 
@@ -871,9 +870,6 @@ class Pointer(object):
             # Probably a pointer table
             return None
 
-        if len(textlines) > 4:
-            print "Tried to read something really long; ignore this for now"
-            return None
         # Maximum length of textlines:
         # (1) Eusthenopteron A
         # (2) "Hey you. Are you going into the light
