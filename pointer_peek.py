@@ -37,7 +37,7 @@ def word_at_offset(filename, offset):
             result += "%02x" % ord(b)
         return unpack(result[0:2], result[2:])
 
-def text_at_offset(filename, offset):
+def text_at_offset(filename, offset, go_until_wait=False):
     try:
         f = open(filename, 'rb')
     except TypeError:
@@ -47,7 +47,12 @@ def text_at_offset(filename, offset):
     f.seek(offset)
     result = ""
     data = f.read(1)
-    while ord(data) != 00:   # END control code
+    if go_until_wait:
+        control_code = 13
+    else:
+        control_code = 00
+
+    while ord(data) != control_code:   # END control code
         result += data
         data = f.read(1)
     f.close()

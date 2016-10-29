@@ -7,27 +7,6 @@
 * Having a nice codebase
 
 ### Crashes
-* The FDI rom crashes when ST1.EXE is reinserted - "Abnormal program termination".
-
-* Crash after defeating final boss.
-    * Yep, it's definitely something in ST6 - a blank translation doesn't have this problem.
-    * Deleted strings 118-227, can't remember if worked
-    * Deleted strings 118-157, didn't work
-    * Deleted strings 159-301: works
-        * Deleted strings 289-301: doesn't work
-        * Deleted strings 159-200: works
-            * Deleted strings 159-176: works
-                * Deleted strings 175-176: Doesn't work
-                * Deleted strings 159-169: Doesn't work
-                * Deleted strings 170-174: works
-                    * Deleted strings 172-174: doesn't work
-                    * Deleted strings 170-171: doesn't work
-                    * Deleted strings 171-173: doesn't work
-                    * Deleted strings 171-172: doesn't work
-                    * Set strings 170-174 to the same length: works
-                        * (That could be a workaround.)
-                    * Split the block after string 174: works with full translation
-
 
 ### Text Oddities
 * Ch4: Work, Refuse, d
@@ -63,29 +42,18 @@
 ### Typesetting
 * What's causing the infinite loops in ST2, ST3, ST4, ST5 typesetting?
 
+* So it looks like ST6.EXE has a lot of lines that end in <LN><END>, which means pointer_peek never looks past the end of that line. So that's why you get really short middle lines when it gets typeset.
+    * Ah, sage. The planet's balance is beginning to crumble everywhere<LN><END>
+    * due to the influence of the Witch's evil waves."<WAIT><LN><END>
+    * Gotta just take care of those manually, I suppose...?
+
 * ST5S1 has an assertion error about too many textlines in a pointer.
 
-* Split text into 3-line windows. 
-
-* Determine alignment of ENDING credits entries. (Lots of text is already centered)
+* Split text into 3-line windows.
 
 * Center ENDING story text.
 
 * Undo integrate_spaces() if possible.
-
-### rerouting pointers for duplicate strings 
-* ST1.EXE, "Got %dp. EVO Genes."
-    * Text at 0x691b, pointer at 0x1586.
-    * Text at 0x10f6e, pointer at 0x7731.
-* ST2.EXE, "Got %dp. EVO Genes."
-    * Text at 0xc263, pointer at 0x1746.
-    * Text at 0xe907, pointer at 0x5e4f.
-    * Text at 0xfa8a, pointer at 0x7255.
-* ST3.EXE, "Got %dp. EVO Genes."
-    * Text at 0xb531, pointer at 0x162a.
-    * Text at 0xd252, pointer at 0x59ae.
-    * Text at 0xdb25, pointer at 0x652e.
-* ST5S1.EXE, 'The frenzied Carnivorous Primate Boss attacks!'
 
 ### images
 * AV04B.GDT is completely illegible, of course.
@@ -122,8 +90,6 @@
 * Unify spare_block and other_spare_block.
 
 ### other
-* Looks like the .gitignore is on the fritz...
-
 * Flashing lights warning?
 
 ### portuguese stuff

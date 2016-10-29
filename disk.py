@@ -330,7 +330,6 @@ class EXEFile(Gamefile):
                     self.spares[i] = s[0] + overflow_length, s[1]
                     self.spares.sort(key=lambda x: x[1] - x[0])
                     overflow_stored = True
-                    print hex(s[0])
                     break
 
             if not overflow_stored:
@@ -820,7 +819,7 @@ class Pointer(object):
         return result
 
 
-    def text(self):
+    def text(self, go_until_wait=False):
         """
         Get what the pointer points to, ending at the END byte (00).
         """
@@ -828,12 +827,18 @@ class Pointer(object):
         pointer_value = word_at_offset(gamefile_path, self.location)
         pointer_location = pointer_value + POINTER_CONSTANT[self.gamefile.filename]
 
-        result = text_at_offset(self.gamefile, pointer_location)
+        if go_until_wait:
+            result = text_at_offset(self.gamefile, pointer_location, go_until_wait=True)
+        else:
+            result = text_at_offset(self.gamefile, pointer_location)
 
         # Sometimes there are pointers to control code right before an END.
         # Look a bit further in these cases.
         if len(result) < 2:
-            result = text_at_offset(self.gamefile, pointer_location+2)
+            if go_until_wait:
+                result = text_at_offset(self.gamefile, pointer_location+2, go_until_wait=True)
+            else:
+                result = text_at_offset(self.gamefile, pointer_location+2)
         return result
 
     def print_dialogue_box(self):
@@ -860,30 +865,15 @@ class Pointer(object):
         if "EVO" in original_text:
             return None
 
-        windows = original_text.split('\x13')  # split by <WAIT> conrol codes
-        # In the original text, this should just be one window with the strings,
-        # then one 'window' that's blank or a newline.
-        # As the text gets lengthened, it needs to be split into 3-line windows.
-        # Gotta figure out how to pick a spot for splitting...
-
         textlines = original_text.splitlines()
 
-        if len(textlines) > 10:
+        if len(textlines) > 8:
             # Probably a pointer table
             return None
 
-        for w in windows:
-            assert len(w.splitlines()) <= 5, (w.splitlines(), self.gamefile, hex(self.text_location))
-        # Maximum length of window:
-        # (1) <LN>
-        # (2) <LN>
-        # (3) "Wah!!"
-        # (4) <LN>
-        # (5) <LN><END>
-        # ...??? They're usually just 3 lines. I think the Lunarian/Mu war has 
-        # a few strings like this for some reason. I wonder why?
-
-        assert len(textlines) <= 4, textlines
+        if len(textlines) > 4:
+            print "Tried to read something really long; ignore this for now"
+            return None
         # Maximum length of textlines:
         # (1) Eusthenopteron A
         # (2) "Hey you. Are you going into the light
@@ -919,7 +909,6 @@ class Pointer(object):
                 else:
                     joinedlines = line + " " + textlines[i+1]
                 words = joinedlines.split(' ')
-                #print words
                 firstline = ''
                 while onscreen_length(firstline + " ") <= self.max_width:
                     if onscreen_length(firstline) + onscreen_length(words[0]) < self.max_width:
@@ -940,6 +929,7 @@ class Pointer(object):
             textlines[-1] = textlines[-1].rstrip()
         new_text = '\n'.join(textlines)
 
+
         # TODO: Disabling this temporarily.
         #if initial_newline:
         #    new_text = "\n" + new_text
@@ -951,18 +941,26 @@ class Pointer(object):
         elif final_newline:
             new_text += "\n"
 
-        # So even adding one newline changes the length of the total text, of course.
-        # So pointers still need to be adjusted.
+        windows = new_text.split('\x13')
+        for i, w in enumerate(windows):
+            if w.count('\n') > 2:
+                print w
+                if w.endswith('\n'):
+                    windows[i] = w[:-1] + " "
+        new_text = "\x13".join(windows)
 
         old_bytestring = ascii_to_hex_string(original_text)
         new_bytestring = ascii_to_hex_string(new_text)
 
         if old_bytestring != new_bytestring:
-            print old_bytestring
-            print new_bytestring
+            #print original_text
+            #print new_text
 
-            print original_text
-            print new_text
+            if len(old_bytestring) != len(new_bytestring):
+                print "too hard to reinsert right now:"
+                print original_text
+                return None
+
             try:
                 i = self.gamefile.filestring.index(old_bytestring)
             except ValueError:
