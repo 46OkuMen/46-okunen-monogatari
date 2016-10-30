@@ -29,6 +29,7 @@
     * Even including the nametag... very tricky.
     * Figured out which strings need this; it's all in the sheet now. Use the [SPLIT] control code.
         * Lines with a [SPLIT] need an extra <LN> at the end before the initial <WAIT>...
+            * This can go for pretty much any window that just ends with <WAIT><END>.  Assume that's wrong and add an <LN> before that ending...
 
 * Center ENDING story text.
 

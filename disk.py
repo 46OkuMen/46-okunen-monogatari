@@ -886,14 +886,19 @@ class Pointer(object):
             #final_double_newline = False
 
         try:
+            final_ln_wait = original_text[-2:] ==      '\n\x13'
             final_ln_wait_ln = original_text[-3:] == '\n\x13\n'
             final_wait_ln_ln = original_text[-3:] == '\x13\n\n'
+            if final_ln_wait:
+                textlines.pop(-1)
+                textlines[-1] = textlines[-1].rstrip('\x13').rstrip(' ')
             if final_ln_wait_ln:
                 textlines.pop(-1)
             if final_wait_ln_ln:
                 textlines.pop(-1)
                 textlines[-1] = textlines[-1].rstrip('\x13')
         except IndexError:
+            final_ln_wait = False
             final_ln_wait_ln = False
             final_wait_ln_ln = False
 
@@ -924,7 +929,9 @@ class Pointer(object):
             textlines[-1] = textlines[-1].rstrip()
         new_text = '\n'.join(textlines)
 
-        if final_ln_wait_ln:
+        if final_ln_wait:
+            new_text += '\n\x13'
+        elif final_ln_wait_ln:
             new_text += "\n\x13\n"
         elif final_wait_ln_ln:
             new_text += "\x13\n\n"
