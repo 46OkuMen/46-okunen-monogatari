@@ -889,11 +889,10 @@ class Pointer(object):
             final_ln_wait_ln = original_text[-3:] == '\n\x13\n'
             final_wait_ln_ln = original_text[-3:] == '\x13\n\n'
             if final_ln_wait_ln:
-                #print "final double newline is true", repr(textlines[-1])
                 textlines.pop(-1)
             if final_wait_ln_ln:
                 textlines.pop(-1)
-                textlines = [t.rstrip('\x13') for t in textlines]
+                textlines[-1] = textlines[-1].rstrip('\x13')
         except IndexError:
             final_ln_wait_ln = False
             final_wait_ln_ln = False
@@ -925,11 +924,6 @@ class Pointer(object):
             textlines[-1] = textlines[-1].rstrip()
         new_text = '\n'.join(textlines)
 
-
-        # TODO: Disabling this temporarily.
-        #if initial_newline:
-        #    new_text = "\n" + new_text
-
         if final_ln_wait_ln:
             new_text += "\n\x13\n"
         elif final_wait_ln_ln:
@@ -939,10 +933,22 @@ class Pointer(object):
 
         windows = new_text.split('\x13')
         for i, w in enumerate(windows):
+            # ignore the first line if it's blank; it just causes the next line to be printed at the middle.
+            # (Don't remove it from the actual window, just remove it from this copy of the window)
+            w = w.lstrip('\n')
+
+            # If there's more than 3 lines of text in the window, text will get scrolled offscreen.
             if w.count('\n') > 2:
-                print w
                 if w.endswith('\n'):
                     windows[i] = w[:-1] + " "
+                else:
+                    print "too many newlines:"
+                    print w
+                    print repr(w)
+
+                    # What should I do to break up text into multiple windows?
+                    # [SPLIT] control code = \x13\n\n
+
         new_text = "\x13".join(windows)
 
         old_bytestring = ascii_to_hex_string(original_text)
@@ -953,9 +959,17 @@ class Pointer(object):
             #print new_text
 
             if len(old_bytestring) != len(new_bytestring):
-                print "too hard to reinsert right now:"
-                print original_text
-                return None
+                diff = len(old_bytestring) - len(new_bytestring)
+                # salvaging tactic #1
+                if original_text[-1] == " " and diff == 2:
+                    new_bytestring += '20'
+                else:
+                    print "too hard to reinsert right now:"
+                    print original_text
+                    print new_text
+                    print old_bytestring
+                    print new_bytestring
+                    return None
 
             try:
                 i = self.gamefile.filestring.index(old_bytestring)

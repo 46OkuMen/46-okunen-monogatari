@@ -124,8 +124,14 @@ def ascii_to_hex_string(eng):
         if '5b303034465d' in eng_bytestring:
             eng_bytestring = eng_bytestring.replace('5b303034465d', '004f')
 
-       # if '5b313632305d' in eng_bytestring:
-       #     eng_bytestring = eng_bytestring.replace('5b313632305d', '1620')
+        # handle [SPLIT] control code
+        if '5b53504c49545d' in eng_bytestring:
+            eng_bytestring = eng_bytestring.replace('5b53504c49545d', '130a0a')
+
+        # handle [PAUSE] control code
+        if '5b50415553455d' in eng_bytestring:
+            eng_bytestring = eng_bytestring.replace('5b50415553455d', '1108')
+
         return eng_bytestring
 
 def sjis_to_hex_string(jp, preserve_spaces=False):
@@ -144,6 +150,11 @@ def sjis_to_hex_string(jp, preserve_spaces=False):
             if hexchar == '20': 
                 hexchar = '8140'
         jp_bytestring += hexchar
+
+    # handle [PAUSE] control code
+    if '5b50415553455d' in jp_bytestring:
+        jp_bytestring = jp_bytestring.replace('5b50415553455d', '1108')
+
     return jp_bytestring
 
 def onscreen_length(eng):

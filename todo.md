@@ -27,6 +27,8 @@
             * This instruction is present in gameplay files but not OPENING/ENDING.
     * Do you get the same effects if you just insert the fullwidth numbers in those places to begin with?
         * Looks like it crashes when it tries to render the fullwidth numbers in a string with ASCII stuff.
+    * I wonder if these instructions can be bypassed by messing with any of the ASCII numbers present in the files. 0123456789 etc
+        * Those don't appear to be related.
 
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
@@ -34,18 +36,29 @@
     * Add another spreadsheet entry for "%d (%d)", and add spaces to the front of it.
     * Chapter 1: done
     * Chapter 2: done
-    * Chapter 3:
-    * Chapter 4:
-    * Chapter 5:
-    * Chapter 6:
+    * Chapter 3: done
+    * Chapter 4: done
+    * Chapter 5: done
+    * Chapter 6: done
 
-* Make sure to fix the "Text Speed" alignment which gests messed up in a few chapters.
+* Make sure to fix the "Text Speed" alignment which gets messed up in a few chapters.
     * Chapter 1: done
-    * Chapter 2: ?
-    * Chapter 3: ?
-    * Chapter 4: ?
-    * Chapter 5: ?
-    * Chapter 6: ?
+    * Chapter 2: done
+    * Chapter 3: done
+    * Chapter 4: done
+    * Chapter 5: done
+    * Chapter 6: done
+
+* "There's a secret path to the eastern ocaen through this cave, but I won't tell you where it is!"
+    * Is there a "delay" control code \x11\x08 in the JP version?
+        * Yep. Looks like there are lots of those around, too - I need to go and mark them in every chapter.
+            * I'll only mark them if they're in the middle of a line, or whether they'd be better in the middle of the English line.
+            * Chapter 1: done
+            * Chapter 2:
+            * Chapter 3:
+            * Chapter 4:
+            * Chapter 5:
+            * Chapter 6:
 
 ### Tools
 * write() for .DAT files seems to write files of their original length, not their expanded length...
