@@ -107,7 +107,8 @@ def ascii_to_hex_string(eng):
         try:
             eng = str(eng)
         except UnicodeEncodeError:
-            # Using fullwidth numbers.
+            print "tried to encode a fullwidth number"
+            eng = eng.encode('shift-jis')
             pass
         for char in eng:
             eng_bytestring += "%02x" % ord(char)
@@ -126,6 +127,7 @@ def ascii_to_hex_string(eng):
 
         # handle [SPLIT] control code
         if '5b53504c49545d' in eng_bytestring:
+            # add <WAIT><LN><LN> at the position of [SPLIT]
             eng_bytestring = eng_bytestring.replace('5b53504c49545d', '130a0a')
 
         # handle [PAUSE] control code

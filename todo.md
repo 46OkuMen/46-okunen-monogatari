@@ -14,51 +14,7 @@
 * Ch4: "Fellas! With me!" is followed by "Are you stupid? YOu're so disgusting I don't even feel like eating you!" which probably doesn't belong there.
 * Ch4: "Let's go, fellas!" is followed by 'However..."'
 
-* Strings with numbers which get displayed more than once have the numbers get corrupted into ASCII letters.
-    * "One pillar alone was over (10m) P0m, at the very least."
-    * "R.T (3.5) billion years"
-    * "STT (5) evolve"
-    * O, P, (Q), R, S, T
-    * 0, 1, (2), 3, 4, 5
-    * ASCII letters: 4f, 50, 51, 52, 53, 54...
-    * ASCII numbers: 30, 31, 32, 33, 34, 35...
-    * SJIS numbers:824f, 50, 51, 52, 53, 54... (oh, ok)
-        * The game text-printing routine probably takes the number in memory, increments it by 0x1f, and prepends 82 to it prior to printing.
-            * This instruction is present in gameplay files but not OPENING/ENDING.
-    * Do you get the same effects if you just insert the fullwidth numbers in those places to begin with?
-        * Looks like it crashes when it tries to render the fullwidth numbers in a string with ASCII stuff.
-    * I wonder if these instructions can be bypassed by messing with any of the ASCII numbers present in the files. 0123456789 etc
-        * Those don't appear to be related.
-
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
-
-* "Wisdom" runs against the stat number, any way to realign it?
-    * Add another spreadsheet entry for "%d (%d)", and add spaces to the front of it.
-    * Chapter 1: done
-    * Chapter 2: done
-    * Chapter 3: done
-    * Chapter 4: done
-    * Chapter 5: done
-    * Chapter 6: done
-
-* Make sure to fix the "Text Speed" alignment which gets messed up in a few chapters.
-    * Chapter 1: done
-    * Chapter 2: done
-    * Chapter 3: done
-    * Chapter 4: done
-    * Chapter 5: done
-    * Chapter 6: done
-
-* "There's a secret path to the eastern ocaen through this cave, but I won't tell you where it is!"
-    * Is there a "delay" control code \x11\x08 in the JP version?
-        * Yep. Looks like there are lots of those around, too - I need to go and mark them in every chapter.
-            * I'll only mark them if they're in the middle of a line, or whether they'd be better in the middle of the English line.
-            * Chapter 1: done
-            * Chapter 2:
-            * Chapter 3:
-            * Chapter 4:
-            * Chapter 5:
-            * Chapter 6:
 
 ### Tools
 * write() for .DAT files seems to write files of their original length, not their expanded length...
@@ -69,10 +25,10 @@
     * due to the influence of the Witch's evil waves."<WAIT><LN><END>
     * Gotta just take care of those manually, I suppose...?
 
-* ST5S1 has an assertion error about too many textlines in a pointer.
-
 * Split text into 3-line windows.
     * Even including the nametag... very tricky.
+    * Figured out which strings need this; it's all in the sheet now. Use the [SPLIT] control code.
+        * Lines with a [SPLIT] need an extra <LN> at the end before the initial <WAIT>...
 
 * Center ENDING story text.
 
@@ -107,13 +63,18 @@
             * 500 also doesn't work
 * With the luck I'm having, I may just want to try the whole damn thing. If I get lucky and it works, I'd like to only need to get lucky once.
 
+* Reinsert the revised images.
+    * Prologue: this one's going to be hard, watch out
+    * Chapter 1: done
+    * Chapter 2: done
+    * Chapter 3: done
+    * Chapter 4: slight graphical glitch on left side of second 'r'
+    * Chapter 5:
+    * Chapter 6:
+    * Epilogue:
+
 ### tech debt
-* Change the pointers API to store Pointer objs, not integers corresponding to text location.
-
 * Unify spare_block and other_spare_block.
-
-### other
-* Flashing lights warning?
 
 ### portuguese stuff
 * What characters go unused in the game script? Need maybe 26 of them.

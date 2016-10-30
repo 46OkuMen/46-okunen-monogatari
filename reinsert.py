@@ -15,5 +15,5 @@ if __name__ == '__main__':
     DiskA.translate()
     #DiskA.typeset(FILES_TO_TYPESET)
 
-    change_starting_map('ST1.EXE', 101)
+    #change_starting_map('ST1.EXE', 101)
     #change_starting_map('ST5.EXE', 600)
