@@ -772,22 +772,6 @@ class Pointer(object):
                 
             self.gamefile.filestring = string_before + new_bytestring + string_after
 
-            ## TODO: Update the old text location and new text location blocks so they know this pointer has left/entered it in their block_pointers attribute.
-            #try: # (gotta check this; some pointers are moved around before they are assigned to files due to absorption)
-            #    self.gamefile.pointers[self.text_location].remove(self)
-            #    self.text_location += diff
-            #    if self.text_location in self.gamefile.pointers:
-            #        self.gamefile.pointers[self.text_location].append(self)
-            #    else:
-            #        self.gamefile_pointers[self.text_location] = [self,]
-            #    print "succeeded"
-            #except AttributeError:
-            #    pass
-            #except KeyError:
-            #    print "couldn't find that pointer"
-            
-            #self.text_location += diff
-
             self.new_text_location += diff
 
     def _true_location(self):
@@ -857,12 +841,18 @@ class Pointer(object):
         Find all the newlines in the pointer, then move them around.
         """
         original_text = self.text()
+
         if original_text.isspace() or "Cancel" in original_text:
             return None
 
         # Bad stuff happens if this method gets its hands on menu options
         if "EVO" in original_text:
             return None
+
+        if original_text[-1] == '\n' and original_text[-2] != '\x13':
+            print "trying go until wait instead"
+            original_text = self.text(go_until_wait=True)
+        print original_text
 
         textlines = original_text.splitlines()
 
@@ -875,6 +865,7 @@ class Pointer(object):
         # (2) "Hey you. Are you going into the light
         # (3) to change your body...?"<WAIT>
         # (4) <LN>
+
 
         try:
             initial_newline = original_text[0] == '\n'
@@ -981,7 +972,8 @@ class Pointer(object):
             try:
                 i = self.gamefile.filestring.index(old_bytestring)
             except ValueError:
-                print "Couldn't find it in the whole block for some reason"
+                print "Couldn't find it in the whole block for some reason:"
+                print original_text
                 return None
 
             b = self.gamefile.block_at(i//2)

@@ -16,10 +16,14 @@
 
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
+* Find other numbers that are likely victims of the number corruption bug.
+
 ### Tools
 * write() for .DAT files seems to write files of their original length, not their expanded length...
 
 ### Typesetting
+* I need to typeset by <WAIT> instead of by pointer.
+
 * So it looks like ST6.EXE has a lot of lines that end in <LN><END>, which means pointer_peek never looks past the end of that line. So that's why you get really short middle lines when it gets typeset.
     * Ah, sage. The planet's balance is beginning to crumble everywhere<LN><END>
     * due to the influence of the Witch's evil waves."<WAIT><LN><END>
@@ -30,49 +34,32 @@
     * Figured out which strings need this; it's all in the sheet now. Use the [SPLIT] control code.
         * Lines with a [SPLIT] need an extra <LN> at the end before the initial <WAIT>...
             * This can go for pretty much any window that just ends with <WAIT><END>.  Assume that's wrong and add an <LN> before that ending...
+    * Can I just assume that every window should have exactly 3 lines in it, not counting prepended newlines?
 
 * Center ENDING story text.
 
 * Undo integrate_spaces() if possible.
 
 ### images
-* AV04B.GDT is completely illegible, of course.
-    * When and why does the codec return "Sequence contains no elements"??
-
-* Let's try just getting the logo in the game as a placeholder.
-    * But it needs to take up most of the screen to prevent the previous images from showing through.
-        * Width:
-            * 600 is actually not wide enough - green graphical glitches show up on the side.
-        * Height:
-            * 258 doesn't work
-            * 250 works, but stuff shows through
-            * 266 doesn't work
-            * 286 doesn't work
-            * 300 doesn't work
-            * 302 doesn't work
-            * 304 doesn't work
-            * 306 doesn't work
-            * 308 doesn't work
-            * 310 doesn't work
-            * 314 doesn't work
-            * 358 doesn't work
-            * 360 is close to working, but not really
-            * 368 is also really close to working, but also not really
-            * 370, 372, 374 look the same as 368
-            * 378 is closer still
-            * 380-400 all don't work
-            * 500 also doesn't work
-* With the luck I'm having, I may just want to try the whole damn thing. If I get lucky and it works, I'd like to only need to get lucky once.
+* So, I'm having a lot of trouble reinserting anything taller than 254 pixels.
+    * 255 is the max value for 1 byte obviously. But height is stored in terms of scanlined rows, or height/2.
+        * So it's the difference between 0x7f height and 0x80.
 
 * Reinsert the revised images.
+    * Title: still stupidly hard
+        * "Index was outside the bounds of the array" when run through the decoder again. Generally fails after a few blocks of stars.
     * Prologue: this one's going to be hard, watch out
+        * Current status: all of image is visible, some of the previous image shows through on the bottom, and graphical glitches to the right
     * Chapter 1: done
-    * Chapter 2: done
+    * Chapter 2: minor glitch
+        * Ghosting on right side of final 'a'; will probably get fixed by running it through the new codec
     * Chapter 3: done
-    * Chapter 4: slight graphical glitch on left side of second 'r'
-    * Chapter 5:
-    * Chapter 6:
-    * Epilogue:
+    * Chapter 4: minor glitch
+        * left side of second 'r'
+    * Chapter 5: minor glitch
+        * left side of final "t"'s hat
+    * Chapter 6: done
+    * Epilogue:  done
 
 ### tech debt
 * Unify spare_block and other_spare_block.

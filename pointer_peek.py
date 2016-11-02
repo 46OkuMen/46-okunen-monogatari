@@ -48,7 +48,7 @@ def text_at_offset(filename, offset, go_until_wait=False):
     result = ""
     data = f.read(1)
     if go_until_wait:
-        control_code = 13
+        control_code = 0x13
     else:
         control_code = 00
 
