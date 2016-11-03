@@ -22,7 +22,13 @@
 * write() for .DAT files seems to write files of their original length, not their expanded length...
 
 ### Typesetting
-* Find overflowing windows.
+* Typesetting for SEND.DAT. How to deal with it?
+    * [PAGE] in the JP string marks a page break.
+        * [PAGE] codes for (3-n)*"0d0a", where n is the number of lines since the last page break.
+            * In the read-from-sheet method, keep track of that sort of thing.
+            * In the simple_typeset method, recalculate the number of lines and alter the 0d0a's as necessary.
+
+* Find overflowing windows. (4 or more lines). Put a [SPLIT] where appropriate. (Then unsink the final line of the original end of the text)
     * Chapter 1:
     * Chapter 2:
     * Chapter 3:
@@ -30,14 +36,21 @@
     * Chapter 5:
     * Chapter 6:
 
-* I need to typeset by <WAIT> instead of by pointer.
-    * ...Actually, that presents far more problems. Includes images with the strings, no way of knowing the targeted width of the text... It's pretty bad.
+* Find 'sunken' text. (text occupying bottom two rows with no newline at the end). Put a [LN] at the end of the final line.
+    * Chapter 1:
+    * Chapter 2:
+    * Chapter 3:
+    * Chapter 4:
+    * Chapter 5:
+    * Chapter 6:
 
-* So it looks like ST6.EXE has a lot of lines that end in <LN><END>, which means pointer_peek never looks past the end of that line. So that's why you get really short middle lines when it gets typeset.
-    * Ah, sage. The planet's balance is beginning to crumble everywhere<LN><END>
-    * due to the influence of the Witch's evil waves."<WAIT><LN><END>
-    * Gotta just take care of those manually, I suppose...?
-    * I should at least print what they are.
+* Find text that's typeset unaware of the next string. (Lines that contain only one word or so, when the next string could help fill up the rest of the line). Redistribute the text to even it out.
+    * Chapter 1:
+    * Chapter 2:
+    * Chapter 3:
+    * Chapter 4:
+    * Chapter 5:
+    * Chapter 6:
 
 * Split text into 3-line windows.
     * Even including the nametag... very tricky.
@@ -48,7 +61,13 @@
 
 * Center ENDING story text.
 
-* Undo integrate_spaces() if possible.
+* Re-align centered/indented dialogue that's had its spaces taken away.
+    * Chapter 1: done
+    * Chapter 2: done
+    * Chapter 3: done
+    * Chapter 4:
+    * Chapter 5:
+    * Chapter 6:
 
 ### images
 * So, I'm having a lot of trouble reinserting anything taller than 254 pixels.

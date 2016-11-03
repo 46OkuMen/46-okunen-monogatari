@@ -664,7 +664,7 @@ class Translation(object):
         self.jp_bytestring_alt = sjis_to_hex_string(japanese, preserve_spaces=True)
 
         self.spaces = 0
-        if isinstance(block.gamefile, EXEFile):
+        if isinstance(block.gamefile, EXEFile) or block.gamefile.filename == 'SEND.DAT':
             self.integrate_spaces()
 
     def integrate_spaces(self):
@@ -686,6 +686,8 @@ class Translation(object):
 
             scan += 4
             snippet_right_before = self.block.blockstring[loc+scan:loc+scan+4]
+        if scan > 4:
+            print "%s %s: %s spaces" % (self.block.gamefile, hex(self.location), scan//4)
 
 
     def simple_typeset(self):

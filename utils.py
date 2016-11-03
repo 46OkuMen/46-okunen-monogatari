@@ -151,7 +151,6 @@ def sjis_to_hex_string(jp, preserve_spaces=False):
     for char in sjis:
         hexchar = "%02x" % ord(char)
         # SJS spaces get mis-encoded as ascii, which means the strings don't get found. Fix to 81-40
-        # TODO: This doesn't seem to catch all of the spaces, for some reason...
         if not preserve_spaces:
             if hexchar == '20': 
                 hexchar = '8140'
@@ -160,6 +159,11 @@ def sjis_to_hex_string(jp, preserve_spaces=False):
     # handle [PAUSE] control code
     if '5b50415553455d' in jp_bytestring:
         jp_bytestring = jp_bytestring.replace('5b50415553455d', '1108')
+
+    # handle [PAGE] control code
+    if '5b504147455d' in jp_bytestring:
+        jp_bytestring = jp_bytestring.replace('5b504147455d', '')
+        # It can be a variable number of 0d0a's, so... need to think about the best way to handle this.
 
     return jp_bytestring
 
