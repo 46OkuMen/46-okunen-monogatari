@@ -849,11 +849,6 @@ class Pointer(object):
         if "EVO" in original_text:
             return None
 
-        if original_text[-1] == '\n' and original_text[-2] != '\x13':
-            print "trying go until wait instead"
-            original_text = self.text(go_until_wait=True)
-        print original_text
-
         textlines = original_text.splitlines()
 
         if len(textlines) > 8:
@@ -935,6 +930,11 @@ class Pointer(object):
             # (Don't remove it from the actual window, just remove it from this copy of the window)
             w = w.lstrip('\n')
 
+            # If there's fewer than 3 lines of text, the text will show up and wait at the bottom.
+            if w.count('\n') == 1:
+                print "not enough newlines:"
+                print repr(w)
+
             # If there's more than 3 lines of text in the window, text will get scrolled offscreen.
             if w.count('\n') > 2:
                 if w.endswith('\n'):
@@ -948,6 +948,16 @@ class Pointer(object):
                     # [SPLIT] control code = \x13\n\n
 
         new_text = "\x13".join(windows)
+
+        if original_text[-1] == '\n' and original_text[-2] != '\x13':
+            #print "check:"
+            #print self.text(go_until_wait=True)
+            newline_diff = new_text.count('\n') - original_text.count('\n')
+            if self.text(go_until_wait=True).count('\n') + newline_diff > 2:
+                print "check:"
+                print self.text(go_until_wait=True)
+                # TODO: This still doesn't catch what I want it to.
+                # Since the second part of the window gets typeset later, there's no way to tell...
 
         old_bytestring = ascii_to_hex_string(original_text)
         new_bytestring = ascii_to_hex_string(new_text)

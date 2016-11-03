@@ -22,12 +22,22 @@
 * write() for .DAT files seems to write files of their original length, not their expanded length...
 
 ### Typesetting
+* Find overflowing windows.
+    * Chapter 1:
+    * Chapter 2:
+    * Chapter 3:
+    * Chapter 4:
+    * Chapter 5:
+    * Chapter 6:
+
 * I need to typeset by <WAIT> instead of by pointer.
+    * ...Actually, that presents far more problems. Includes images with the strings, no way of knowing the targeted width of the text... It's pretty bad.
 
 * So it looks like ST6.EXE has a lot of lines that end in <LN><END>, which means pointer_peek never looks past the end of that line. So that's why you get really short middle lines when it gets typeset.
     * Ah, sage. The planet's balance is beginning to crumble everywhere<LN><END>
     * due to the influence of the Witch's evil waves."<WAIT><LN><END>
     * Gotta just take care of those manually, I suppose...?
+    * I should at least print what they are.
 
 * Split text into 3-line windows.
     * Even including the nametag... very tricky.

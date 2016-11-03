@@ -117,6 +117,10 @@ def ascii_to_hex_string(eng):
         if '5b424c414e4b5d' == eng_bytestring:
             eng_bytestring = ''
 
+        # handle [LN] control code
+        if '5b4c4e5d' in eng_bytestring:
+            eng_bytestring = eng_bytestring.replace('5b4c4e5d', '0a')
+
         # handle [DEGC] control code
         if '5b444547435d' in eng_bytestring:
             eng_bytestring = eng_bytestring.replace('5b444547435d', '818e')
