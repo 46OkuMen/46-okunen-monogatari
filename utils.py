@@ -107,36 +107,47 @@ def ascii_to_hex_string(eng):
         try:
             eng = str(eng)
         except UnicodeEncodeError:
-            print "tried to encode a fullwidth number"
+            # Tried to encode a fullwidth number. Encode it as sjis instead.
             eng = eng.encode('shift-jis')
             pass
         for char in eng:
             eng_bytestring += "%02x" % ord(char)
 
         # handle [BLANK] control code
+        # Blank string.
         if '5b424c414e4b5d' == eng_bytestring:
             eng_bytestring = ''
 
         # handle [LN] control code
+        # Just a newline.
         if '5b4c4e5d' in eng_bytestring:
             eng_bytestring = eng_bytestring.replace('5b4c4e5d', '0a')
 
         # handle [DEGC] control code
+        # Shift-JIS DEGREES CELSIUS symbol.
         if '5b444547435d' in eng_bytestring:
             eng_bytestring = eng_bytestring.replace('5b444547435d', '818e')
 
         # handle [004F] control code
+        # 'magic number' present in end credits for some reason.
         if '5b303034465d' in eng_bytestring:
             eng_bytestring = eng_bytestring.replace('5b303034465d', '004f')
 
         # handle [SPLIT] control code
+        # A wait and two newlines.
         if '5b53504c49545d' in eng_bytestring:
             # add <WAIT><LN><LN> at the position of [SPLIT]
             eng_bytestring = eng_bytestring.replace('5b53504c49545d', '130a0a')
 
         # handle [PAUSE] control code
+        # 'Pause' control code. Only used in first chapter for some reason.
         if '5b50415553455d' in eng_bytestring:
             eng_bytestring = eng_bytestring.replace('5b50415553455d', '1108')
+
+        # handle [SENLN] control code
+        # One newline used in SEND.DAT.
+        if '5b53454e4c4e5d' in eng_bytestring:
+            eng_bytestring = eng_bytestring.replace('5b53454e4c4e5d', '0d0a')
 
         return eng_bytestring
 
@@ -164,6 +175,10 @@ def sjis_to_hex_string(jp, preserve_spaces=False):
     if '5b504147455d' in jp_bytestring:
         jp_bytestring = jp_bytestring.replace('5b504147455d', '')
         # It can be a variable number of 0d0a's, so... need to think about the best way to handle this.
+
+    # handle [SENLN] control code
+    if '5b53454e4c4e5d' in jp_bytestring:
+        jp_bytestring = jp_bytestring.replace('5b53454e4c4e5d', '0d0a')
 
     return jp_bytestring
 

@@ -9,7 +9,7 @@ CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 CREATURE_MAX_LENGTH = 21
 DIALOGUE_MAX_LENGTH = 43
 FULLSCREEN_MAX_LENGTH = 75
-DAT_MAX_LENGTH = 71   # TODO: Check on SEND.DAT, see if they're indented.
+DAT_MAX_LENGTH = 77   # TODO: Check on SEND.DAT, see if they're indented.
 
 # TODO: Why did I use tuples of tuples? Why not a list of tuples? Less confusing that way.
 # How the files themselves get broken up for reinsertion.

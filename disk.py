@@ -71,6 +71,7 @@ class Disk(object):
             if gamefile.filename.endswith('DAT'):
                 gamefile.translate()
                 gamefile.write()
+                print "writing datfile"
                 gamefile.report_progress()
             else:
                 for block in gamefile.blocks:
@@ -354,14 +355,35 @@ class DATFile(Gamefile):
     def translate(self):
         """Replace all japanese strings with english ones.
         If only it were always that easy!"""
+        # (Actually a little more complicated. Gotta replace [PAGE] with appropriate [SENLN]s...)
+        lines_since_page_break = 0
         for trans in self.blocks[0].get_translations():
             if trans.english == "":
                 continue
             jp_bytestring = sjis_to_hex_string(trans.japanese)
 
-            trans.english = trans.simple_typeset()
+            if self.filename == 'SEND.DAT':
+                trans.english = trans.simple_typeset()
+                if '[PAGE]' in trans.english:
+                    lines_since_page_break += trans.english.count('\n') + 1
+                    trans.english = trans.english.replace('[PAGE]', '[SENLN]'*(4-lines_since_page_break))
+                    lines_since_page_break = 0
+                elif '/*' in trans.english or '.GDT' in trans.english or trans.english.startswith('-'):
+                    pass
+                else:
+                    lines_since_page_break += trans.english.count('\n') + 1
+            #print trans.english
+            assert '        ' not in trans.english
             en_bytestring = ascii_to_hex_string(trans.english)
 
+            print trans.english
+            print jp_bytestring
+            try:
+                i = self.filestring.index(jp_bytestring)
+            except ValueError:
+                if jp_bytestring.endswith('0d0a'):
+                    jp_bytestring = jp_bytestring[:-4]
+                i = self.filestring.index(jp_bytestring)
             self.filestring = self.filestring.replace(jp_bytestring, en_bytestring, 1)
 
 
@@ -648,7 +670,7 @@ class CreatureBlock(Block):
 
 class Translation(object):
     """Has an offset, a SJIS japanese string, and an ASCII english string."""
-    def __init__(self, block, location, japanese, english, is_wide):
+    def __init__(self, block, location, japanese, english, is_wide, page_break_suffix=''):
         self.location = location
         self.block = block
         self.japanese = japanese
@@ -666,6 +688,8 @@ class Translation(object):
         self.spaces = 0
         if isinstance(block.gamefile, EXEFile) or block.gamefile.filename == 'SEND.DAT':
             self.integrate_spaces()
+
+        self.page_break_suffix = page_break_suffix
 
     def integrate_spaces(self):
         """
@@ -698,28 +722,26 @@ class Translation(object):
         """
         if isinstance(self.english, long):
             return self.english
+
         if onscreen_length(self.english) > DAT_MAX_LENGTH:
-            #lines = self.english.split('\n')
             words = self.english.split(' ')
-            firstline = ''
-            while onscreen_length(firstline) <= DAT_MAX_LENGTH:
-                if onscreen_length(firstline + " " + words[0]) <= DAT_MAX_LENGTH:
-                    if len(firstline) > 0:
-                        firstline += " "
-                    firstline += words.pop(0)
-                else:
-                    firstline = firstline.rstrip(' ')
-                    break
-            secondline = ' '.join(words)
-            # TODO: There are some lines in SEND.DAT that are more than 2 lines long.
-            #assert onscreen_length(secondline) <= DAT_MAX_LENGTH
-            if self.block.gamefile.filename == 'SINKA.DAT':
-                secondline = '        ' + secondline
-                
-            combinedlines = "\n".join([firstline, secondline])
+            lines = []
+            line = ''
+
+            while words:
+                while onscreen_length(line) <= DAT_MAX_LENGTH and words:
+                    if onscreen_length(line + " " + words[0]) <= DAT_MAX_LENGTH:
+                        if len(line) > 0:
+                            line += " "
+                        line += words.pop(0)
+                    else:
+                        line = line.rstrip(' ')
+                        lines.append(line)
+                        line = ''
+                        break
+            return '\r\n'.join(lines)
         else:
             return self.english
-        return combinedlines
 
     def __repr__(self):
         return hex(self.location) + " " + self.english
@@ -1017,6 +1039,8 @@ class DumpExcel(object):
         trans = []    # translations[offset] = Translation()
         worksheet = self.workbook.get_sheet_by_name(block.gamefile.filename)
 
+        lines_since_page_break = 0
+
         for row in worksheet.rows[1:]:  # Skip the first row, it's just labels
             try:
                 offset = int(row[0].value, 16)
@@ -1031,7 +1055,7 @@ class DumpExcel(object):
                 else:
                     is_wide = False
 
-                if isinstance(japanese, float):
+                if isinstance(japanese, long):
                     # Causes some encoding problems? Trying to skip them for now
                     continue
 
@@ -1039,6 +1063,23 @@ class DumpExcel(object):
                 if not english:
                     english = ""
 
+                # Convert [PAGE] control codes to the appropriate number of [SENLN] control codes.
+                # Only necessary for SEND strings.
+                if block.gamefile.filename == 'SEND.DAT':
+                    if '[PAGE]' in japanese:
+                        print lines_since_page_break
+                        lines_since_page_break += 1
+                        japanese = japanese.replace('[PAGE]', '[SENLN]'*(4-lines_since_page_break))
+
+                        # This will get replaced by the appropriate number of [SENLN]s by the typesetter.
+                        english += '[PAGE]'
+                        lines_since_page_break = 0
+                    elif '.GDT' in japanese or '/*' in japanese:
+                        pass
+                    else:
+                        lines_since_page_break += 1
+                    assert lines_since_page_break <= 3
+                    print english
                 trans.append(Translation(block, offset, japanese, english, is_wide))
         return trans
 

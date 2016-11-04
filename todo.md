@@ -20,6 +20,7 @@
 
 ### Tools
 * write() for .DAT files seems to write files of their original length, not their expanded length...
+    * This will probably hurt my ability to reinsert these files. What's going on with them?
 
 ### Typesetting
 * Typesetting for SEND.DAT. How to deal with it?
@@ -27,6 +28,7 @@
         * [PAGE] codes for (3-n)*"0d0a", where n is the number of lines since the last page break.
             * In the read-from-sheet method, keep track of that sort of thing.
             * In the simple_typeset method, recalculate the number of lines and alter the 0d0a's as necessary.
+    * What's with the 8*0x20 spaces after newlines after this gets done??
 
 * Find overflowing windows. (4 or more lines). Put a [SPLIT] where appropriate. (Then unsink the final line of the original end of the text)
     * Chapter 1:
