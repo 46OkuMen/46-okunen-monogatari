@@ -18,8 +18,8 @@ The game this patch targets is the Japanese-only prequel to the cult classic act
 | Ending       |100%  |  (70 / 70)   | No       | Revision 1     |
 | System       |100%  |   (5 / 5)    |          | Final          |
 | Images       | 89%  |   (8 / 9)    |          | Draft          |
-| Encyclopedia |100%  | (935 / 935)  | No       | Draft          |
-| Game Overs   |100%  | (729 / 729)  | No       | Draft          |
+| Encyclopedia |100%  | (935 / 935)  | No       | Revision 1     |
+| Game Overs   |100%  | (729 / 729)  | No       | Revision 1     |
 | Total        | 99%  |(5056 / 5057) |          |                |
 
 It's harder to quanitify the status of the project for things like bugfixes, typesetting, etc. So be assured that while the project has made great progress, there's still plenty of work to do before a release.

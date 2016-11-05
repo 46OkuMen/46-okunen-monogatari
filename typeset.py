@@ -7,7 +7,7 @@ from rominfo import DAT_MAX_LENGTH
 
 from disk import Disk, EXEFile, DATFile, Pointer
 
-FILES_TO_TYPESET = ['SEND.DAT',]
+FILES_TO_TYPESET = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', 'ST6.EXE']
 
 PATCHED_ROM_PATH = DEST_ROM_PATH
 TYPESET_ROM_PATH = TYPESET_ROM_PATH
@@ -15,7 +15,7 @@ TYPESET_ROM_PATH = TYPESET_ROM_PATH
 if __name__ == '__main__':
     DiskA = Disk(DEST_ROM_PATH, TYPESET_ROM_PATH, FILES_TO_TYPESET)
     for gamefile in DiskA.gamefiles:
-        i#f gamefile == 'SEND.DAT':
+        #if gamefile == 'SEND.DAT':
          #   for t in gamefile.blocks[0].translations:
          #       t.simple_typeset()
          #       if t.english.count('[SENLN]') != 

@@ -9,7 +9,7 @@ from disk import Disk, EXEFile, DATFile
 
 FILES_TO_TRANSLATE = ['ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE',
                       'ST5S2.EXE', 'ST5S3.EXE', 'ST6.EXE', 'OPENING.EXE', 'SINKA.DAT',
-                      'OPENING.EXE', 'ENDING.EXE', '46.EXE', 'SEND.DAT', '46.EXE']
+                      'OPENING.EXE', 'ENDING.EXE', '46.EXE', 'SEND.DAT']
 
 
 if __name__ == '__main__':

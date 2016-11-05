@@ -9,12 +9,10 @@ CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 CREATURE_MAX_LENGTH = 21
 DIALOGUE_MAX_LENGTH = 43
 FULLSCREEN_MAX_LENGTH = 75
-DAT_MAX_LENGTH = 77   # TODO: Check on SEND.DAT, see if they're indented.
+DAT_MAX_LENGTH = 77
 
 # TODO: Why did I use tuples of tuples? Why not a list of tuples? Less confusing that way.
 # How the files themselves get broken up for reinsertion.
-
-# TODO: EVO Files don't need to be a separate block.
 
 file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
                           (0x96b0, 0x96be)),
@@ -212,14 +210,10 @@ STARTING_MAP_NUMBER_LOCATION = {
 # Which pointers should absorb others.
 POINTER_ABSORB = {
 #  filename   | ptrloc | text location of the pointer it gets absorbed into
-  ('ST5S3.EXE', 0x3f3): 0x3e40,  # Item
-  ('ST5S3.EXE', 0x4c3): 0x3e4a,  # Escape
+  #('ST5S3.EXE', 0x3f3): 0x3e40,  # Item
+  #('ST5S3.EXE', 0x4c3): 0x3e4a,  # Escape
   ('ST5S3.EXE', 0x3f66): 0x3db9, # Cancel (Tablet)
   ('ST5S3.EXE', 0x3f7e): 0x3db9, # Cancel (Items)
- # ('ST5S3.EXE', 0x1d64): 0x476d, # Bone
- # ('ST5S3.EXE', 0x1d7d): 0x4774, # Live COals
- # ('ST5S3.EXE', 0x1d96): 0x477b, # Fur
- # ('ST5S3.EXE', 0x1daf): 0x4782, # Tablet
   ('ST3.EXE', 0x0365): 0xd8b8,   # randomly in middle of Lucier's speech 1
   ('ST3.EXE', 0x0370): 0xd8b8,   # 2
   ('ST3.EXE', 0x037b): 0xd8b8,   # 3

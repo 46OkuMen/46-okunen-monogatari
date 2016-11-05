@@ -180,6 +180,11 @@ def sjis_to_hex_string(jp, preserve_spaces=False):
     if '5b53454e4c4e5d' in jp_bytestring:
         jp_bytestring = jp_bytestring.replace('5b53454e4c4e5d', '0d0a')
 
+    # handle [LN] control code
+        # Just a newline.
+    if '5b4c4e5d' in jp_bytestring:
+        jp_bytestring = jp_bytestring.replace('5b4c4e5d', '0a')
+
     return jp_bytestring
 
 def onscreen_length(eng):
@@ -190,6 +195,8 @@ def onscreen_length(eng):
     # remove 'new' and 'wait' control codes - they don't display anything
     eng = eng.replace('\x16', '')
     eng = eng.replace('\x13', '')
+    eng = eng.replace('[PAGE]', '')
+    eng = eng.replace('[SENLN]', '')
     for char in eng:
         if char.isdigit():
             result += 2

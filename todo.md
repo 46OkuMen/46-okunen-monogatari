@@ -28,7 +28,8 @@
         * [PAGE] codes for (3-n)*"0d0a", where n is the number of lines since the last page break.
             * In the read-from-sheet method, keep track of that sort of thing.
             * In the simple_typeset method, recalculate the number of lines and alter the 0d0a's as necessary.
-    * What's with the 8*0x20 spaces after newlines after this gets done??
+    * I think I got this wrong. The number of 0d0a's BEFORE a window help it get to three lines, not after.
+        * What's the best way to rectify this?
 
 * Find overflowing windows. (4 or more lines). Put a [SPLIT] where appropriate. (Then unsink the final line of the original end of the text)
     * Chapter 1:

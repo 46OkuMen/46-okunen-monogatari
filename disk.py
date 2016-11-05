@@ -71,7 +71,6 @@ class Disk(object):
             if gamefile.filename.endswith('DAT'):
                 gamefile.translate()
                 gamefile.write()
-                print "writing datfile"
                 gamefile.report_progress()
             else:
                 for block in gamefile.blocks:
@@ -100,7 +99,7 @@ class Disk(object):
             for block in gamefile.blocks:
                 block.typeset()
             gamefile.incorporate()
-            print "typeset", filename
+            #print "typeset", filename
             gamefile.write()
         self.write()
 
@@ -373,17 +372,21 @@ class DATFile(Gamefile):
                 else:
                     lines_since_page_break += trans.english.count('\n') + 1
             #print trans.english
-            assert '        ' not in trans.english
             en_bytestring = ascii_to_hex_string(trans.english)
 
-            print trans.english
-            print jp_bytestring
+            #print trans.english
+            #print jp_bytestring
             try:
                 i = self.filestring.index(jp_bytestring)
             except ValueError:
                 if jp_bytestring.endswith('0d0a'):
                     jp_bytestring = jp_bytestring[:-4]
-                i = self.filestring.index(jp_bytestring)
+                try:
+                    i = self.filestring.index(jp_bytestring)
+                except ValueError:
+                    if jp_bytestring.endswith('0d0a'):
+                        jp_bytestring = jp_bytestring[:-4]
+                    i = self.filestring.index(jp_bytestring)
             self.filestring = self.filestring.replace(jp_bytestring, en_bytestring, 1)
 
 
@@ -739,6 +742,8 @@ class Translation(object):
                         lines.append(line)
                         line = ''
                         break
+            if line:
+                lines.append(line)
             return '\r\n'.join(lines)
         else:
             return self.english
@@ -974,8 +979,6 @@ class Pointer(object):
         new_text = "\x13".join(windows)
 
         if original_text[-1] == '\n' and original_text[-2] != '\x13':
-            #print "check:"
-            #print self.text(go_until_wait=True)
             newline_diff = new_text.count('\n') - original_text.count('\n')
             if self.text(go_until_wait=True).count('\n') + newline_diff > 2:
                 print "check:"
@@ -1067,7 +1070,6 @@ class DumpExcel(object):
                 # Only necessary for SEND strings.
                 if block.gamefile.filename == 'SEND.DAT':
                     if '[PAGE]' in japanese:
-                        print lines_since_page_break
                         lines_since_page_break += 1
                         japanese = japanese.replace('[PAGE]', '[SENLN]'*(4-lines_since_page_break))
 
@@ -1079,7 +1081,6 @@ class DumpExcel(object):
                     else:
                         lines_since_page_break += 1
                     assert lines_since_page_break <= 3
-                    print english
                 trans.append(Translation(block, offset, japanese, english, is_wide))
         return trans
 
