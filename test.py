@@ -18,7 +18,6 @@ def test_increasing_offsets():
     sheets.remove('ORIGINAL')
     sheets.remove('MISC TITLES')
     sheets.remove('SINKA.DAT')
-    sheets.remove('SEND.DAT')
     for sheet in sheets:
         ws = wb.get_sheet_by_name(sheet)
         new_offset = 0
@@ -206,10 +205,10 @@ def test_merged_pointers():
         assert first == b_text_offset, '%s: %s, %s' % (hex(a), hex(first + POINTER_CONSTANT[filename]), hex(b_text_offset))
 
 if __name__ == '__main__':
-    #test_increasing_offsets()
+    test_increasing_offsets()
     #test_game_string_lengths()
     #test_substrings_of_earlier_strings()
     #est_duplicate_strings()
-    test_map_locations()
-    test_image_locations()
-    test_merged_pointers()
+    #test_map_locations()
+    #test_image_locations()
+    #test_merged_pointers()

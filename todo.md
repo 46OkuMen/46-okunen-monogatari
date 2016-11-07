@@ -16,11 +16,9 @@
 
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
-* Find other numbers that are likely victims of the number corruption bug.
+* SEND.DAT: 'Forgotten the warm seas of [SENLN][SJSP][D6B3D7DD]that era?'
 
-### Tools
-* write() for .DAT files seems to write files of their original length, not their expanded length...
-    * This will probably hurt my ability to reinsert these files. What's going on with them?
+* Find other numbers that are likely victims of the number corruption bug.
 
 ### Typesetting
 * Typesetting for SEND.DAT. How to deal with it?
@@ -30,6 +28,10 @@
             * In the simple_typeset method, recalculate the number of lines and alter the 0d0a's as necessary.
     * I think I got this wrong. The number of 0d0a's BEFORE a window help it get to three lines, not after.
         * What's the best way to rectify this?
+        * Loop over [SENLN]s in simple_typeset(), make sure there are always three before a [PAGE] resets them, add/subtract if not?
+            * Alt-F6 is shortcut to Godzilla ending.
+
+* integrate_spaces() doesn't work for SEND.DAT. Probably because the offsets in the sheet are totally wrong.
 
 * Find overflowing windows. (4 or more lines). Put a [SPLIT] where appropriate. (Then unsink the final line of the original end of the text)
     * Chapter 1:

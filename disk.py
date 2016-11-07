@@ -359,7 +359,7 @@ class DATFile(Gamefile):
         for trans in self.blocks[0].get_translations():
             if trans.english == "":
                 continue
-            jp_bytestring = sjis_to_hex_string(trans.japanese)
+            jp_bytestring = trans.jp_bytestring
 
             if self.filename == 'SEND.DAT':
                 trans.english = trans.simple_typeset()
@@ -371,11 +371,9 @@ class DATFile(Gamefile):
                     pass
                 else:
                     lines_since_page_break += trans.english.count('\n') + 1
-            #print trans.english
+
             en_bytestring = ascii_to_hex_string(trans.english)
 
-            #print trans.english
-            #print jp_bytestring
             try:
                 i = self.filestring.index(jp_bytestring)
             except ValueError:
@@ -705,14 +703,25 @@ class Translation(object):
 
         scan = 0
         loc = self.location_in_blockstring
-        snippet_right_before = self.block.blockstring[loc:loc+4]
-        while snippet_right_before == '8140':
-            self.jp_bytestring = '8140' + self.jp_bytestring
-            self.jp_bytestring_alt = '8140' + self.jp_bytestring_alt
-            self.spaces += 1
+        if self.block.gamefile.filename == 'SEND.DAT':
+            scan = 4
+            snippet_right_before = self.block.blockstring[loc-scan:loc-scan+4]
+            while snippet_right_before == '8140':
+                self.jp_bytestring = '8140' + self.jp_bytestring
+                self.jp_bytestring_alt = '8140' + self.jp_bytestring_alt
+                self.spaces += 1
 
-            scan += 4
-            snippet_right_before = self.block.blockstring[loc+scan:loc+scan+4]
+                scan += 4
+                snippet_right_before = self.block.blockstring[loc-scan:loc-scan+4]
+        else:
+            snippet_right_before = self.block.blockstring[loc:loc+4]
+            while snippet_right_before == '8140':
+                self.jp_bytestring = '8140' + self.jp_bytestring
+                self.jp_bytestring_alt = '8140' + self.jp_bytestring_alt
+                self.spaces += 1
+
+                scan += 4
+                snippet_right_before = self.block.blockstring[loc+scan:loc+scan+4]
         if scan > 4:
             print "%s %s: %s spaces" % (self.block.gamefile, hex(self.location), scan//4)
 
