@@ -968,10 +968,10 @@ class Pointer(object):
             # (Don't remove it from the actual window, just remove it from this copy of the window)
             w = w.lstrip('\n')
 
-            # If there's fewer than 3 lines of text, the text will show up and wait at the bottom.
-            if w.count('\n') == 1:
-                print "not enough newlines:"
-                print repr(w)
+            ## If there's fewer than 3 lines of text, the text will show up and wait at the bottom.
+            #if w.count('\n') == 1:
+            #    print "not enough newlines:"
+            #    print repr(w)
 
             # If there's more than 3 lines of text in the window, text will get scrolled offscreen.
             if w.count('\n') > 2:
@@ -989,14 +989,17 @@ class Pointer(object):
 
         if original_text[-1] == '\n' and original_text[-2] != '\x13':
             newline_diff = new_text.count('\n') - original_text.count('\n')
-            if self.text(go_until_wait=True).count('\n') + newline_diff > 2:
-                print "check:"
-                print self.text(go_until_wait=True)
-                # TODO: This still doesn't catch what I want it to.
-                # Since the second part of the window gets typeset later, there's no way to tell...
+            #if self.text(go_until_wait=True).count('\n') + newline_diff > 2:
+            #    print "check:"
+            #    print self.text(go_until_wait=True)
+            #    # TODO: This still doesn't catch what I want it to.
+            #    # Since the second part of the window gets typeset later, there's no way to tell...
 
         old_bytestring = ascii_to_hex_string(original_text)
         new_bytestring = ascii_to_hex_string(new_text)
+
+        print self.max_width
+        print new_text
 
         if old_bytestring != new_bytestring:
             #print original_text

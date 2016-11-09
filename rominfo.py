@@ -41,7 +41,7 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
                            (0xde35, 0xfaa2),   # enviro
                            (0xfae4, 0xfe50),   # creature block
                            (0x10004, 0x10095), # Y/N/C, "evolved too far"
-                           (0x100d1, 0x101e1), # battle stuff
+                           (0x100d1, 0x101e2), # battle stuff
                            (0x10570, 0x1087d),  # error block
                            (0x10922, 0x109c1),), # black spare-ish block
                'ST3.EXE': ((0xb49d, 0xb4c6),

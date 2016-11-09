@@ -16,8 +16,6 @@
 
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
-* SEND.DAT: 'Forgotten the warm seas of [SENLN][SJSP][D6B3D7DD]that era?'
-
 * Find other numbers that are likely victims of the number corruption bug.
 
 ### Typesetting
@@ -82,14 +80,12 @@
 * Reinsert the revised images.
     * Title: still stupidly hard
         * "Index was outside the bounds of the array" when run through the decoder again. Generally fails after a few blocks of stars.
-    * Prologue: this one's going to be hard, watch out
-        * Current status: all of image is visible, some of the previous image shows through on the bottom, and graphical glitches to the right
+    * Prologue: minor glitch
+        * purple fuzz on right side of screen, OR it loops around to the left side if you make it wider...
     * Chapter 1: done
-    * Chapter 2: minor glitch
-        * Ghosting on right side of final 'a'; will probably get fixed by running it through the new codec
+    * Chapter 2: done
     * Chapter 3: done
-    * Chapter 4: minor glitch
-        * left side of second 'r'
+    * Chapter 4: done
     * Chapter 5: minor glitch
         * left side of final "t"'s hat
     * Chapter 6: done
