@@ -38,6 +38,8 @@
 
 * Look at the original JP layout for the end credits, see if the weird centering/indenting issue is real
 
+* Re-center "ENIX PRESENTS" text?
+
 * Re-align centered/indented dialogue that's had its spaces taken away.
     * Chapter 1: done
     * Chapter 2: done
@@ -45,6 +47,10 @@
     * Chapter 4:
     * Chapter 5:
     * Chapter 6:
+
+### Polish
+* Edit GEAGRDRV.EXE and insert a "Thanks for playing" type message instead of that string at the end of the credits.
+    * String 2 of 3 - "ＧＥＡＧＲを解放しました"
 
 ### images
 * So, I'm having a lot of trouble reinserting anything taller than 254 pixels.

@@ -8,19 +8,19 @@ The game this patch targets is the Japanese-only prequel to the cult classic act
 ### Progress
 | Segment      | %    | Strings      | Typeset? | Script Version |
 | -------------|-----:|:------------:|:--------:|:--------------:|
-| Opening      |100%  |  (42 / 42)   | Yes      | Revision 2     |
-| Chapter 1    |100%  | (500 / 500)  | Yes      | Revision 2     |
-| Chapter 2    |100%  | (434 / 434)  | No       | Revision 1     |
+| Opening      |100%  |  (42 / 42)   | Yes      | Beta           |
+| Chapter 1    |100%  | (500 / 500)  | Yes      | Beta           |
+| Chapter 2    |100%  | (434 / 434)  | Yes      | Beta           |
 | Chapter 3    |100%  | (338 / 338)  | No       | Revision 1     |
 | Chapter 4    |100%  | (747 / 747)  | No       | Revision 1     |
 | Chapter 5    |100%  | (892 / 892)  | No       | Revision 1     |
 | Chapter 6    |100%  | (319 / 319)  | No       | Revision 1     |
 | Ending       |100%  |  (70 / 70)   | No       | Revision 1     |
-| System       |100%  |   (5 / 5)    |          | Final          |
-| Images       | 78%  |   (7 / 9)    |          | Final          |
+| System       |100%  |   (5 / 5)    | Yes      | Beta           |
+| Images       | 66%  |   (6 / 9)    |          | Beta           |
 | Encyclopedia |100%  | (935 / 935)  | No       | Revision 1     |
 | Game Overs   |100%  | (729 / 729)  | No       | Revision 1     |
-| Total        | 99%  |(5056 / 5057) |          |                |
+| Total        | 99%  |(5054 / 5057) |          |                |
 
 It's harder to quanitify the status of the project for things like bugfixes, typesetting, etc. So be assured that while the project has made great progress, there's still plenty of work to do before a release.
 
