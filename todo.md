@@ -1,11 +1,3 @@
-# Priorities
-* Playable game all the way through
-* Whole game is English
-* No jarring graphical glitches
-* Good presentation
-* Minimizing arbitrary limits on the translation
-* Having a nice codebase
-
 ### Crashes
 
 ### Text Oddities
@@ -13,6 +5,7 @@
 * Ch4: "I believe I can thiank you properly now." "Hold on to me!" have a text leak of EVO Encyclopedia after them.
 * Ch4: "Fellas! With me!" is followed by "Are you stupid? YOu're so disgusting I don't even feel like eating you!" which probably doesn't belong there.
 * Ch4: "Let's go, fellas!" is followed by 'However..."'
+    * Clearly 'fellas' is a word with a lot of baggage
 
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
@@ -21,7 +14,7 @@
 ### Typesetting
 * Find overflowing windows. (4 or more lines). Put a [SPLIT] where appropriate. (Then unsink the final line of the original end of the text)
     * Chapter 1: done
-    * Chapter 2:
+    * Chapter 2: done
     * Chapter 3:
     * Chapter 4:
     * Chapter 5:
@@ -29,7 +22,7 @@
 
 * Find 'sunken' text. (text occupying bottom two rows with no newline at the end). Put a [LN] at the end of the final line.
     * Chapter 1: done
-    * Chapter 2:
+    * Chapter 2: done
     * Chapter 3:
     * Chapter 4:
     * Chapter 5:
@@ -37,20 +30,13 @@
 
 * Find text that's typeset unaware of the next string. (Lines that contain only one word or so, when the next string could help fill up the rest of the line). Redistribute the text to even it out.
     * Chapter 1: done
-    * Chapter 2:
+    * Chapter 2: done
     * Chapter 3:
     * Chapter 4:
     * Chapter 5:
     * Chapter 6:
 
-* Split text into 3-line windows.
-    * Even including the nametag... very tricky.
-    * Figured out which strings need this; it's all in the sheet now. Use the [SPLIT] control code.
-        * Lines with a [SPLIT] need an extra <LN> at the end before the initial <WAIT>...
-            * This can go for pretty much any window that just ends with <WAIT><END>.  Assume that's wrong and add an <LN> before that ending...
-    * Can I just assume that every window should have exactly 3 lines in it, not counting prepended newlines?
-
-* Center ENDING story text.
+* Look at the original JP layout for the end credits, see if the weird centering/indenting issue is real
 
 * Re-align centered/indented dialogue that's had its spaces taken away.
     * Chapter 1: done
@@ -64,6 +50,7 @@
 * So, I'm having a lot of trouble reinserting anything taller than 254 pixels.
     * 255 is the max value for 1 byte obviously. But height is stored in terms of scanlined rows, or height/2.
         * So it's the difference between 0x7f height and 0x80.
+    * (This is clearly just an issue with the specific image. Move some stuff around, and I have better luck.)
 
 * Reinsert the revised images.
     * Title: still stupidly hard
@@ -76,6 +63,7 @@
     * Chapter 4: done
     * Chapter 5: minor glitch
         * left side of final "t"'s hat
+        * Currently really hard to test, since I accidentally deleted the Ch5 save state
     * Chapter 6: done
     * Epilogue:  done
 

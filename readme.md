@@ -9,8 +9,8 @@ The game this patch targets is the Japanese-only prequel to the cult classic act
 | Segment      | %    | Strings      | Typeset? | Script Version |
 | -------------|-----:|:------------:|:--------:|:--------------:|
 | Opening      |100%  |  (42 / 42)   | Yes      | Revision 2     |
-| Chapter 1    |100%  | (500 / 500)  | No       | Revision 2     |
-| Chapter 2    |100%  | (434 / 434)  | No       | Revision 2     |
+| Chapter 1    |100%  | (500 / 500)  | Yes      | Revision 2     |
+| Chapter 2    |100%  | (434 / 434)  | No       | Revision 1     |
 | Chapter 3    |100%  | (338 / 338)  | No       | Revision 1     |
 | Chapter 4    |100%  | (747 / 747)  | No       | Revision 1     |
 | Chapter 5    |100%  | (892 / 892)  | No       | Revision 1     |
