@@ -359,10 +359,9 @@ class DATFile(Gamefile):
         for trans in self.blocks[0].get_translations():
             if trans.english == "":
                 continue
-            jp_bytestring = trans.jp_bytestring
 
             if self.filename == 'SEND.DAT':
-                trans.english = trans.simple_typeset()
+                trans.english = trans.send_typeset()
                 if '[PAGE]' in trans.english:
                     lines_since_page_break += trans.english.count('\n') + 1
                     trans.english = trans.english.replace('[PAGE]', '[SENLN]'*(4-lines_since_page_break))
@@ -373,6 +372,8 @@ class DATFile(Gamefile):
                     lines_since_page_break += trans.english.count('\n') + 1
 
             en_bytestring = ascii_to_hex_string(trans.english)
+
+            jp_bytestring = trans.jp_bytestring
 
             try:
                 i = self.filestring.index(jp_bytestring)
@@ -726,7 +727,7 @@ class Translation(object):
             print "%s %s: %s spaces" % (self.block.gamefile, hex(self.location), scan//4)
 
 
-    def simple_typeset(self):
+    def send_typeset(self):
         """
         Typeset a simple DAT string.
         No pointer-editing or length checking beyond 2 lines.
@@ -753,6 +754,8 @@ class Translation(object):
                         break
             if line:
                 lines.append(line)
+            if len(lines) > 1:
+                print self
             return '\r\n'.join(lines)
         else:
             return self.english
@@ -1083,16 +1086,16 @@ class DumpExcel(object):
                 if block.gamefile.filename == 'SEND.DAT':
                     if '[PAGE]' in japanese:
                         lines_since_page_break += 1
-                        japanese = japanese.replace('[PAGE]', '[SENLN]'*(4-lines_since_page_break))
-
+                        #japanese = japanese.replace('[PAGE]', '[SENLN]'*(4-lines_since_page_break))
+                        japanese = japanese.replace('[PAGE]', '')
                         # This will get replaced by the appropriate number of [SENLN]s by the typesetter.
-                        english += '[PAGE]'
+                        #english += '[PAGE]'
                         lines_since_page_break = 0
                     elif '.GDT' in japanese or '/*' in japanese:
                         pass
                     else:
                         lines_since_page_break += 1
-                    assert lines_since_page_break <= 3
+                    #assert lines_since_page_break <= 3
                 trans.append(Translation(block, offset, japanese, english, is_wide))
         return trans
 

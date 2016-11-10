@@ -19,20 +19,8 @@
 * Find other numbers that are likely victims of the number corruption bug.
 
 ### Typesetting
-* Typesetting for SEND.DAT. How to deal with it?
-    * [PAGE] in the JP string marks a page break.
-        * [PAGE] codes for (3-n)*"0d0a", where n is the number of lines since the last page break.
-            * In the read-from-sheet method, keep track of that sort of thing.
-            * In the simple_typeset method, recalculate the number of lines and alter the 0d0a's as necessary.
-    * I think I got this wrong. The number of 0d0a's BEFORE a window help it get to three lines, not after.
-        * What's the best way to rectify this?
-        * Loop over [SENLN]s in simple_typeset(), make sure there are always three before a [PAGE] resets them, add/subtract if not?
-            * Alt-F6 is shortcut to Godzilla ending.
-
-* integrate_spaces() doesn't work for SEND.DAT. Probably because the offsets in the sheet are totally wrong.
-
 * Find overflowing windows. (4 or more lines). Put a [SPLIT] where appropriate. (Then unsink the final line of the original end of the text)
-    * Chapter 1:
+    * Chapter 1: done
     * Chapter 2:
     * Chapter 3:
     * Chapter 4:
@@ -40,7 +28,7 @@
     * Chapter 6:
 
 * Find 'sunken' text. (text occupying bottom two rows with no newline at the end). Put a [LN] at the end of the final line.
-    * Chapter 1:
+    * Chapter 1: done
     * Chapter 2:
     * Chapter 3:
     * Chapter 4:
@@ -48,7 +36,7 @@
     * Chapter 6:
 
 * Find text that's typeset unaware of the next string. (Lines that contain only one word or so, when the next string could help fill up the rest of the line). Redistribute the text to even it out.
-    * Chapter 1:
+    * Chapter 1: done
     * Chapter 2:
     * Chapter 3:
     * Chapter 4:
