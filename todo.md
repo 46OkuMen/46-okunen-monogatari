@@ -15,7 +15,7 @@
 * Find overflowing windows. (4 or more lines). Put a [SPLIT] where appropriate. (Then unsink the final line of the original end of the text)
     * Chapter 1: done
     * Chapter 2: done
-    * Chapter 3:
+    * Chapter 3: done
     * Chapter 4:
     * Chapter 5:
     * Chapter 6:
@@ -23,7 +23,7 @@
 * Find 'sunken' text. (text occupying bottom two rows with no newline at the end). Put a [LN] at the end of the final line.
     * Chapter 1: done
     * Chapter 2: done
-    * Chapter 3:
+    * Chapter 3: done
     * Chapter 4:
     * Chapter 5:
     * Chapter 6:
@@ -31,7 +31,7 @@
 * Find text that's typeset unaware of the next string. (Lines that contain only one word or so, when the next string could help fill up the rest of the line). Redistribute the text to even it out.
     * Chapter 1: done
     * Chapter 2: done
-    * Chapter 3:
+    * Chapter 3: done
     * Chapter 4:
     * Chapter 5:
     * Chapter 6:
