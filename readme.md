@@ -12,14 +12,14 @@ The game this patch targets is the Japanese-only prequel to the cult classic act
 | Chapter 1    |100%  | (500 / 500)  | Yes      | Beta           |
 | Chapter 2    |100%  | (434 / 434)  | Yes      | Beta           |
 | Chapter 3    |100%  | (338 / 338)  | Yes      | Beta           |
-| Chapter 4    |100%  | (747 / 747)  | No       | Revision 1     |
-| Chapter 5    |100%  | (892 / 892)  | No       | Revision 1     |
-| Chapter 6    |100%  | (319 / 319)  | No       | Revision 1     |
-| Ending       |100%  |  (70 / 70)   | No       | Revision 1     |
+| Chapter 4    |100%  | (747 / 747)  | No       | Beta           |
+| Chapter 5    |100%  | (892 / 892)  | No       | Beta           |
+| Chapter 6    |100%  | (319 / 319)  | No       | Beta           |
+| Ending       |100%  |  (70 / 70)   | No       | Beta           |
 | System       |100%  |   (5 / 5)    | Yes      | Beta           |
 | Images       | 66%  |   (6 / 9)    |          | Beta           |
-| Encyclopedia |100%  | (935 / 935)  | No       | Revision 1     |
-| Game Overs   |100%  | (729 / 729)  | No       | Revision 1     |
+| Encyclopedia |100%  | (935 / 935)  | Yes      | Beta           |
+| Game Overs   |100%  | (729 / 729)  | No       | Beta           |
 | Total        | 99%  |(5054 / 5057) |          |                |
 
 It's harder to quanitify the status of the project for things like bugfixes, typesetting, etc. So be assured that while the project has made great progress, there's still plenty of work to do before a release.

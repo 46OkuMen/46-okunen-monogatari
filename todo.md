@@ -1,10 +1,8 @@
 ### Crashes
 
 ### Text Oddities
-* "Escape" is invisible in Ch5.
-    * Both pointers on the sheet point to the right thing, check what other pointers should be pointing there.
-
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
+    * This appeaars to be the case with the Japanese disk as well... Check the LPs?
 
 * Find other numbers that are likely victims of the number corruption bug.
 
@@ -37,13 +35,11 @@
 
 * Re-center "ENIX PRESENTS" text?
 
-* Re-align centered/indented dialogue that's had its spaces taken away.
-    * Chapter 1: done
-    * Chapter 2: done
-    * Chapter 3: done
-    * Chapter 4: done
-    * Chapter 5: done
-    * Chapter 6: done
+* Too many newlines after "%s attacks!!" in Ch5? It scrolls away too fast
+
+* Broken text in game over stories:
+    * Green Dragon
+    * ?
 
 ### Polish
 * Edit GEAGRDRV.EXE and insert a "Thanks for playing" type message instead of that string at the end of the credits.
