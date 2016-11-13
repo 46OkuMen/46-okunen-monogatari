@@ -551,7 +551,7 @@ class Block(object):
             try:
                 i = old_slice.index(jp_bytestring)//2
             except ValueError:
-                #print hex(trans.location), trans.english
+                print hex(trans.location), trans.english
                 #print "overflowing?", is_overflowing
                 #print "looking for", jp_bytestring
                 #print "in the string:", old_slice

@@ -1,12 +1,9 @@
 ### Crashes
 
 ### Text Oddities
-* Ch4: Work, Refuse, d
-* Ch4: "I believe I can thiank you properly now." "Hold on to me!" have a text leak of EVO Encyclopedia after them.
-* Ch4: "Fellas! With me!" is followed by "Are you stupid? YOu're so disgusting I don't even feel like eating you!" which probably doesn't belong there.
-* Ch4: "Let's go, fellas!" is followed by 'However..."'
-    * Clearly 'fellas' is a word with a lot of baggage
-
+* "Escape" is invisible in Ch5.
+    * Both pointers on the sheet point to the right thing, check what other pointers should be pointing there.
+    
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
 * Find other numbers that are likely victims of the number corruption bug.
@@ -44,9 +41,9 @@
     * Chapter 1: done
     * Chapter 2: done
     * Chapter 3: done
-    * Chapter 4:
-    * Chapter 5:
-    * Chapter 6:
+    * Chapter 4: done
+    * Chapter 5: done
+    * Chapter 6: done
 
 ### Polish
 * Edit GEAGRDRV.EXE and insert a "Thanks for playing" type message instead of that string at the end of the credits.
@@ -69,7 +66,6 @@
     * Chapter 4: done
     * Chapter 5: minor glitch
         * left side of final "t"'s hat
-        * Currently really hard to test, since I accidentally deleted the Ch5 save state
     * Chapter 6: done
     * Epilogue:  done
 
