@@ -3,7 +3,7 @@
 ### Text Oddities
 * "Escape" is invisible in Ch5.
     * Both pointers on the sheet point to the right thing, check what other pointers should be pointing there.
-    
+
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
 
 * Find other numbers that are likely victims of the number corruption bug.
@@ -50,11 +50,6 @@
     * String 2 of 3 - "ＧＥＡＧＲを解放しました"
 
 ### images
-* So, I'm having a lot of trouble reinserting anything taller than 254 pixels.
-    * 255 is the max value for 1 byte obviously. But height is stored in terms of scanlined rows, or height/2.
-        * So it's the difference between 0x7f height and 0x80.
-    * (This is clearly just an issue with the specific image. Move some stuff around, and I have better luck.)
-
 * Reinsert the revised images.
     * Title: still stupidly hard
         * "Index was outside the bounds of the array" when run through the decoder again. Generally fails after a few blocks of stars.
@@ -64,7 +59,7 @@
     * Chapter 2: done
     * Chapter 3: done
     * Chapter 4: done
-    * Chapter 5: minor glitch
+    * Chapter 5: quite minor glitch
         * left side of final "t"'s hat
     * Chapter 6: done
     * Epilogue:  done
