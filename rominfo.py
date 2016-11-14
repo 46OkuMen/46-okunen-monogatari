@@ -2,7 +2,7 @@
 
 # A list of all files with text edits during the dump/reinsert process.
 files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE',
-         'ST5S3.EXE', 'ST6.EXE', 'ENDING.EXE', 'SINKA.DAT', 'SEND.DAT']
+         'ST5S3.EXE', 'ST6.EXE', 'ENDING.EXE', 'SINKA.DAT', 'SEND.DAT', 'GEAGRDRV.EXE']
 
 CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 
@@ -101,7 +101,8 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
                            (0xd7fc, 0xd89b)), # otherspare
                'ENDING.EXE': ((0x3c4e, 0x4b20),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
-               'SEND.DAT': ((0x000, 0x8740),)}
+               'SEND.DAT': ((0x000, 0x8740),),
+               'GEAGRDRV.EXE': ((0x170e, 0x172a),)}
 
 
 # What is my methodology for deciding when a block starts and ends?
@@ -151,7 +152,8 @@ file_location = {'46.EXE': 0x43c00,
                  'ST6.EXE': 0xc6400,
                  'ENDING.EXE': 0x4e000,
                  'SINKA.DAT': 0x3d000,
-                 'SEND.DAT': 0x34800,}
+                 'SEND.DAT': 0x34800,
+                 'GEAGRDRV.EXE': 0x53000}
 
 # Length in bytes.
 file_length = {'46.EXE': 0xa1d3,
@@ -167,7 +169,8 @@ file_length = {'46.EXE': 0xa1d3,
                'ST6.EXE': 0xd8b0,
                'ENDING.EXE': 0x4f56,
                'SINKA.DAT': 0x69a5,
-               'SEND.DAT': 0x874b}
+               'SEND.DAT': 0x874b,
+               'GEAGRDRV.EXE': 0x18a8}
 
 # Pointer tables have two bytes, determined by the file, which separate their values.
 POINTER_SEPARATORS = {
@@ -182,7 +185,8 @@ POINTER_SEPARATORS = {
     'ST5S2.EXE': ('00', '00'), # Not really; this file has no pointer tables
     'ST5S3.EXE': ("ae", "03"),
     'ENDING.EXE': ("5a", "03"),
-    '46.EXE': ('0a', '0c')
+    '46.EXE': ('0a', '0c'),
+    'GEAGRDRV.EXE': ('00', '00')
 }
 
 # Add this constant to the little-endian pointer value to find its destination.
@@ -199,6 +203,7 @@ POINTER_CONSTANT = {
     'ST5S3.EXE': 0x3ce0,
     'ENDING.EXE': 0x39a0,
     '46.EXE': 0x92c0,
+    'GEAGRDRV.EXE': 0x1670
 }
 
 # For cheating!

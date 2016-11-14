@@ -1,8 +1,16 @@
 ### Crashes
 
-### Text Oddities
+### Bugs
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
-    * This appeaars to be the case with the Japanese disk as well... Check the LPs?
+    * This is present in the original JP version.
+
+* Ch5 Graphical glitch in the lava when entering the second-to-last screen in the Stonehenge dungeon.
+
+### Text Oddities
+* Ch5: Pronoun problems with the Tablet/Devil fight.
+    * Hercountered the spell
+    * Herdefenses were lowered, unable to see
+    * It is stunned
 
 * Find other numbers that are likely victims of the number corruption bug.
 
@@ -31,7 +39,7 @@
     * Chapter 5:
     * Chapter 6:
 
-* Look at the original JP layout for the end credits, see if the weird centering/indenting issue is real
+* Center the credits text
 
 * Re-center "ENIX PRESENTS" text?
 
