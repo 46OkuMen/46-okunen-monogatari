@@ -10,7 +10,7 @@ from openpyxl import load_workbook
 from utils import pack, unpack, file_to_hex_string, DUMP_XLS, POINTER_XLS, SRC_PATH, DEST_PATH
 from utils import sjis_to_hex_string, ascii_to_hex_string
 from utils import onscreen_length
-from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, POINTER_ABSORB
+from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, POINTER_ABSORB, POINTER_CHANGE
 from rominfo import SPARE_BLOCK, OTHER_SPARE_BLOCK, CREATURE_BLOCK
 from rominfo import DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH, DIALOGUE_MAX_LENGTH
 
@@ -595,13 +595,11 @@ class Block(object):
 
     def pad(self):
         """Fill the remainder of the block with spaces. After identifying the spares."""
-
         block_diff = len(self.blockstring) - len(self.original_blockstring)
         assert block_diff <= 0, 'The block %s is too long by %s' % (self, block_diff)
         if block_diff < 0:
             number_of_spaces = ((-1)*block_diff)//2
             self.blockstring += '20' * number_of_spaces  # (ASCII space)
-            print number_of_spaces, "spaces inserted"
 
         assert len(self.original_blockstring) == len(self.blockstring)
 
@@ -723,8 +721,8 @@ class Translation(object):
 
                 scan += 4
                 snippet_right_before = self.block.blockstring[loc+scan:loc+scan+4]
-        if scan > 4:
-            print "%s %s: %s spaces" % (self.block.gamefile, hex(self.location), scan//4)
+        #if scan > 4:
+        #    print "%s %s: %s spaces" % (self.block.gamefile, hex(self.location), scan//4)
 
 
     def send_typeset(self):
@@ -1132,7 +1130,9 @@ class PointerExcel(object):
 
             try:
                 # Look for this pointer in the list of pointers to be absorbed.
+                #assert pointer_offset != 0x1b6c
                 receiver_offset = POINTER_ABSORB[(gamefile.filename, pointer_offset)]
+
                 receiver = ptrs[receiver_offset][0]
 
                 # Edit this pointer to point to the same location as the receiver.
@@ -1145,6 +1145,19 @@ class PointerExcel(object):
 
             except KeyError:
                 pass
+
+            try:
+                # Look for this pointer in the list of pointers to just... change.
+                destination_offset = POINTER_CHANGE[(gamefile.filename, pointer_offset)]
+                print "POINTER CHANGED"
+
+                diff = destination_offset - text_offset
+                ptr.edit(diff)
+
+                ptr = Pointer(gamefile, pointer_offset, destination_offset)
+                text_offset = destination_offset
+            except KeyError:
+                pass                
 
             if refresh:
                 # Grab the text offset from the filestring instead.

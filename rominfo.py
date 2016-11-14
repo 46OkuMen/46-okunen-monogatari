@@ -224,3 +224,9 @@ POINTER_ABSORB = {
   ('ST3.EXE', 0x037b): 0xd8b8,   # 3
   ('ST3.EXE', 0x0386): 0xd8b8,   # 4
 }
+
+# Which pointers should just have their target location changed.
+POINTER_CHANGE = {
+  # filename | ptrloc | text location where it's supposed to go
+  ('ST5S3.EXE', 0x1b6c): 0x46b9, # "Her " -> "She " (for "She countered the spell")
+}
