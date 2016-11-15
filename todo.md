@@ -1,16 +1,8 @@
-### Crashes
-
-### Bugs
-* Ch5 Gaia's Heart transaprency, but only in Shambahla.
-    * This is present in the original JP version.
-
-* Ch5 Graphical glitch in the lava when entering the second-to-last screen in the Stonehenge dungeon.
-
 ### Text Oddities
-* Ch5: Pronoun problems with the Tablet/Devil fight.
-    * Hercountered the spell
-    * Herdefenses were lowered, unable to see
-    * It is stunned
+* Some odd text timing in the Ch6 hopeless Devil fight.
+    * Too-long pause after "bolts of lightning", no pause at all when it tells you how much damage you've taken
+        * Check out the JP version
+        * Insert [PAUSE] control codes as needed.
 
 * Find other numbers that are likely victims of the number corruption bug.
 
@@ -41,17 +33,12 @@
 
 * Center the credits text
 
-* Re-center "ENIX PRESENTS" text?
-
-* Too many newlines after "%s attacks!!" in Ch5? It scrolls away too fast
-
 * Broken text in game over stories:
     * Green Dragon
     * ?
 
-### Polish
-* Edit GEAGRDRV.EXE and insert a "Thanks for playing" type message instead of that string at the end of the credits.
-    * String 2 of 3 - "ＧＥＡＧＲを解放しました"
+* I can probably get away with a 44-character window if I can manually remove the <LN> between two lines!
+    * A handful of typeset lines look overly cautious as they are now.
 
 ### images
 * Reinsert the revised images.
@@ -71,11 +58,11 @@
 ### tech debt
 * Unify spare_block and other_spare_block.
 
-### portuguese stuff
-* What characters go unused in the game script? Need maybe 26 of them.
-    * Actually less complicated to implement would be A1-DF, which are half-width kana.
-    * Anex86 needs anex86.bmp edits.
-    * np2 needs FONT.ROM edits.
+### Bugs Present in the JP Version
+* Ch5 Gaia's Heart transaprency, but only in Shambahla.
+    * This is present in the original JP version.
+
+* Ch5 Graphical glitch in the lava when entering the second-to-last screen in the Stonehenge dungeon.
 
 ### common problems and their solutions
 * If a "&" appears before a string when it gets replaced:
