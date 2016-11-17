@@ -677,6 +677,10 @@ class Translation(object):
         self.english = english
         self.block = block
         self.is_wide = is_wide
+        if is_wide:
+            self.max_width = FULLSCREEN_MAX_LENGTH
+        else:
+            self.max_width = DIALOGUE_MAX_LENGTH
 
         self.location_in_blockstring = (location - block.start) * 2
 
@@ -688,6 +692,7 @@ class Translation(object):
         self.spaces = 0
         if isinstance(block.gamefile, EXEFile) or block.gamefile.filename == 'SEND.DAT':
             self.integrate_spaces()
+            self.add_padding()
 
         self.page_break_suffix = page_break_suffix
 
@@ -721,9 +726,28 @@ class Translation(object):
 
                 scan += 4
                 snippet_right_before = self.block.blockstring[loc+scan:loc+scan+4]
+
+        # If there's one SJIS space in the JP version, it might be indented dialogue.
+        if scan == 4:
+            if self.block.gamefile.filename not in ('SEND.DAT', 'OPENING.EXE', 'ENDING.EXE') and "EVO" not in self.english and "Text Speed" not in self.english and not self.english.startswith('"') and not self.english.startswith('[SPLIT]'):
+                #try:
+                #    print self, "has one indentation"
+                #except UnicodeEncodeError:
+                #    print "some string", "has one indentation"
+                self.english = " " + self.english
+                self.en_bytestring = '20' + self.en_bytestring
+
         #if scan > 4:
         #    print "%s %s: %s spaces" % (self.block.gamefile, hex(self.location), scan//4)
 
+    def add_padding(self):
+        """Add a single space if the string will need typesetting."""
+        if len(self.english) > 2*self.max_width:
+            self.english += ' ' + ' '
+            self.en_bytestring += '2020'
+        elif len(self.english) > self.max_width:
+            self.english += ' '
+            self.en_bytestring += '20'
 
     def send_typeset(self):
         """
@@ -875,6 +899,7 @@ class Pointer(object):
             print "|" + l.ljust(self.max_width-1, " ") + "|"
         print "-"*self.max_width
 
+
     def typeset(self):
         """
         Find all the newlines in the pointer, then move them around.
@@ -885,7 +910,7 @@ class Pointer(object):
             return None
 
         # Bad stuff happens if this method gets its hands on menu options
-        if "EVO" in original_text:
+        if "EVO" in original_text or 'Text Speed' in original_text or 'Is this alright?' in original_text:
             return None
 
         textlines = original_text.splitlines()
@@ -894,12 +919,12 @@ class Pointer(object):
             # Probably a pointer table
             return None
 
-        # Maximum length of textlines:
-        # (1) Eusthenopteron A
-        # (2) "Hey you. Are you going into the light
-        # (3) to change your body...?"<WAIT>
-        # (4) <LN>
-
+        spill = False
+        for t in textlines:
+            if onscreen_length(t) > self.max_width:
+                spill = True
+        if not spill:
+            return None
 
         try:
             initial_newline = original_text[0] == '\n'
@@ -910,13 +935,18 @@ class Pointer(object):
             final_newline = False
             #final_double_newline = False
 
+        is_dialogue = False
+        for t in textlines:
+            if t.strip('\n').startswith('"'):
+                is_dialogue = True
+
         try:
             final_ln_wait = original_text[-2:] ==      '\n\x13'
             final_ln_wait_ln = original_text[-3:] == '\n\x13\n'
             final_wait_ln_ln = original_text[-3:] == '\x13\n\n'
             if final_ln_wait:
                 textlines.pop(-1)
-                textlines[-1] = textlines[-1].rstrip('\x13').rstrip(' ')
+                textlines[-1] = textlines[-1].rstrip('\x13').strip(' ')
             if final_ln_wait_ln:
                 textlines.pop(-1)
             if final_wait_ln_ln:
@@ -945,13 +975,29 @@ class Pointer(object):
                         firstline = firstline.rstrip(" ")
                         break
                 secondline = ' '.join(words)
-                #secondline = secondline.rstrip()
+
+                if is_dialogue and not secondline.startswith(" "):
+                    secondline = ' ' + secondline
+
+                # The double space means it was indented by the reinserter, but the line beginning changed.
+                if is_dialogue and '   ' in secondline:
+                    secondline = secondline.replace('   ', ' ')
+                    secondline = ' ' + secondline
+
+                if is_dialogue and '  ' in secondline:
+                    secondline = secondline.replace('  ', ' ')
+
                 if i == len(textlines) - 1:
                     textlines.append('')
                 
                 textlines[i], textlines[i+1] = firstline, secondline
         if textlines[-1].endswith(" "):
             textlines[-1] = textlines[-1].rstrip()
+
+        if is_dialogue:
+            for i, t in enumerate(textlines):
+                if not (t.startswith('"') or t.startswith(' ') or t.endswith('\x13') or t.isspace() or t == "" or i == 0):
+                    textlines[i] = " " + textlines[i]
         new_text = '\n'.join(textlines)
 
         if final_ln_wait:
@@ -969,38 +1015,18 @@ class Pointer(object):
             # (Don't remove it from the actual window, just remove it from this copy of the window)
             w = w.lstrip('\n')
 
-            ## If there's fewer than 3 lines of text, the text will show up and wait at the bottom.
-            #if w.count('\n') == 1:
-            #    print "not enough newlines:"
-            #    print repr(w)
-
             # If there's more than 3 lines of text in the window, text will get scrolled offscreen.
-            if w.count('\n') > 2:
-                if w.endswith('\n'):
-                    windows[i] = w[:-1] + " "
-                else:
-                    print "too many newlines:"
-                    print w
-                    print repr(w)
-
-                    # What should I do to break up text into multiple windows?
-                    # [SPLIT] control code = \x13\n\n
+            if w.count('\n') > 2 and w.endswith('\n'):
+                windows[i] = w[:-1] + " "
 
         new_text = "\x13".join(windows)
 
         if original_text[-1] == '\n' and original_text[-2] != '\x13':
             newline_diff = new_text.count('\n') - original_text.count('\n')
-            #if self.text(go_until_wait=True).count('\n') + newline_diff > 2:
-            #    print "check:"
-            #    print self.text(go_until_wait=True)
-            #    # TODO: This still doesn't catch what I want it to.
-            #    # Since the second part of the window gets typeset later, there's no way to tell...
 
         old_bytestring = ascii_to_hex_string(original_text)
         new_bytestring = ascii_to_hex_string(new_text)
 
-        print self.max_width
-        print new_text
 
         if old_bytestring != new_bytestring:
             #print original_text
@@ -1008,17 +1034,57 @@ class Pointer(object):
 
             if len(old_bytestring) != len(new_bytestring):
                 diff = len(old_bytestring) - len(new_bytestring)
-                # salvaging tactic #1
-                if original_text[-1] == " " and diff == 2:
-                    new_bytestring += '20'
+                # Salvaging tactics. Where can you take away/add spaces that won't break stuff?
+                if '0a' in new_bytestring and diff == 2:
+                    i = new_bytestring.index('0a')
+                    new_bytestring = new_bytestring.replace('0a', '200a', 1)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
+                elif '13' in new_bytestring and diff == 2:
+                    i = new_bytestring.index('13')
+                    new_bytestring = new_bytestring.replace('13', '2013', 1)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
+                elif '0a' in new_bytestring[-10:] and diff == 4:
+                    i = new_bytestring[-10:].index('0a')
+                    new_bytestring = new_bytestring[:-10] + new_bytestring[-10:].replace('0a', '20200a', 1)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
+                elif '20' in new_bytestring[-10:] and diff == -2:
+                    i = new_bytestring[-10:].index('20')
+                    new_bytestring = new_bytestring[:-10] + new_bytestring[-10:].replace('20', '', 1)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
+                elif '200a' in new_bytestring and diff == -2:
+                    i = new_bytestring.index('200a')
+                    new_bytestring = new_bytestring.replace('200a', '0a', 1)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
+                elif new_bytestring[-10:].count('20') >= 2 and diff == -4:
+                    new_bytestring = new_bytestring[:-10] + new_bytestring[-10:].replace('20', '', 2)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
+                elif '20130a0a' in new_bytestring and diff == -2:
+                    new_bytestring = new_bytestring.replace('20130a0a', '130a0a', 1)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
+                elif '2013' in new_bytestring and diff == 4:
+                    i = new_bytestring.index('2013')
+                    new_bytestring = new_bytestring.replace('2013', '20202013', 1)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
                 else:
                     print "too hard to reinsert right now:"
+                    print "diff", diff
                     print original_text
                     print new_text
                     print old_bytestring
                     print new_bytestring
                     return None
 
+            diff = len(old_bytestring) - len(new_bytestring)
+            #print new_text
+            assert diff == 0
             try:
                 i = self.gamefile.filestring.index(old_bytestring)
             except ValueError:

@@ -137,7 +137,7 @@ def ascii_to_hex_string(eng):
         # A wait and two newlines.
         if '5b53504c49545d' in eng_bytestring:
             # add <WAIT><LN><LN> at the position of [SPLIT]
-            eng_bytestring = eng_bytestring.replace('5b53504c49545d', '130a0a')
+            eng_bytestring = eng_bytestring.replace('5b53504c49545d', '20130a0a')
 
         # handle [PAUSE] control code
         # 'Pause' control code. Only used in first chapter for some reason.
