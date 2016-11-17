@@ -976,7 +976,7 @@ class Pointer(object):
                         break
                 secondline = ' '.join(words)
 
-                if is_dialogue and not secondline.startswith(" "):
+                if is_dialogue and not secondline.startswith(" ") and not secondline.isspace():
                     secondline = ' ' + secondline
 
                 # The double space means it was indented by the reinserter, but the line beginning changed.
@@ -991,13 +991,18 @@ class Pointer(object):
                     textlines.append('')
                 
                 textlines[i], textlines[i+1] = firstline, secondline
+
         if textlines[-1].endswith(" "):
             textlines[-1] = textlines[-1].rstrip()
 
         if is_dialogue:
             for i, t in enumerate(textlines):
-                if not (t.startswith('"') or t.startswith(' ') or t.endswith('\x13') or t.isspace() or t == "" or i == 0):
+                # TODO: Don't put a space if the line is only a wait...?
+                if not (t.startswith('"') or t.startswith(' ') or t.isspace() or t == "" or i == 0):
                     textlines[i] = " " + textlines[i]
+
+        if textlines[-1].isspace() or len(textlines[-1]) == 0:
+            textlines.pop()
         new_text = '\n'.join(textlines)
 
         if final_ln_wait:
@@ -1032,6 +1037,8 @@ class Pointer(object):
             #print original_text
             #print new_text
 
+            # TODO: The asterisk quote thing. 220a gets replaced by 2a. (By removing a 20 space in the middle.)
+
             if len(old_bytestring) != len(new_bytestring):
                 diff = len(old_bytestring) - len(new_bytestring)
                 # Salvaging tactics. Where can you take away/add spaces that won't break stuff?
@@ -1050,9 +1057,10 @@ class Pointer(object):
                     new_bytestring = new_bytestring[:-10] + new_bytestring[-10:].replace('0a', '20200a', 1)
                     diff = len(old_bytestring) - len(new_bytestring)
                     assert diff == 0
-                elif '20' in new_bytestring[-10:] and diff == -2:
-                    i = new_bytestring[-10:].index('20')
-                    new_bytestring = new_bytestring[:-10] + new_bytestring[-10:].replace('20', '', 1)
+                elif '2220' in new_bytestring[-10:] and diff == -2:
+                    i = new_bytestring[-10:].index('2220')
+                    # Gotta be careful of the end quote. Don't replace "<LN> with *.
+                    new_bytestring = new_bytestring[:-10] + new_bytestring[-10:].replace('2220', '22', 1)
                     diff = len(old_bytestring) - len(new_bytestring)
                     assert diff == 0
                 elif '200a' in new_bytestring and diff == -2:
@@ -1073,9 +1081,15 @@ class Pointer(object):
                     new_bytestring = new_bytestring.replace('2013', '20202013', 1)
                     diff = len(old_bytestring) - len(new_bytestring)
                     assert diff == 0
+                elif '2013' in new_bytestring and diff == -2:
+                    i = new_bytestring.index('2013')
+                    new_bytestring = new_bytestring.replace('2013', '13', 1)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
                 else:
                     print "too hard to reinsert right now:"
                     print "diff", diff
+                    print self.translations[0].max_width
                     print original_text
                     print new_text
                     print old_bytestring

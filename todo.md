@@ -40,6 +40,8 @@
 * I can probably get away with a 44-character window if I can manually remove the <LN> between two lines!
     * A handful of typeset lines look overly cautious as they are now.
 
+* The typesetter seems really wrong about the width of particular strings, since it's refreshing the text locs.
+
 ### images
 * Reinsert the revised images.
     * Title: still stupidly hard
