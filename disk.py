@@ -12,7 +12,7 @@ from utils import sjis_to_hex_string, ascii_to_hex_string
 from utils import onscreen_length
 from rominfo import file_blocks, file_location, file_length, POINTER_CONSTANT, POINTER_ABSORB, POINTER_CHANGE
 from rominfo import SPARE_BLOCK, OTHER_SPARE_BLOCK, CREATURE_BLOCK
-from rominfo import DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH, DIALOGUE_MAX_LENGTH
+from rominfo import DAT_MAX_LENGTH, FULLSCREEN_MAX_LENGTH, DIALOGUE_MAX_LENGTH, MEDIUM_MAX_LENGTH
 
 from pointer_peek import text_at_offset, word_at_offset
 
@@ -670,17 +670,13 @@ class CreatureBlock(Block):
 
 class Translation(object):
     """Has an offset, a SJIS japanese string, and an ASCII english string."""
-    def __init__(self, block, location, japanese, english, is_wide, page_break_suffix=''):
+    def __init__(self, block, location, japanese, english, width, page_break_suffix=''):
         self.location = location
         self.block = block
         self.japanese = japanese
         self.english = english
         self.block = block
-        self.is_wide = is_wide
-        if is_wide:
-            self.max_width = FULLSCREEN_MAX_LENGTH
-        else:
-            self.max_width = DIALOGUE_MAX_LENGTH
+        self.max_width = width
 
         self.location_in_blockstring = (location - block.start) * 2
 
@@ -742,12 +738,15 @@ class Translation(object):
 
     def add_padding(self):
         """Add a single space if the string will need typesetting."""
-        if len(self.english) > 2*self.max_width:
+        if onscreen_length(self.english) > 2*self.max_width:
             self.english += ' ' + ' '
             self.en_bytestring += '2020'
-        elif len(self.english) > self.max_width:
+        elif onscreen_length(self.english) > self.max_width:
             self.english += ' '
             self.en_bytestring += '20'
+        #elif onscreen_length(self.english) == self.max_width:
+        #    self.japanese += "\n"
+        #    self.jp_bytestring += '0a'
 
     def send_typeset(self):
         """
@@ -805,20 +804,22 @@ class Pointer(object):
 
         self.translations = self.get_translations()
 
-        if self.translations:
-            if self.translations[0].is_wide:
-                self.max_width = FULLSCREEN_MAX_LENGTH
-            else:
-                self.max_width = DIALOGUE_MAX_LENGTH
+        self.original_translations = self.get_translations(original_location=True)
+
+        if self.original_translations:
+            self.max_width = self.original_translations[0].max_width
         else:
             self.max_width = 1000
 
         self.new_text_location = self.text_location
 
-    def get_translations(self):
+    def get_translations(self, original_location=False):
         result = []
         for b in self.gamefile.blocks:
-            result += [t for t in b.translations if self.text_location <= t.location < self.text_location_stop]
+            if original_location:
+                result += [t for t in b.translations if self._true_location() <= t.location < self.text_location_stop]
+            else:
+                result += [t for t in b.translations if self.text_location <= t.location < self.text_location_stop]
         return result
 
     def edit(self, diff):
@@ -888,18 +889,6 @@ class Pointer(object):
                 result = text_at_offset(self.gamefile, pointer_location+2)
         return result
 
-    def print_dialogue_box(self):
-        """
-        Get the text, and print a representation of how it looks in a dialogue window.
-        """
-        lines = self.text().splitlines()
-
-        print "-"*self.max_width
-        for l in lines:
-            print "|" + l.ljust(self.max_width-1, " ") + "|"
-        print "-"*self.max_width
-
-
     def typeset(self):
         """
         Find all the newlines in the pointer, then move them around.
@@ -919,11 +908,17 @@ class Pointer(object):
             # Probably a pointer table
             return None
 
+        # Ignore stuff that's manually indented a lot
+        if original_text.startswith('    '):
+            return None
+
         spill = False
         for t in textlines:
-            if onscreen_length(t) > self.max_width:
+            if onscreen_length(t) >= self.max_width:
                 spill = True
         if not spill:
+            #print "unchanged"
+            #print original_text
             return None
 
         try:
@@ -937,7 +932,7 @@ class Pointer(object):
 
         is_dialogue = False
         for t in textlines:
-            if t.strip('\n').startswith('"'):
+            if t.strip('\x16').strip(" ").strip("!").startswith('"') or t.strip(" ").strip("\n").strip("\x13").endswith('"'):
                 is_dialogue = True
 
         try:
@@ -976,16 +971,17 @@ class Pointer(object):
                         break
                 secondline = ' '.join(words)
 
-                if is_dialogue and not secondline.startswith(" ") and not secondline.isspace():
+                # If it's dialogue, doesn't already have a space, and doesn't have asterisks around it, indent.
+                if is_dialogue and not secondline.startswith(" ") and not (secondline.startswith("*") and secondline.endswith("*")) and not secondline.isspace():
                     secondline = ' ' + secondline
 
                 # The double space means it was indented by the reinserter, but the line beginning changed.
                 if is_dialogue and '   ' in secondline:
-                    secondline = secondline.replace('   ', ' ')
+                    secondline = secondline.replace('   ', ' ', 1)
                     secondline = ' ' + secondline
 
                 if is_dialogue and '  ' in secondline:
-                    secondline = secondline.replace('  ', ' ')
+                    secondline = secondline.replace('  ', ' ', 1)
 
                 if i == len(textlines) - 1:
                     textlines.append('')
@@ -997,12 +993,19 @@ class Pointer(object):
 
         if is_dialogue:
             for i, t in enumerate(textlines):
-                # TODO: Don't put a space if the line is only a wait...?
-                if not (t.startswith('"') or t.startswith(' ') or t.isspace() or t == "" or i == 0):
+                #if t.startswith('"') or t.startswith("*")
+                if not (t.startswith('"') or t.startswith(' ') or t.isspace() or t == "" or i == 0 or t.startswith("*")):
                     textlines[i] = " " + textlines[i]
+
+                if t.strip(" ").startswith("*"):
+                    textlines[i] = textlines[i].lstrip(" ")
+
+                if t.strip('\x13').strip('\x16').startswith(' "'):
+                    textlines[i] = textlines[i].replace(' "', '"', 1)
 
         if textlines[-1].isspace() or len(textlines[-1]) == 0:
             textlines.pop()
+
         new_text = '\n'.join(textlines)
 
         if final_ln_wait:
@@ -1013,6 +1016,16 @@ class Pointer(object):
             new_text += "\x13\n\n"
         elif final_newline:
             new_text += "\n"
+
+        # On the off chance that something is exactly the same length, remove the newline.
+        textlines = new_text.split('\n')
+        for t in textlines:
+            if onscreen_length(t) == self.max_width:
+                try:
+                    i = new_text.index(t + "\n")
+                except ValueError:
+                    print "probably no newline after that"
+                new_text = new_text.replace(t + "\n", t, 1)
 
         windows = new_text.split('\x13')
         for i, w in enumerate(windows):
@@ -1032,12 +1045,7 @@ class Pointer(object):
         old_bytestring = ascii_to_hex_string(original_text)
         new_bytestring = ascii_to_hex_string(new_text)
 
-
         if old_bytestring != new_bytestring:
-            #print original_text
-            #print new_text
-
-            # TODO: The asterisk quote thing. 220a gets replaced by 2a. (By removing a 20 space in the middle.)
 
             if len(old_bytestring) != len(new_bytestring):
                 diff = len(old_bytestring) - len(new_bytestring)
@@ -1052,9 +1060,9 @@ class Pointer(object):
                     new_bytestring = new_bytestring.replace('13', '2013', 1)
                     diff = len(old_bytestring) - len(new_bytestring)
                     assert diff == 0
-                elif '0a' in new_bytestring[-10:] and diff == 4:
+                elif '0a0a' in new_bytestring and diff == 4:
                     i = new_bytestring[-10:].index('0a')
-                    new_bytestring = new_bytestring[:-10] + new_bytestring[-10:].replace('0a', '20200a', 1)
+                    new_bytestring = new_bytestring.replace('0a0a', '0a20200a', 1)
                     diff = len(old_bytestring) - len(new_bytestring)
                     assert diff == 0
                 elif '2220' in new_bytestring[-10:] and diff == -2:
@@ -1081,6 +1089,11 @@ class Pointer(object):
                     new_bytestring = new_bytestring.replace('2013', '20202013', 1)
                     diff = len(old_bytestring) - len(new_bytestring)
                     assert diff == 0
+                elif '0a130a' in new_bytestring and diff == 4:
+                    i = new_bytestring.index('0a130a')
+                    new_bytestring = new_bytestring.replace('0a130a', '0a2020130a', 1)
+                    diff = len(old_bytestring) - len(new_bytestring)
+                    assert diff == 0
                 elif '2013' in new_bytestring and diff == -2:
                     i = new_bytestring.index('2013')
                     new_bytestring = new_bytestring.replace('2013', '13', 1)
@@ -1089,14 +1102,15 @@ class Pointer(object):
                 else:
                     print "too hard to reinsert right now:"
                     print "diff", diff
-                    print self.translations[0].max_width
-                    print original_text
+                    print "is_dialogue", is_dialogue
+                    print self.max_width
                     print new_text
                     print old_bytestring
                     print new_bytestring
                     return None
 
             diff = len(old_bytestring) - len(new_bytestring)
+            #print self.max_width, is_dialogue
             #print new_text
             assert diff == 0
             try:
@@ -1146,10 +1160,13 @@ class DumpExcel(object):
             if block.start <= offset < block.stop:
                 japanese = row[2].value
                 english = row[4].value
+
+                width = DIALOGUE_MAX_LENGTH
                 if row[6].value:
-                    is_wide = True
-                else:
-                    is_wide = False
+                    if row[6].value == 'wide':
+                        width = FULLSCREEN_MAX_LENGTH
+                    elif row[6].value == 'medium':
+                        width = MEDIUM_MAX_LENGTH
 
                 if isinstance(japanese, long):
                     # Causes some encoding problems? Trying to skip them for now
@@ -1164,7 +1181,6 @@ class DumpExcel(object):
                 if block.gamefile.filename == 'SEND.DAT':
                     if '[PAGE]' in japanese:
                         lines_since_page_break += 1
-                        #japanese = japanese.replace('[PAGE]', '[SENLN]'*(4-lines_since_page_break))
                         japanese = japanese.replace('[PAGE]', '')
                         # This will get replaced by the appropriate number of [SENLN]s by the typesetter.
                         #english += '[PAGE]'
@@ -1174,7 +1190,7 @@ class DumpExcel(object):
                     else:
                         lines_since_page_break += 1
                     #assert lines_since_page_break <= 3
-                trans.append(Translation(block, offset, japanese, english, is_wide))
+                trans.append(Translation(block, offset, japanese, english, width))
         return trans
 
 

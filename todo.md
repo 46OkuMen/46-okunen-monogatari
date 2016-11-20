@@ -2,34 +2,23 @@
 * Some odd text timing in the Ch6 hopeless Devil fight.
     * Too-long pause after "bolts of lightning", no pause at all when it tells you how much damage you've taken
         * Check out the JP version
+            * Looks like the JP version tries not to display the damage numbers at all! 
         * Insert [PAUSE] control codes as needed.
 
 * Find other numbers that are likely victims of the number corruption bug.
 
 ### Typesetting
-* Find overflowing windows. (4 or more lines). Put a [SPLIT] where appropriate. (Then unsink the final line of the original end of the text)
-    * Chapter 1: done
-    * Chapter 2: done
-    * Chapter 3: done
-    * Chapter 4:
-    * Chapter 5:
-    * Chapter 6:
+* So the code I wrote to indent dialogue is a total mess.
+    * I need to find a way to indent it during the textlines loop that's checking the length. Otherwise, indenting it later without checking the length might cause it to spill over of course.
+    * Also gotta be careful not to add spaces in a way that could cause overflow in the make-sure-bytestrings-have-equal-length phase at the end. Adding them between two newlines is harmless, or between a wait and an end...
 
-* Find 'sunken' text. (text occupying bottom two rows with no newline at the end). Put a [LN] at the end of the final line.
-    * Chapter 1: done
-    * Chapter 2: done
-    * Chapter 3: done
+* Manual text stuff.
+    * Chapter 1:
+    * Chapter 2:
+    * Chapter 3:
     * Chapter 4:
     * Chapter 5:
-    * Chapter 6:
-
-* Find text that's typeset unaware of the next string. (Lines that contain only one word or so, when the next string could help fill up the rest of the line). Redistribute the text to even it out.
-    * Chapter 1: done
-    * Chapter 2: done
-    * Chapter 3: done
-    * Chapter 4:
-    * Chapter 5:
-    * Chapter 6:
+    * Chapter 6: done
 
 * Center the credits text
 

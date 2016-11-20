@@ -7,8 +7,9 @@ files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'S
 CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 
 CREATURE_MAX_LENGTH = 21
-DIALOGUE_MAX_LENGTH = 43
-FULLSCREEN_MAX_LENGTH = 76   # TODO: I think I was overly cautious with 75. So let's try 76. If it breaks, change it back.
+DIALOGUE_MAX_LENGTH = 44
+MEDIUM_MAX_LENGTH = 51
+FULLSCREEN_MAX_LENGTH = 78   # TODO: I think I was overly cautious with 75. So let's try 76. If it breaks, change it back.
 DAT_MAX_LENGTH = 77
 
 # TODO: Why did I use tuples of tuples? Why not a list of tuples? Less confusing that way.
@@ -88,17 +89,17 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
                              (0x3f97, 0x4daa),
                              (0x4dba, 0x4ee0),
                              (0x503c, 0x50db)), # otherspare
-               'ST6.EXE': ((0xa51b, 0xa55c), # enviro # bug not in this one
-                           (0xa59c, 0xaf5b), # stats/evolution # bug not in this one
+               'ST6.EXE': ((0xa51b, 0xa55c), # enviro
+                           (0xa59c, 0xaf5b), # stats/evolution
                            (0xaf5b, 0xb459), # ends at MAP601.MAP
-                           (0xb489, 0xb8d3), # ends at some pointers
+                           (0xb489, 0xb8d4), # ends at some pointers
                            (0xb8ea, 0xbb17), # ends after the crash text
-                           (0xbb17, 0xccd2), # ends at some code
+                           (0xbb17, 0xccb1), # ends at some code
                            (0xcd14, 0xce25), # creature block
                            (0xcedf, 0xcf6f),
                            (0xcfab, 0xd0bc),  # battle text
-                           (0xd44a, 0xd755), # error block
-                           (0xd7fc, 0xd89b)), # otherspare
+                           (0xd44a, 0xd756), # error block
+                           (0xd7fc, 0xd89c)), # otherspare
                'ENDING.EXE': ((0x3c4e, 0x4b20),),
                'SINKA.DAT': ((0x0000, 0x69a4),),
                'SEND.DAT': ((0x000, 0x8740),),

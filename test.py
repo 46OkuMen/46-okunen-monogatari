@@ -209,6 +209,6 @@ if __name__ == '__main__':
     #test_game_string_lengths()
     #test_substrings_of_earlier_strings()
     #est_duplicate_strings()
-    #test_map_locations()
-    #test_image_locations()
+    test_map_locations()
+    test_image_locations()
     #test_merged_pointers()
