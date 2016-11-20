@@ -1,3 +1,7 @@
+### Crashes
+* Ch2 crash upon entering Ch3??????
+    * Let me remove all the excessive spaces and try again...
+
 ### Text Oddities
 * Some odd text timing in the Ch6 hopeless Devil fight.
     * Too-long pause after "bolts of lightning", no pause at all when it tells you how much damage you've taken
@@ -13,8 +17,8 @@
     * Also gotta be careful not to add spaces in a way that could cause overflow in the make-sure-bytestrings-have-equal-length phase at the end. Adding them between two newlines is harmless, or between a wait and an end...
 
 * Manual text stuff.
-    * Chapter 1:
-    * Chapter 2:
+    * Chapter 1: ...good enough
+    * Chapter 2: crashing. fuck
     * Chapter 3:
     * Chapter 4:
     * Chapter 5:
