@@ -1024,7 +1024,8 @@ class Pointer(object):
                 try:
                     i = new_text.index(t + "\n")
                 except ValueError:
-                    print "probably no newline after that"
+                    print "probably no newline after this:"
+                    print t
                 new_text = new_text.replace(t + "\n", t, 1)
 
         windows = new_text.split('\x13')

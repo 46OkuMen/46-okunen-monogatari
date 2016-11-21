@@ -47,7 +47,8 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
                            (0x10922, 0x109c1),), # black spare-ish block
                'ST3.EXE': ((0xb49d, 0xb4c6),
                            (0xb4c6, 0xb54a),   # Gaia's Heart
-                           (0xb58a, 0xc01d),
+                           (0xb58a, 0xbf74), # ends at a weird ctrl code
+                           (0xbf74, 0xc01d),
                            (0xc046, 0xc5d3),
                            (0xc607, 0xcfe6),
                            (0xcfff, 0xda0d),

@@ -1,6 +1,8 @@
 ### Crashes
-* Ch2 crash upon entering Ch3??????
-    * Let me remove all the excessive spaces and try again...
+* Ch4 freeze upon entering Ch5.
+    * There were excessive spaces that time, remove those and try again.
+    * Crash on displaying the disk number you're supposed to insert??
+        * Trying again with a fresh playthrough.
 
 ### Text Oddities
 * Some odd text timing in the Ch6 hopeless Devil fight.
@@ -17,10 +19,10 @@
     * Also gotta be careful not to add spaces in a way that could cause overflow in the make-sure-bytestrings-have-equal-length phase at the end. Adding them between two newlines is harmless, or between a wait and an end...
 
 * Manual text stuff.
-    * Chapter 1: ...good enough
-    * Chapter 2: crashing. fuck
-    * Chapter 3:
-    * Chapter 4:
+    * Chapter 1: done
+    * Chapter 2: good enough.
+    * Chapter 3: did two passes. Basically done.
+    * Chapter 4: did two passes. Mostly done, but crashes at the end
     * Chapter 5:
     * Chapter 6: done
 
