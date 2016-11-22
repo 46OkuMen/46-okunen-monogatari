@@ -1,4 +1,9 @@
 ### Crashes
+* Ch3 and Ch4: Freeze after loading the first character of "Insert disk #X", "Save EVO" or "Load EVO" on saving/loading/changing disks.
+    * Works ok with Text Speed 0, but nothing that displays characters one at a time.
+    * Check alllllll the pointers to Save Game, Load Game, etc.
+    * It doesn't have to do with Disk Error being blanked out.
+
 * Ch4 freeze upon entering Ch5.
     * There were excessive spaces that time, remove those and try again.
     * Crash on displaying the disk number you're supposed to insert??

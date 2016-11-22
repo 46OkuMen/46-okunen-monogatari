@@ -729,7 +729,7 @@ class Translation(object):
                 #try:
                 #    print self, "has one indentation"
                 #except UnicodeEncodeError:
-                #    print "some string", "has one indentation"
+                #    print "some string", "has one indentation"z
                 self.english = " " + self.english
                 self.en_bytestring = '20' + self.en_bytestring
 
