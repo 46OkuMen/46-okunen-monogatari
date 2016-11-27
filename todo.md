@@ -1,15 +1,18 @@
 ### Crashes
+* Ch4 freeze upon loading a Ch3 save.
+    * Happens upon loading a Ch3 save, loading a Ch1 save, and entering Ch5.
+    * Definitely something in ST4.
+
+* Ch1 freeze upon loading a Ch4 save.
+    * Had to do with the cladoselache history lesson... broke up the block after that string. Fixed now.
+
 * Ch3 and Ch4: Freeze after loading the first character of "Insert disk #X", "Save EVO" or "Load EVO" on saving/loading/changing disks.
     * Works ok with Text Speed 0, but nothing that displays characters one at a time.
     * Check alllllll the pointers to Save Game, Load Game, etc.
     * It doesn't have to do with Disk Error being blanked out.
     * Also occurs with a blank ST3 sheet. No translations have happened, but changes like the space-reclaiming functions have already 
     * Try it without the altered 46.EXE. It isn't anything with ST3...
-
-* Ch4 freeze upon entering Ch5.
-    * There were excessive spaces that time, remove those and try again.
-    * Crash on displaying the disk number you're supposed to insert??
-        * Trying again with a fresh playthrough.
+    * Fixed by breaking up the text blocks a bit better.
 
 ### Text Oddities
 * Some odd text timing in the Ch6 hopeless Devil fight.
@@ -18,13 +21,11 @@
             * Looks like the JP version tries not to display the damage numbers at all! 
         * Insert [PAUSE] control codes as needed.
 
+* The end of the encyclopedia entry for Protungulatum doesn't wait at the end in the JP version. See how to fix it in ours.
+
 * Find other numbers that are likely victims of the number corruption bug.
 
 ### Typesetting
-* So the code I wrote to indent dialogue is a total mess.
-    * I need to find a way to indent it during the textlines loop that's checking the length. Otherwise, indenting it later without checking the length might cause it to spill over of course.
-    * Also gotta be careful not to add spaces in a way that could cause overflow in the make-sure-bytestrings-have-equal-length phase at the end. Adding them between two newlines is harmless, or between a wait and an end...
-
 * Manual text stuff.
     * Chapter 1: done
     * Chapter 2: good enough.
@@ -38,11 +39,7 @@
 * Broken text in game over stories:
     * Green Dragon
     * ?
-
-* I can probably get away with a 44-character window if I can manually remove the <LN> between two lines!
-    * A handful of typeset lines look overly cautious as they are now.
-
-* The typesetter seems really wrong about the width of particular strings, since it's refreshing the text locs.
+    * Currently being kept track of on a goodle sheet.
 
 ### images
 * Reinsert the revised images.
@@ -58,6 +55,10 @@
         * left side of final "t"'s hat
     * Chapter 6: done
     * Epilogue:  done
+
+### quality of life
+* Get save files for each chapter and give myself tons of EVO Genes.
+    * EVO genes are located at offset 0x1a-1b in each save file.
 
 ### tech debt
 * Unify spare_block and other_spare_block.

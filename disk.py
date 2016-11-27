@@ -1292,8 +1292,8 @@ class Overflow(object):
                     try:
                         j = self.bytestring.index(jp_bytestring)
                     except ValueError:
-                        #print "having problems in the overflow get_length search now"
-                        #print hex(self.start), hex(self.stop), trans.english
+                        print "having problems in the overflow get_length search now"
+                        print hex(self.start), hex(self.stop), trans.english
                         #print jp_bytestring
                         jp_bytestring = trans.jp_bytestring_alt
                         #print jp_bytestring

@@ -28,7 +28,8 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
                            (0xe6f9, 0xec4c),  # not variable; battle msgs
                            (0xec4c, 0xec9e),  # not variable; evolution msgs
                            (0xec9e, 0xed90),
-                           (0xedc7, 0x10e39),  # variable; dialogue
+                           (0xedc7, 0xf5e9),  # ends after cladoselache biology lesson
+                           (0xf5e9, 0x10e39),  # variable; dialogue
                            (0x10e39, 0x10f86),  # not variable; environment messages
                            (0x10fca, 0x117c7),  # variable; creature names
                            (0x117c7, 0x117e0),  # not variable; yes/no/cancel    # iffy ending
