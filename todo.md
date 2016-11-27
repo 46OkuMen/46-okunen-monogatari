@@ -3,6 +3,8 @@
     * Works ok with Text Speed 0, but nothing that displays characters one at a time.
     * Check alllllll the pointers to Save Game, Load Game, etc.
     * It doesn't have to do with Disk Error being blanked out.
+    * Also occurs with a blank ST3 sheet. No translations have happened, but changes like the space-reclaiming functions have already 
+    * Try it without the altered 46.EXE. It isn't anything with ST3...
 
 * Ch4 freeze upon entering Ch5.
     * There were excessive spaces that time, remove those and try again.

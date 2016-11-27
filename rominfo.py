@@ -49,14 +49,14 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
                            (0xb4c6, 0xb54a),   # Gaia's Heart
                            (0xb58a, 0xbf74), # ends at a weird ctrl code
                            (0xbf74, 0xc01d),
-                           (0xc046, 0xc5d3),
+                           (0xc046, 0xc5d4),
                            (0xc607, 0xcfe6),
                            (0xcfff, 0xda0d),
                            (0xda0d, 0xdb3b),  # enviro
                            (0xdb7e, 0xe2d5),  # creature block
                            (0xe617, 0xe6a7),    # Y/N/C, "evolved too far"
-                           (0xe6e3, 0xe7f3),
-                           (0xeb82, 0xee8e),
+                           (0xe6e3, 0xe7f4), # demon msg
+                           (0xeb82, 0xee8d), # spare block
                            (0xef34, 0xefd3)), # spare-ish block
                'ST4.EXE': ((0xe263, 0xe2a4), # enviro
                            (0xe2f4, 0xe90e),
@@ -118,7 +118,7 @@ SPARE_BLOCK = {'OPENING.EXE': (0x55e9, 0x5639),
                '46.EXE': (0x9cb8, 0xa07a),
                'ST1.EXE': (0x11d42, 0x1204e),
                'ST2.EXE': (0x10570, 0x1087d),
-               'ST3.EXE': (0xeb82, 0xee8e),
+               'ST3.EXE': (0xeb82, 0xee8d),
                'ST4.EXE': (0x1659c, 0x168a8),
                'ST5.EXE': (0x11ef2, 0x121fe),
                'ST6.EXE': (0xd44a, 0xd756),}
