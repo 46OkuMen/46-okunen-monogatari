@@ -63,7 +63,8 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
                            (0xe2f4, 0xe90e),
                            (0xe90e, 0xea47), # evolution, menus
                            (0xea4b, 0x102cb),
-                           (0x102cb, 0x120a1), # dialogue... ends at crazy control codes/table
+                           (0x102cb, 0x10337), # dialogue, ends at problematic long string
+                           (0x10337, 0x120a1), # dialogue... ends at crazy control codes/table
                            (0x12115, 0x1485f), # dialogue
                            (0x148c1, 0x149e5), # enviro
                            (0x14a28, 0x15a1e), # creature block

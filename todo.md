@@ -2,6 +2,15 @@
 * Ch4 freeze upon loading a Ch3 save.
     * Happens upon loading a Ch3 save, loading a Ch1 save, and entering Ch5.
     * Definitely something in ST4.
+        * Delete strings 400-700: broken
+        * Delete strings 100-400: works
+        * Delete strings 200-400: works
+        * Delete strings 200-300: works
+        * Delete strings 200-250: broken
+        * Delete strings 250-275: the length is too long to do that
+        * Delete string 265: works
+            * 265 is responsible. It's really long, but otherwise pretty ordinary.
+            * Broke up the block after that string. Now the Ch3 save works.
 
 * Ch1 freeze upon loading a Ch4 save.
     * Had to do with the cladoselache history lesson... broke up the block after that string. Fixed now.
@@ -13,6 +22,7 @@
     * Also occurs with a blank ST3 sheet. No translations have happened, but changes like the space-reclaiming functions have already 
     * Try it without the altered 46.EXE. It isn't anything with ST3...
     * Fixed by breaking up the text blocks a bit better.
+    * Seems to persist in my save states, but not from a fresh load of the file. Odd...
 
 ### Text Oddities
 * Some odd text timing in the Ch6 hopeless Devil fight.
@@ -39,7 +49,7 @@
 * Broken text in game over stories:
     * Green Dragon
     * ?
-    * Currently being kept track of on a goodle sheet.
+    * Currently being kept track of on a google sheet.
 
 ### images
 * Reinsert the revised images.
