@@ -204,6 +204,11 @@ def test_merged_pointers():
         first = word_at_offset(gamefile_path, a) + POINTER_CONSTANT[filename]
         assert first == b_text_offset, '%s: %s, %s' % (hex(a), hex(first + POINTER_CONSTANT[filename]), hex(b_text_offset))
 
+def test_block_increasing_offsets():
+    for f in file_blocks:
+        offsets = list(sum(f, ()))
+        print offsets
+
 if __name__ == '__main__':
     test_increasing_offsets()
     #test_game_string_lengths()
@@ -212,3 +217,4 @@ if __name__ == '__main__':
     test_map_locations()
     test_image_locations()
     #test_merged_pointers()
+    test_block_increasing_offsets()

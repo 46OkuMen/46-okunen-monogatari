@@ -932,7 +932,9 @@ class Pointer(object):
 
         is_dialogue = False
         for t in textlines:
-            if t.strip('\x16').strip(" ").strip("!").startswith('"') or t.strip(" ").strip("\n").strip("\x13").endswith('"'):
+            naked_start = t.strip('\x16').strip(" ").strip("!")
+            naked_stop = t.strip(" ").strip("\n").strip("\x13")
+            if naked_start.startswith("'") or naked_start.startswith('"') or naked_stop.endswith("'") or naked_stop.endswith('"'):
                 is_dialogue = True
 
         try:
