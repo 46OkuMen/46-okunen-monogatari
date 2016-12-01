@@ -5,6 +5,8 @@
             * Looks like the JP version tries not to display the damage numbers at all! 
         * Insert [PAUSE] control codes as needed.
 
+* "forelegs" / "hind legs".
+
 * Find other numbers that are likely victims of the number corruption bug.
 
 ### Other weird things
@@ -24,7 +26,7 @@
 * Center the credits text
 
 * Broken text in game over stories:
-    * Green Dragon - manual fix
+    * Green Dragon - manual fix (space before "Human")
     * Gold Dragon - manual fix
     * Merychippus
     * Coelacanth
@@ -38,10 +40,8 @@
     * Chapter 1: done
     * Chapter 2: done
     * Chapter 3: done
-    * Chapter 4: quite minor glitch
-        * The side of an n, I think
-    * Chapter 5: quite minor glitch
-        * left side of final "t"'s hat
+    * Chapter 4: done
+    * Chapter 5: done
     * Chapter 6: done
     * Epilogue:  done
 
@@ -50,9 +50,11 @@
 
 ### Bugs Present in the JP Version
 * Ch5 Gaia's Heart transaprency, but only in Shambahla.
-    * This is present in the original JP version.
 
 * Ch5 Graphical glitch in the lava when entering the second-to-last screen in the Stonehenge dungeon.
+
+* Protungulatum encyclopedia entry doesn't wait after the last line.
+    * Fixed this one (it's pretty easy)
 
 ### common problems and their solutions
 * If a "&" appears before a string when it gets replaced:
