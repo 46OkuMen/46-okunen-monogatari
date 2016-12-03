@@ -7,6 +7,7 @@ from utils import TYPESET_ROM_PATH
 with open(TYPESET_ROM_PATH, 'r+b') as f:
 	buffer = f.read()
 
+	# Ch2 fixes
 	red_planet_offset = buffer.find(b'red\n planet."  ')
 	red_planet_offset += 0x0f
 	f.seek(red_planet_offset, 0)
@@ -17,6 +18,31 @@ with open(TYPESET_ROM_PATH, 'r+b') as f:
 	f.seek(distant_future_offset, 0)
 	f.write(b' \n')
 
+	# Fix mistakenly indented string
+	fur_offset = buffer.find(b'"Fur?')
+	fur_offset -= 3
+	f.seek(fur_offset, 0)
+	f.write(b'\x13\x0a\x00')
+
+	# Overrwrite extraneous newline
+	clockwise_offset = buffer.find(b'rotation."  ')
+	clockwise_offset += 12 # yeah, decimal 12
+	f.seek(clockwise_offset, 0)
+	f.write(b' ')
+
+	# Replace an <END> 'line break' with a space, to make the next line indent properly.
+	#desolation_offset = buffer.find(b'beauty. The desolation')
+	#desolation_offset += 0x16
+	#f.seek(desolation_offset, 0)
+	#f.write(b'\x0a')
+
+	# Replace <WAIT><LN> with <LN><WAIT>.
+	atlantis_army_offset = buffer.find(b' Atlantis army..."')
+	atlantis_army_offset += 0x12
+	f.seek(atlantis_army_offset, 0)
+	f.write(b'\x0a\x13')
+
+	# SEND.DAT fixes
 	gold_dragon_offset = buffer.find(b'the Devil\'s minions')
 	gold_dragon_offset += 0x22
 	f.seek(gold_dragon_offset, 0)

@@ -233,4 +233,5 @@ POINTER_ABSORB = {
 POINTER_CHANGE = {
   # filename | ptrloc | text location where it's supposed to go
   ('ST5S3.EXE', 0x1b6c): 0x46b9, # "Her " -> "She " (for "She countered the spell")
+  ('ST5S3.EXE', 0x1b81): 0x46d4, # "Its " -> "It " (for "It countered the spell")
 }
