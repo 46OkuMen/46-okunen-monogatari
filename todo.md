@@ -5,24 +5,15 @@
             * Looks like the JP version tries not to display the damage numbers at all! 
         * Insert [PAUSE] control codes as needed.
 
-* "forelegs" / "hind legs".
-
 * Find other numbers that are likely victims of the number corruption bug.
 
 ### Other weird things
 * Evolution during a game over story. Phaestus -> Goblin story -> Asamin.
     * Evolved by increasing Endurance.
     * Had infinite EVO genes on.
+* Why is it so hard to land accuracy-based attacks (Air Power, skills) in the Ch5 Devil fight for me, but not kuoushi?
 
 ### Typesetting
-* Manual text stuff.
-    * Chapter 1: done
-    * Chapter 2: done
-    * Chapter 3: done
-    * Chapter 4: did three passes, has like 3 things that still need to be fixed
-    * Chapter 5: did one pass, pretty good
-    * Chapter 6: done
-
 * Center the credits text
 
 * Broken text in game over stories:
@@ -31,19 +22,6 @@
     * Merychippus
     * Coelacanth
     * Currently being kept track of on a google sheet.
-
-### images
-* Reinsert the revised images.
-    * Title: done!!!
-    * Prologue: minor glitch
-        * purple fuzz on right side of screen, OR it loops around to the left side if you make it wider... tricky.
-    * Chapter 1: done
-    * Chapter 2: done
-    * Chapter 3: done
-    * Chapter 4: done
-    * Chapter 5: done
-    * Chapter 6: done
-    * Epilogue:  done
 
 ### tech debt
 * Unify spare_block and other_spare_block.
