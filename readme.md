@@ -36,8 +36,6 @@ For more details on the state of the project, [here is the current TODO list](..
 		* 46 Okunen Monogatari - The Sinkaron (J) B 4.FDI `md5: 60E4D019F0CEF79C3D2EA3D44E6BF70E`
 	* HDI
 		* 46 Okunen Monogatari - The Shinkaron.hdi `md5: F71C6DFD13A51E56BEA63A81CE735C26'
-	* HDI (Tokugawa hardware hack, maybe this won't be supported??)
-		* 46okunenm.hdi `md5: 2B00A01944048980647FCE7ADEF07F57'
 	* HDM
 		* 46 Okunen Monogatari - The Shinkaron (Disk 1 - User disk).hdm `md5: DB9AC9FB330B527C27CBA425E9BD25A2`
 		* 46 Okunen Monogatari - The Shinkaron (Disk 2).hdm `md5: E68A1117B54A626760BE420DA7BF67CD`
