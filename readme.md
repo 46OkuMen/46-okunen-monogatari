@@ -19,7 +19,7 @@ The game this patch targets is the Japanese-only prequel to the cult classic act
 | System       |100%  |   (5 / 5)    | Yes      | Beta           |
 | Images       |100%  |   (9 / 9)    |          | Beta           |
 | Encyclopedia |100%  | (935 / 935)  | Yes      | Beta           |
-| Game Overs   |100%  | (729 / 729)  | Mostly   | Beta           |
+| Game Overs   |100%  | (729 / 729)  | Yes      | Beta           |
 | Total        |100%  |(5057 / 5057) |          |                |
 
 It's harder to quanitify the status of the project for things like bugfixes, typesetting, etc. Progress is definitely being made, however, even if the percents aren't going up much.

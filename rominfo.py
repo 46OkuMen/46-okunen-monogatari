@@ -21,7 +21,6 @@ file_blocks = {'46.EXE': ((0x94ba, 0x94ea),
                                (0x55e9, 0x5639), # spare block
                                (0x5657, 0x586a), # cut scenes
                                (0x590e, 0x59ad)), # other spare
-               #'46.EXE': ((0x93e8, 0x9cd9), (0x9d6e, 0xa07a)),
                'ST1.EXE': ((0xd873, 0xd8b3),  # fresh water messages
                            (0xd8f3, 0xd934),  # Gaia's Heart
                            (0xd984, 0xe6f9),
