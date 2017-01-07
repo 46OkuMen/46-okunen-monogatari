@@ -1,7 +1,7 @@
 # shank-a-rom
 ![screen from mid-Chapter 1, translated](img/evidence_02.png)
 
-Romhacking utilities and notes developed as part of the English translation patch for *46 Okunen Monogatari: The Shinkaron* / *E.V.O.: The Theory of Evolution* (PC-98).
+Romhacking utilities and notes developed as part of [46 OkuMen](http://46okumen.com/)'s English translation patch for *46 Okunen Monogatari: The Shinkaron* / *E.V.O.: The Theory of Evolution* (PC-98).
 
 The game this patch targets is the Japanese-only prequel to the cult classic action RPG *46 Okunen Monogatari: Harukanaru Eden e* / *E.V.O.: Search for Eden* (SNES). See [Hardcore Gaming 101](http://www.hardcoregaming101.net/46okunen/46okunen.htm) for information on both games.
 
@@ -22,27 +22,10 @@ The game this patch targets is the Japanese-only prequel to the cult classic act
 | Game Overs   |100%  | (729 / 729)  | Yes      | Beta           |
 | Total        |100%  |(5057 / 5057) |          |                |
 
-It's harder to quanitify the status of the project for things like bugfixes, typesetting, etc. Progress is definitely being made, however, even if the percents aren't going up much.
-
-For more details on the state of the project, [here is the current TODO list](../master/todo.md).
+Yeah, it's done!
 
 ### How do I use this?
-* Wait for it to be released!
-* The patch will target these disk images:
-	* FDI
-		* 46 Okunen Monogatari - The Sinkaron (J) A user.FDI `md5: CA56B37F74885C40EDC9B1D2AACB5DA6`
-		* 46 Okunen Monogatari - The Sinkaron (J) B 2.FDI `md5: 3C1C0FBE1CF0A4C1B4574FFC26A490AB`
-		* 46 Okunen Monogatari - The Sinkaron (J) B 3.FDI `md5: A3934EED652627ABB45A756F13EC531A`
-		* 46 Okunen Monogatari - The Sinkaron (J) B 4.FDI `md5: 60E4D019F0CEF79C3D2EA3D44E6BF70E`
-	* HDI
-		* 46 Okunen Monogatari - The Shinkaron.hdi `md5: F71C6DFD13A51E56BEA63A81CE735C26'
-	* HDM
-		* 46 Okunen Monogatari - The Shinkaron (Disk 1 - User disk).hdm `md5: DB9AC9FB330B527C27CBA425E9BD25A2`
-		* 46 Okunen Monogatari - The Shinkaron (Disk 2).hdm `md5: E68A1117B54A626760BE420DA7BF67CD`
-		* 46 Okunen Monogatari - The Shinkaron (Disk 3).hdm `md5: A7E8022404E2A34EA0491C8AA8E9D37E`
-		* 46 Okunen Monogatari - The Shinkaron (Disk 4).hdm `md5: DB5C8B6096A78B513313E8120AF22C68`
-	* (Not supporting HDM [Alt 1], which is missing a disk anyway).
+* Download the patch from [romhacking.net](http://www.romhacking.net/translations/2830/) or from [the 46 OkuMen project page](http://46okumen.com/projects/e-v-o-the-theory-of-evolution/).
 
-	
-* If you want to use any of the utilities for yourself, I didn't really plan for that. I can't distribute the game data or the master translation spreadhseet.
+* If you want to use any of the utilities for yourself, that might be tough. I can't distribute ROMs, and I can't distribute the text dump used for reinsertion.
 	* Feel free to read the documents, however.
