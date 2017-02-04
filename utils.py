@@ -16,8 +16,7 @@ DEST_ROM_PATH = os.path.join(DEST_PATH, "46 Okunen Monogatari - The Sinkaron (J)
 
 TYPESET_ROM_PATH = os.path.join(SCRIPT_DIR, 'typeset_roms', '46 Okunen Monogatari - The Sinkaron (J) A user.FDI')
 
-RAW_DUMP_XLS = 'shinkaron_dump.xlsx'
-DUMP_XLS = "shinkaron_dump_test.xlsx"
+DUMP_XLS = "shinkaron_dump.xlsx"
 POINTER_XLS = "shinkaron_pointer_dump.xlsx"
 
 """

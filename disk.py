@@ -675,7 +675,6 @@ class Translation(object):
         self.block = block
         self.japanese = japanese
         self.english = english
-        self.block = block
         self.max_width = width
 
         self.location_in_blockstring = (location - block.start) * 2
