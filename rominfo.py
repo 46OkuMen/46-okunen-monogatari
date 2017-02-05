@@ -4,6 +4,11 @@
 files = ['OPENING.EXE', '46.EXE', 'ST1.EXE', 'ST2.EXE', 'ST3.EXE', 'ST4.EXE', 'ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE',
          'ST5S3.EXE', 'ST6.EXE', 'ENDING.EXE', 'SINKA.DAT', 'SEND.DAT', 'GEAGRDRV.EXE']
 
+disk_a_images = ['TITLE0.GDT', 'TITLE7.GDT', 'AV04B.GDT']
+disk_b2_images = ['TITLE1.GDT', 'TITLE2.GDT']
+disk_b3_images = ['TITLE3.GDT', 'TITLE4.GDT']
+disk_b4_images = ['TITLE5.GDT', 'TITLE6.GDT']
+
 CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 
 CREATURE_MAX_LENGTH = 21
