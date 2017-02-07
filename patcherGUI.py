@@ -10,9 +10,10 @@ class TkFileDialogExample(Tkinter.Frame):
 
         # define buttons
         Tkinter.Label(self, text="User Disk").grid(row=0, column=0, sticky='E')
-        Tkinter.Label(self, text="Disk B2").grid(row=1, column=0, sticky='E')
-        Tkinter.Label(self, text="Disk B3").grid(row=2, column=0, sticky='E')
-        Tkinter.Label(self, text="Disk B4").grid(row=3, column=0, sticky='E')
+        Tkinter.Label(self, text="Disk B1").grid(row=1, column=0, sticky='E')
+        Tkinter.Label(self, text="Disk B2").grid(row=2, column=0, sticky='E')
+        Tkinter.Label(self, text="Disk B3").grid(row=3, column=0, sticky='E')
+        Tkinter.Label(self, text="Disk B4").grid(row=4, column=0, sticky='E')
 
 
         diskA = Tkinter.StringVar()
@@ -22,14 +23,18 @@ class TkFileDialogExample(Tkinter.Frame):
 
 
         AEntry = Tkinter.Entry(self, textvariable=diskA)
+        B1Entry = Tkinter.Entry(self)
+        B1Entry.insert(0, 'Patch not needed')
+        B1Entry['state'] = 'disabled'
         B2Entry = Tkinter.Entry(self, textvariable=diskB2)
         B3Entry = Tkinter.Entry(self, textvariable=diskB3)
         B4Entry = Tkinter.Entry(self, textvariable=diskB4)
 
         AEntry.grid(row=0, column=1)
-        B2Entry.grid(row=1, column=1)
-        B3Entry.grid(row=2, column=1)
-        B4Entry.grid(row=3, column=1)
+        B1Entry.grid(row=1, column=1)
+        B2Entry.grid(row=2, column=1)
+        B3Entry.grid(row=3, column=1)
+        B4Entry.grid(row=4, column=1)
 
         all_entry_text = [diskA, diskB2, diskB3, diskB4]
         B_entries = [B2Entry, B3Entry, B4Entry]
@@ -40,13 +45,16 @@ class TkFileDialogExample(Tkinter.Frame):
         B4Browse = Tkinter.Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB4, all_entry_text, PatchBtn))
 
         ABrowse.grid(row=0, column=2)
-        B2Browse.grid(row=1, column=2)
-        B3Browse.grid(row=2, column=2)
-        B4Browse.grid(row=3, column=2)
+        B2Browse.grid(row=2, column=2)
+        B3Browse.grid(row=3, column=2)
+        B4Browse.grid(row=4, column=2)
 
         PatchBtn = Tkinter.Button(self, text="Patch", command= lambda: self.patchfiles(diskA, diskB2, diskB3, diskB4))
-        PatchBtn.grid(row=4, column=5)
+        PatchBtn.grid(row=5, column=5)
         PatchBtn['state'] = 'disabled'
+
+        Console = Tkinter.Text(self, height=3, width=30)
+        Console.grid(row=5, column=1,) # TODO: Use columnspan to do something sane with it
 
         # define options for opening or saving a file
         self.file_opt = options = {}
