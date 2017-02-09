@@ -239,3 +239,23 @@ POINTER_CHANGE = {
   ('ST5S3.EXE', 0x1b6c): 0x46b9, # "Her " -> "She " (for "She countered the spell")
   ('ST5S3.EXE', 0x1b81): 0x46d4, # "Its " -> "It " (for "It countered the spell")
 }
+
+# Filenames for common sets. Used for autofilling the patcher.
+common_filenames = [
+  ('46 Okunen Monogatari - The Shinkaron (Disk 1 - User disk).hdm',
+   '46 Okunen Monogatari - The Shinkaron (Disk 2).hdm',
+   '46 Okunen Monogatari - The Shinkaron (Disk 3).hdm',
+   '46 Okunen Monogatari - The Shinkaron (Disk 4).hdm'),
+  ('46okumus.FDI',
+   '46okumd1.FDI',
+   '46okumd2.FDI',
+   '46okumd3.FDI',),
+  ('46okumus.D88',
+   '46okumd1.D88',
+   '46okumd2.D88',
+   '46okumd3.D88',),
+  ('46 Okunen Monogatari - The Sinkaron (J) A user.FDI',
+   '46 Okunen Monogatari - The Sinkaron (J) B 2.FDI',
+   '46 Okunen Monogatari - The Sinkaron (J) B 3.FDI',
+   '46 Okunen Monogatari - The Sinkaron (J) B 4.FDI')
+]

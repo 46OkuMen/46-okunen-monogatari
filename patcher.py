@@ -19,7 +19,6 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
     shutil.copyfile(diskA, diskA_backup)
     for f in files:
         EVODiskAOriginal.extract(f)
-        os.chmod(f, 0777) # make sure the file is not read-only
         if f == '46.EXE' and EVODiskAOriginal.extension == 'hdi':
             print "It's an HDI, so using a different 46.EXE"
             patch_filename = os.path.join('patch', 'HDI_46.EXE.xdelta')
@@ -28,6 +27,8 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
         print patch_filename
         patchfile = Patch(f, f + '_edited', patch_filename)
         patchfile.apply()
+
+        # TODO: Can't really detect exceptions in the xdelta thing yet, that'd be good to do.
 
         try:
             shutil.copyfile(f + '_edited', f)
@@ -47,7 +48,6 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
         shutil.copyfile(disks[i], img_backup)
         for img in disk:
             ImgDisk.extract(img)
-            os.system('attrib -r '+ img)
             patch_filename = os.path.join('patch', img + '.xdelta')
             patchfile = Patch(img, img + '_edited', patch_filename)
             patchfile.apply()
@@ -60,13 +60,12 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
     for d in disks:
         if d.split('.')[-1].lower() == 'hdm':
             flp_filename = '.'.join(d.split('.')[:-1]) + '.flp'
-            print flp_filename
             os.remove(flp_filename)
 
     return True
 
-# TODO: Remove the .flp files left behind by patching an .hdm.
-# TODO: Apache License v2
+# TODO: Use a generator to feed progress to the console in the GUI.
+# TODO: Apache License v2 due to xdelta
 # TODO: Why are the backups of the HDM getting edited??
 
 #if __name__ == '__main__':
