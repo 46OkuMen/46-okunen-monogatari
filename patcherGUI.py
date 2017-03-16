@@ -130,14 +130,15 @@ class TkFileDialogExample(Tkinter.Frame):
         diskA = A.get()
         if diskA.split('.')[-1].lower() == 'hdi':
             print "it's an HDI again"
-            success = patch(diskA)
+            result = patch(diskA)
         else:
-            success = patch(diskA, B2.get(), B3.get(), B4.get())
+            result = patch(diskA, B2.get(), B3.get(), B4.get())
             
-        if success:
+        if not result:
             tkMessageBox.showinfo('Patch successful!', 'Go play it now.')
         else:
-            tkMessageBox.showerror('Error', 'Whoops, something went wrong.')
+            print result
+            tkMessageBox.showerror('Error', 'Error: ' + result)
 
 
 if __name__=='__main__':

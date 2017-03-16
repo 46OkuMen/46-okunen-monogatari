@@ -10,11 +10,11 @@ Constants for filenames and locations.
 SCRIPT_DIR = os.path.dirname(__file__)
 SRC_PATH = os.path.join(SCRIPT_DIR, 'intermediate_roms')
 DEST_PATH = os.path.join(SCRIPT_DIR, 'patched_roms')
+TYPESET_PATH = os.path.join(SCRIPT_DIR, 'typeset_roms')
 
 SRC_ROM_PATH = os.path.join(SRC_PATH, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
 DEST_ROM_PATH = os.path.join(DEST_PATH, "46 Okunen Monogatari - The Sinkaron (J) A user.FDI")
-
-TYPESET_ROM_PATH = os.path.join(SCRIPT_DIR, 'typeset_roms', '46 Okunen Monogatari - The Sinkaron (J) A user.FDI')
+TYPESET_ROM_PATH = os.path.join(TYPESET_PATH, '46 Okunen Monogatari - The Sinkaron (J) A user.FDI')
 
 DUMP_XLS = "shinkaron_dump.xlsx"
 POINTER_XLS = "shinkaron_pointer_dump.xlsx"

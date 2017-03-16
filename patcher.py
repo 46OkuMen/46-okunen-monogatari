@@ -3,7 +3,7 @@ import sys
 import shutil
 from rominfo import files, disk_a_images, disk_b2_images, disk_b3_images, disk_b4_images
 from romtools.disk import Disk
-from romtools.patch import Patch
+from romtools.patch import Patch, PatchChecksumError
 
 def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
     # HDIs just have the one disk, received as the arg diskA.
@@ -12,11 +12,10 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
     elif diskB2 and diskB3 and diskB4:
         disks = [diskA, diskB2, diskB3, diskB4]
     else:
-        raise Exception
+        raise Exception # TODO: Gotta be something better than this
 
     EVODiskAOriginal = Disk(diskA)
-    diskA_backup = '/'.join(diskA.split('/')[:-1]) + "/backup_" + diskA.split('/')[-1]
-    shutil.copyfile(diskA, diskA_backup)
+    EVODiskAOriginal.backup()
     for f in files:
         EVODiskAOriginal.extract(f)
         if f == '46.EXE' and EVODiskAOriginal.extension == 'hdi':
@@ -24,19 +23,23 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
             patch_filename = os.path.join('patch', 'HDI_46.EXE.xdelta')
         else:
             patch_filename = os.path.join('patch', f + '.xdelta')
-        print patch_filename
         patchfile = Patch(f, f + '_edited', patch_filename)
-        patchfile.apply()
 
-        # TODO: Can't really detect exceptions in the xdelta thing yet, that'd be good to do.
+        try:
+            patchfile.apply()
+        except PatchChecksumError:
+            print "Exception raised while trying to patch file", f
+
+        # TODO: What to do if the checksum fails? Should we patch the other files?
 
         try:
             shutil.copyfile(f + '_edited', f)
         except IOError:
-            print "One of the patches didn't work. Restoring the disk from backup"
-            shutil.copyfile(diskA_backup, diskA)
-            os.remove(diskA_backup)
-            return False
+            print "One of the patches didn't work. Restoring the disk from backup..."
+            EVODiskAOriginal.restore_from_backup()
+            #shutil.copyfile(diskA_backup, diskA)
+            #os.remove(diskA_backup)
+            return "Checksum error in file " + f
 
         EVODiskAOriginal.insert(f)
         os.remove(f)
@@ -44,29 +47,26 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
 
     for i, disk in enumerate([disk_a_images, disk_b2_images, disk_b3_images, disk_b4_images]):
         ImgDisk = Disk(disks[i])
-        img_backup = '/'.join(disks[i].split('/')[:-1]) + "/backup_" + disks[i].split('/')[-1]
+        img_backup = ('/'.join(disks[i].split('/')[:-1]) + "/backup_" + disks[i].split('/')[-1]).lstrip('/')
         shutil.copyfile(disks[i], img_backup)
         for img in disk:
             ImgDisk.extract(img)
             patch_filename = os.path.join('patch', img + '.xdelta')
             patchfile = Patch(img, img + '_edited', patch_filename)
-            patchfile.apply()
+            try:
+                patchfile.apply()
+            except PatchChecksumError:
+                print "Exception raised while trying to patch file", f
+
             shutil.copyfile(img + '_edited', img)
             ImgDisk.insert(img)
             os.remove(img)
             os.remove(img + '_edited')
 
-    # Cleanup any leftover .flp files, if it was an .hdm
-    for d in disks:
-        if d.split('.')[-1].lower() == 'hdm':
-            flp_filename = '.'.join(d.split('.')[:-1]) + '.flp'
-            os.remove(flp_filename)
-
-    return True
+    return None
 
 # TODO: Use a generator to feed progress to the console in the GUI.
 # TODO: Apache License v2 due to xdelta
-# TODO: Why are the backups of the HDM getting edited??
 
-#if __name__ == '__main__':
-#    patch()
+if __name__ == '__main__':
+    patch('46 Okunen Monogatari - The Shinkaron.hdi')

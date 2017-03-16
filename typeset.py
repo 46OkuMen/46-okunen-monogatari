@@ -33,4 +33,4 @@ if __name__ == '__main__':
                         pass
         gamefile.incorporate()
         gamefile.write()
-    DiskA.write()
+    DiskA.write() # This seems to cause problems with NDC...
