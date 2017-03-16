@@ -5,7 +5,7 @@ from rominfo import files, disk_a_images, disk_b2_images, disk_b3_images, disk_b
 from romtools.disk import Disk
 from romtools.patch import Patch, PatchChecksumError
 
-def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
+def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
     # HDIs just have the one disk, received as the arg diskA.
     if not diskB2 and not diskB3 and not diskB4:
         disks = [diskA, diskA, diskA, diskA]
@@ -14,10 +14,15 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
     else:
         raise Exception # TODO: Gotta be something better than this
 
+    # TODO: Use FILES_TO_PATCH to avoid separate loops for the A disk and the images.
+
     EVODiskAOriginal = Disk(diskA)
     EVODiskAOriginal.backup()
     for f in files:
-        EVODiskAOriginal.extract(f)
+        if path_in_disk:
+            EVODiskAOriginal.extract(os.path.join(path_in_disk, f))
+        else:
+            EVODiskAOriginal.extract(f)
         if f == '46.EXE' and EVODiskAOriginal.extension == 'hdi':
             print "It's an HDI, so using a different 46.EXE"
             patch_filename = os.path.join('patch', 'HDI_46.EXE.xdelta')
@@ -37,8 +42,6 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
         except IOError:
             print "One of the patches didn't work. Restoring the disk from backup..."
             EVODiskAOriginal.restore_from_backup()
-            #shutil.copyfile(diskA_backup, diskA)
-            #os.remove(diskA_backup)
             return "Checksum error in file " + f
 
         EVODiskAOriginal.insert(f)
@@ -50,7 +53,10 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None):
         img_backup = ('/'.join(disks[i].split('/')[:-1]) + "/backup_" + disks[i].split('/')[-1]).lstrip('/')
         shutil.copyfile(disks[i], img_backup)
         for img in disk:
-            ImgDisk.extract(img)
+            if path_in_disk:
+                ImgDisk.extract(os.path.join(path_in_disk, img))
+            else:
+                ImgDisk.extract(img)
             patch_filename = os.path.join('patch', img + '.xdelta')
             patchfile = Patch(img, img + '_edited', patch_filename)
             try:
