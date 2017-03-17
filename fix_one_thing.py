@@ -8,7 +8,9 @@ from rominfo import file_location
 with open(TYPESET_ROM_PATH, 'r+b') as f:
     buffer = f.read()
 
-    # Ch2 fixes
+    """
+        Chapter 2
+    """
     red_planet_offset = buffer.find(b'red\n planet."  ')
     red_planet_offset += 0x0f
     f.seek(red_planet_offset, 0)
@@ -19,6 +21,10 @@ with open(TYPESET_ROM_PATH, 'r+b') as f:
     print distant_future_offset
     f.seek(distant_future_offset, 0)
     f.write(b' \n')
+
+    """
+        Chapter 3
+    """
 
     # Ch3 Intimidate pronouns fix
     hohoho_offset = buffer.find(b'"Hoh-hoh-hoh-hoh!"')
@@ -42,17 +48,34 @@ with open(TYPESET_ROM_PATH, 'r+b') as f:
     f.seek(stunned_pointer_offset, 0)
     f.write(stunned_pointer_string)
 
-    # Fix impatient Procompsognathus text in Ch4
-    delighted_offset = buffer.find(b'is delighted!')
-    delighted_offset += 13
-    f.seek(delighted_offset, 0)
-    f.write('\x13')
-
+    """
+        Chapter 5
+    """
     # Fix mistakenly indented string
     fur_offset = buffer.find(b'"Fur?')
     fur_offset -= 3
     f.seek(fur_offset, 0)
     f.write(b'\x13\x0a\x00')
+
+    # ST5S3 Onslaught pronouns fix
+    st5s3_space_offset = file_location['ST5S3.EXE'] + 0x4d59
+    punches_offset = st5s3_space_offset
+    punches_string = b'\nAnd also nimbly rained punches upon it\x00'
+    f.seek(punches_offset, 0)
+    f.write(punches_string)
+
+    punches_pointer_offset = file_location['ST5S3.EXE'] + 0x2572
+    punches_pointer_string = b'\x79\x10'
+
+    f.seek(punches_pointer_offset, 0)
+    f.write(punches_pointer_string)
+
+    # Fix impatient Procompsognathus text in Ch4
+    delighted_offset = buffer.find(b'is delighted!')
+    delighted_offset += 14
+    f.seek(delighted_offset, 0)
+    f.write('\x13')
+
 
     # Overrwrite extraneous newline
     clockwise_offset = buffer.find(b'rotation."  ')
@@ -71,6 +94,10 @@ with open(TYPESET_ROM_PATH, 'r+b') as f:
     atlantis_army_offset += 0x12
     f.seek(atlantis_army_offset, 0)
     f.write(b'\x0a\x13')
+
+    """
+        SEND.DAT
+    """
 
     # SEND.DAT fixes
     gold_dragon_offset = buffer.find(b'the Devil\'s minions')

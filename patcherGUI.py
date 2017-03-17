@@ -13,12 +13,13 @@ class PatcherGUI(Tkinter.Frame):
 
         Tkinter.Frame.__init__(self, root)
 
+        Label(self, text="E.V.O.: The Theory of Evolution, English Translation by 46 OkuMen")
         # define buttons
-        Label(self, text="HDI/User Disk").grid(row=0, column=0, sticky='E')
-        Label(self, text="Disk B1").grid(row=1, column=0, sticky='E')
-        Label(self, text="Disk B2").grid(row=2, column=0, sticky='E')
-        Label(self, text="Disk B3").grid(row=3, column=0, sticky='E')
-        Label(self, text="Disk B4").grid(row=4, column=0, sticky='E')
+        Label(self, text="HDI/User Disk").grid(row=1, column=0, sticky='E')
+        Label(self, text="Disk B1").grid(row=2, column=0, sticky='E')
+        Label(self, text="Disk B2").grid(row=3, column=0, sticky='E')
+        Label(self, text="Disk B3").grid(row=4, column=0, sticky='E')
+        Label(self, text="Disk B4").grid(row=5, column=0, sticky='E')
         #for i, d in enumerate(DISKS):
         #    Label(self, text='Disk ' + d).grid(row=i, column=0, sticky='E')
 
@@ -35,11 +36,11 @@ class PatcherGUI(Tkinter.Frame):
         B3Entry = Entry(self, textvariable=diskB3)
         B4Entry = Entry(self, textvariable=diskB4)
 
-        AEntry.grid(row=0, column=1, padx=5)
-        B1Entry.grid(row=1, column=1, padx=5)
-        B2Entry.grid(row=2, column=1, padx=5)
-        B3Entry.grid(row=3, column=1, padx=5)
-        B4Entry.grid(row=4, column=1, padx=5)
+        AEntry.grid(row=1, column=1, padx=5)
+        B1Entry.grid(row=2, column=1, padx=5)
+        B2Entry.grid(row=3, column=1, padx=5)
+        B3Entry.grid(row=4, column=1, padx=5)
+        B4Entry.grid(row=5, column=1, padx=5)
 
         # TODO: If I set these to attributes, it will probably cut down on all the argument passing I'm doing
         all_entry_text = [diskA, diskB2, diskB3, diskB4]
@@ -50,17 +51,17 @@ class PatcherGUI(Tkinter.Frame):
         B3Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB3, all_entry_text, PatchBtn))
         B4Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB4, all_entry_text, PatchBtn))
 
-        ABrowse.grid(row=0, column=2, padx=5)
-        B2Browse.grid(row=2, column=2, padx=5)
-        B3Browse.grid(row=3, column=2, padx=5)
-        B4Browse.grid(row=4, column=2, padx=5)
+        ABrowse.grid(row=1, column=2, padx=5)
+        B2Browse.grid(row=3, column=2, padx=5)
+        B3Browse.grid(row=4, column=2, padx=5)
+        B4Browse.grid(row=5, column=2, padx=5)
 
         PatchBtn = Button(self, text="Patch", command= lambda: self.patchfiles(diskA, diskB2, diskB3, diskB4, pathInDisk))
-        PatchBtn.grid(row=5, column=5)
+        PatchBtn.grid(row=6, column=5)
         PatchBtn['state'] = 'disabled'
 
         AdvancedBtn = Button(self, text="Advanced...", command= lambda: self.openadvanced(AdvancedPath))
-        AdvancedBtn.grid(row=5, column=2)
+        AdvancedBtn.grid(row=6, column=2)
 
         pathInDisk = Tkinter.StringVar('')
         AdvancedPath = Entry(self, textvariable=pathInDisk)

@@ -19,10 +19,8 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
     EVODiskAOriginal = Disk(diskA)
     EVODiskAOriginal.backup()
     for f in files:
-        if path_in_disk:
-            EVODiskAOriginal.extract(os.path.join(path_in_disk, f))
-        else:
-            EVODiskAOriginal.extract(f)
+        print path_in_disk
+        EVODiskAOriginal.extract(f, path_in_disk)
         if f == '46.EXE' and EVODiskAOriginal.extension == 'hdi':
             print "It's an HDI, so using a different 46.EXE"
             patch_filename = os.path.join('patch', 'HDI_46.EXE.xdelta')
@@ -44,19 +42,18 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
             EVODiskAOriginal.restore_from_backup()
             return "Checksum error in file " + f
 
-        EVODiskAOriginal.insert(f)
+        EVODiskAOriginal.insert(f, path_in_disk)
         os.remove(f)
         os.remove(f + '_edited')
 
     for i, disk in enumerate([disk_a_images, disk_b2_images, disk_b3_images, disk_b4_images]):
         ImgDisk = Disk(disks[i])
-        img_backup = ('/'.join(disks[i].split('/')[:-1]) + "/backup_" + disks[i].split('/')[-1]).lstrip('/')
-        shutil.copyfile(disks[i], img_backup)
+
+        # For HDIs, don't backup the disk again - this would leave users with a mostly-patched backup
+        if disks[i] != diskA:
+            ImgDisk.backup()
         for img in disk:
-            if path_in_disk:
-                ImgDisk.extract(os.path.join(path_in_disk, img))
-            else:
-                ImgDisk.extract(img)
+            ImgDisk.extract(img, path_in_disk)
             patch_filename = os.path.join('patch', img + '.xdelta')
             patchfile = Patch(img, img + '_edited', patch_filename)
             try:
@@ -65,7 +62,7 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
                 print "Exception raised while trying to patch file", f
 
             shutil.copyfile(img + '_edited', img)
-            ImgDisk.insert(img)
+            ImgDisk.insert(img, path_in_disk)
             os.remove(img)
             os.remove(img + '_edited')
 
