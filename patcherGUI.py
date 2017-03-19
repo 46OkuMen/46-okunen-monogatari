@@ -1,4 +1,5 @@
-import Tkinter, Tkconstants, tkFileDialog, os
+import Tkinter, Tkconstants, tkFileDialog
+from os import listdir, path
 from ttk import *
 import tkMessageBox
 from patcher import patch
@@ -73,14 +74,14 @@ class PatcherGUI(Tkinter.Frame):
         self.file_opt = options = {}
         options['defaultextension'] = '.fdi'
         options['filetypes'] = [('PC-98 images', ('.fdi', '.hdm', '.hdi')), ('all files', '.*')]
-        options['initialdir'] = os.path.abspath(os.path.curdir)
+        options['initialdir'] = path.abspath(path.curdir)
         options['initialfile'] = 'myfile.txt'
         options['parent'] = root
         options['title'] = 'Select a disk image'
 
         # defining options for opening a directory
         self.dir_opt = options = {}
-        options['initialdir'] = os.path.curdir
+        options['initialdir'] = path.curdir
         options['mustexist'] = False
         options['parent'] = root
         options['title'] = 'Select a disk image'
@@ -117,7 +118,7 @@ class PatcherGUI(Tkinter.Frame):
             for c in common_filenames:
                 if filename in c:
                     for i, disk in enumerate(c):
-                        if disk in os.listdir(file_folder):
+                        if disk in listdir(file_folder):
                             disk_filepath = file_folder + disk
                             all_entry_text[i].set(disk_filepath)
                     return None

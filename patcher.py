@@ -1,6 +1,5 @@
-import os
-import sys
-import shutil
+from os import path, remove
+from shutil import copyfile
 from rominfo import files, disk_a_images, disk_b2_images, disk_b3_images, disk_b4_images
 from romtools.disk import Disk
 from romtools.patch import Patch, PatchChecksumError
@@ -23,9 +22,9 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
         EVODiskAOriginal.extract(f, path_in_disk)
         if f == '46.EXE' and EVODiskAOriginal.extension == 'hdi':
             print "It's an HDI, so using a different 46.EXE"
-            patch_filename = os.path.join('patch', 'HDI_46.EXE.xdelta')
+            patch_filename = path.join('patch', 'HDI_46.EXE.xdelta')
         else:
-            patch_filename = os.path.join('patch', f + '.xdelta')
+            patch_filename = path.join('patch', f + '.xdelta')
         patchfile = Patch(f, f + '_edited', patch_filename)
 
         try:
@@ -36,15 +35,15 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
         # TODO: What to do if the checksum fails? Should we patch the other files?
 
         try:
-            shutil.copyfile(f + '_edited', f)
+            copyfile(f + '_edited', f)
         except IOError:
             print "One of the patches didn't work. Restoring the disk from backup..."
             EVODiskAOriginal.restore_from_backup()
             return "Checksum error in file " + f
 
         EVODiskAOriginal.insert(f, path_in_disk)
-        os.remove(f)
-        os.remove(f + '_edited')
+        remove(f)
+        remove(f + '_edited')
 
     for i, disk in enumerate([disk_a_images, disk_b2_images, disk_b3_images, disk_b4_images]):
         ImgDisk = Disk(disks[i])
@@ -54,17 +53,17 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
             ImgDisk.backup()
         for img in disk:
             ImgDisk.extract(img, path_in_disk)
-            patch_filename = os.path.join('patch', img + '.xdelta')
+            patch_filename = path.join('patch', img + '.xdelta')
             patchfile = Patch(img, img + '_edited', patch_filename)
             try:
                 patchfile.apply()
             except PatchChecksumError:
                 print "Exception raised while trying to patch file", f
 
-            shutil.copyfile(img + '_edited', img)
+            copyfile(img + '_edited', img)
             ImgDisk.insert(img, path_in_disk)
-            os.remove(img)
-            os.remove(img + '_edited')
+            remove(img)
+            remove(img + '_edited')
 
     return None
 

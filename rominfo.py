@@ -23,7 +23,7 @@ CHAPTER_FIVE_FILES = ['ST5.EXE', 'ST5S1.EXE', 'ST5S2.EXE', "ST5S3.EXE"]
 CREATURE_MAX_LENGTH = 21
 DIALOGUE_MAX_LENGTH = 44
 MEDIUM_MAX_LENGTH = 51
-FULLSCREEN_MAX_LENGTH = 78   # TODO: I think I was overly cautious with 75. So let's try 76. If it breaks, change it back.
+FULLSCREEN_MAX_LENGTH = 78
 DAT_MAX_LENGTH = 77
 
 # TODO: Why did I use tuples of tuples? Why not a list of tuples? Less confusing that way.
