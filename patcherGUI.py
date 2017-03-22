@@ -4,6 +4,7 @@ from ttk import *
 import tkMessageBox
 from patcher import patch
 from rominfo import common_filenames, DISKS
+from romtools.disk import HARD_DISK_FORMATS
 
 # TODO: Enter to press the "Patch" button.
 # TODO: Use a labelframe to clean things up a bit?
@@ -58,11 +59,11 @@ class PatcherGUI(Tkinter.Frame):
         B4Browse.grid(row=5, column=2, padx=5)
 
         PatchBtn = Button(self, text="Patch", command= lambda: self.patchfiles(diskA, diskB2, diskB3, diskB4, pathInDisk))
-        PatchBtn.grid(row=6, column=5)
+        PatchBtn.grid(row=7, column=5)
         PatchBtn['state'] = 'disabled'
 
         AdvancedBtn = Button(self, text="Advanced...", command= lambda: self.openadvanced(AdvancedPath))
-        AdvancedBtn.grid(row=6, column=2)
+        AdvancedBtn.grid(row=7, column=2)
 
         pathInDisk = Tkinter.StringVar('')
         AdvancedPath = Entry(self, textvariable=pathInDisk)
@@ -124,7 +125,7 @@ class PatcherGUI(Tkinter.Frame):
                     return None
 
     def toggleDiskBFields(self, diskAFilename, B_entries, patchbtn):
-        if diskAFilename.split('.')[-1] == 'hdi':
+        if diskAFilename.split('.')[-1] in HARD_DISK_FORMATS:
             print "it's an HDI"
             for b in B_entries:
                 b['state'] = 'disabled'
@@ -140,7 +141,7 @@ class PatcherGUI(Tkinter.Frame):
     def patchfiles(self, A, B2, B3, B4, path=None):
         print A.get(), B2.get(), B3.get(), B4.get()
         diskA = A.get()
-        if diskA.split('.')[-1].lower() == 'hdi':
+        if diskA.split('.')[-1].lower() in HARD_DISK_FORMATS:
             print "path.get()", path.get()
             result = patch(diskA, path_in_disk=path.get())
         else:
@@ -155,8 +156,8 @@ class PatcherGUI(Tkinter.Frame):
     def openadvanced(self, advpath):
         root.geometry('400x180')
 
-        advpath.grid(row=7, column=1)
-        Label(self, text="Path in HDI").grid(row=7, column=0, sticky='E')
+        advpath.grid(row=6, column=1)
+        Label(self, text="Path to Gamefiles").grid(row=6, column=0, sticky='E')
 
 if __name__=='__main__':
     root = Tkinter.Tk()

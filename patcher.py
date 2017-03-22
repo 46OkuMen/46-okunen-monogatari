@@ -1,7 +1,7 @@
 from os import path, remove
 from shutil import copyfile
 from rominfo import files, disk_a_images, disk_b2_images, disk_b3_images, disk_b4_images
-from romtools.disk import Disk
+from romtools.disk import Disk, FileNotFoundError, HARD_DISK_FORMATS
 from romtools.patch import Patch, PatchChecksumError
 
 def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
@@ -19,27 +19,30 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
     EVODiskAOriginal.backup()
     for f in files:
         print path_in_disk
-        EVODiskAOriginal.extract(f, path_in_disk)
-        if f == '46.EXE' and EVODiskAOriginal.extension == 'hdi':
+        try:
+            EVODiskAOriginal.extract(f, path_in_disk)
+        except FileNotFoundError:
+            EVODiskAOriginal.restore_from_backup()
+            return "File %s not found in disk.\nTry setting the path under 'Advanced'." % f
+
+        if f == '46.EXE' and EVODiskAOriginal.extension.lower() in HARD_DISK_FORMATS:
             print "It's an HDI, so using a different 46.EXE"
             patch_filename = path.join('patch', 'HDI_46.EXE.xdelta')
         else:
             patch_filename = path.join('patch', f + '.xdelta')
+
         patchfile = Patch(f, f + '_edited', patch_filename)
 
         try:
             patchfile.apply()
         except PatchChecksumError:
-            print "Exception raised while trying to patch file", f
+            EVODiskAOriginal.restore_from_backup()
+            return "Checksum error in file %s." % f
 
         # TODO: What to do if the checksum fails? Should we patch the other files?
 
-        try:
-            copyfile(f + '_edited', f)
-        except IOError:
-            print "One of the patches didn't work. Restoring the disk from backup..."
-            EVODiskAOriginal.restore_from_backup()
-            return "Checksum error in file " + f
+        copyfile(f + '_edited', f)
+        #except IOError:
 
         EVODiskAOriginal.insert(f, path_in_disk)
         remove(f)
@@ -52,13 +55,20 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
         if disks[i] != diskA:
             ImgDisk.backup()
         for img in disk:
-            ImgDisk.extract(img, path_in_disk)
+            try:
+                ImgDisk.extract(img, path_in_disk)
+            except FileNotFoundError:
+                ImgDisk.restore_from_backup()
+                return "File %s not found in disk." % i
+                
             patch_filename = path.join('patch', img + '.xdelta')
             patchfile = Patch(img, img + '_edited', patch_filename)
+
             try:
                 patchfile.apply()
             except PatchChecksumError:
-                print "Exception raised while trying to patch file", f
+                ImgDisk.restore_from_backup()
+                return "Checksum error in file %s." % i
 
             copyfile(img + '_edited', img)
             ImgDisk.insert(img, path_in_disk)
