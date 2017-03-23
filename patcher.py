@@ -13,10 +13,12 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
     else:
         raise Exception # TODO: Gotta be something better than this
 
-    # TODO: Use FILES_TO_PATCH to avoid separate loops for the A disk and the images.
-
     EVODiskAOriginal = Disk(diskA)
     EVODiskAOriginal.backup()
+
+    diskA_dir = path.dirname(diskA)
+    print diskA_dir
+
     for f in files:
         print path_in_disk
         try:
@@ -31,7 +33,9 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
         else:
             patch_filename = path.join('patch', f + '.xdelta')
 
-        patchfile = Patch(f, f + '_edited', patch_filename)
+        extracted_file_path = diskA_dir + '/' + f
+
+        patchfile = Patch(extracted_file_path, extracted_file_path + '_edited', patch_filename)
 
         try:
             patchfile.apply()
