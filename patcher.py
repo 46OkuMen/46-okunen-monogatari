@@ -17,10 +17,8 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
     EVODiskAOriginal.backup()
 
     diskA_dir = path.dirname(diskA)
-    print diskA_dir
 
     for f in files:
-        print path_in_disk
         try:
             EVODiskAOriginal.extract(f, path_in_disk)
         except FileNotFoundError:
@@ -35,6 +33,7 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
 
         extracted_file_path = diskA_dir + '/' + f
 
+        copyfile(extracted_file_path, extracted_file_path + '_edited')
         patchfile = Patch(extracted_file_path, extracted_file_path + '_edited', patch_filename)
 
         try:
@@ -43,17 +42,15 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
             EVODiskAOriginal.restore_from_backup()
             return "Checksum error in file %s." % f
 
-        # TODO: What to do if the checksum fails? Should we patch the other files?
+        copyfile(extracted_file_path + '_edited', extracted_file_path)
 
-        copyfile(f + '_edited', f)
-        #except IOError:
-
-        EVODiskAOriginal.insert(f, path_in_disk)
-        remove(f)
-        remove(f + '_edited')
+        EVODiskAOriginal.insert(extracted_file_path, path_in_disk)
+        remove(extracted_file_path)
+        remove(extracted_file_path + '_edited')
 
     for i, disk in enumerate([disk_a_images, disk_b2_images, disk_b3_images, disk_b4_images]):
         ImgDisk = Disk(disks[i])
+        imgdisk_dir = path.dirname(disks[i])
 
         # For HDIs, don't backup the disk again - this would leave users with a mostly-patched backup
         if disks[i] != diskA:
@@ -63,21 +60,25 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
                 ImgDisk.extract(img, path_in_disk)
             except FileNotFoundError:
                 ImgDisk.restore_from_backup()
-                return "File %s not found in disk." % i
+                return "File %s not found in disk." % img
+
+            extracted_file_path = imgdisk_dir + '/' + img
                 
             patch_filename = path.join('patch', img + '.xdelta')
-            patchfile = Patch(img, img + '_edited', patch_filename)
+            copyfile(extracted_file_path, extracted_file_path + '_edited')
+            patchfile = Patch(extracted_file_path, extracted_file_path + '_edited', patch_filename)
 
             try:
                 patchfile.apply()
             except PatchChecksumError:
                 ImgDisk.restore_from_backup()
-                return "Checksum error in file %s." % i
+                return "Checksum error in file %s." % img
 
-            copyfile(img + '_edited', img)
-            ImgDisk.insert(img, path_in_disk)
-            remove(img)
-            remove(img + '_edited')
+            copyfile(extracted_file_path + '_edited', extracted_file_path)
+            # Can't use extracted_file_path, since it also tries to delete the path in the disk...
+            ImgDisk.insert(extracted_file_path, path_in_disk)
+            remove(extracted_file_path)
+            remove(extracted_file_path + '_edited')
 
     return None
 
@@ -86,3 +87,7 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None):
 
 if __name__ == '__main__':
     patch('46 Okunen Monogatari - The Shinkaron.hdi')
+
+# Tested on:
+# Original FDI
+# Neo Kobe HDM

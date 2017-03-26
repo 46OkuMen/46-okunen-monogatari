@@ -1,5 +1,6 @@
 import Tkinter, Tkconstants, tkFileDialog
-from os import listdir, path
+import sys
+from os import listdir, path, getcwd, chdir
 from ttk import *
 import tkMessageBox
 from patcher import patch
@@ -29,6 +30,8 @@ class PatcherGUI(Tkinter.Frame):
         diskB2 = Tkinter.StringVar()
         diskB3 = Tkinter.StringVar()
         diskB4 = Tkinter.StringVar()
+        patchStr = Tkinter.StringVar()
+        patchStr.set('Patch')
 
         AEntry = Entry(self, textvariable=diskA)
         B1Entry = Entry(self)
@@ -58,7 +61,7 @@ class PatcherGUI(Tkinter.Frame):
         B3Browse.grid(row=4, column=2, padx=5)
         B4Browse.grid(row=5, column=2, padx=5)
 
-        PatchBtn = Button(self, text="Patch", command= lambda: self.patchfiles(diskA, diskB2, diskB3, diskB4, pathInDisk))
+        PatchBtn = Button(self, textvariable=patchStr, command= lambda: self.patchfiles(PatchBtn, patchStr, diskA, diskB2, diskB3, diskB4, pathInDisk))
         PatchBtn.grid(row=7, column=5)
         PatchBtn['state'] = 'disabled'
 
@@ -75,14 +78,14 @@ class PatcherGUI(Tkinter.Frame):
         self.file_opt = options = {}
         options['defaultextension'] = '.fdi'
         options['filetypes'] = [('PC-98 images', ('.fdi', '.hdm', '.hdi')), ('all files', '.*')]
-        options['initialdir'] = path.abspath(path.curdir)
+        options['initialdir'] = exe_dir
         options['initialfile'] = 'myfile.txt'
         options['parent'] = root
         options['title'] = 'Select a disk image'
 
         # defining options for opening a directory
-        self.dir_opt = options = {}
-        options['initialdir'] = path.curdir
+        self.dir_opt = options = {'initialdir': exe_dir}
+        options['initialdir'] = exe_dir
         options['mustexist'] = False
         options['parent'] = root
         options['title'] = 'Select a disk image'
@@ -126,7 +129,6 @@ class PatcherGUI(Tkinter.Frame):
 
     def toggleDiskBFields(self, diskAFilename, B_entries, patchbtn):
         if diskAFilename.split('.')[-1] in HARD_DISK_FORMATS:
-            print "it's an HDI"
             for b in B_entries:
                 b['state'] = 'disabled'
             patchbtn['state'] = 'normal'
@@ -138,19 +140,23 @@ class PatcherGUI(Tkinter.Frame):
             patchbtn['state'] = 'disabled'
 
 
-    def patchfiles(self, A, B2, B3, B4, path=None):
-        print A.get(), B2.get(), B3.get(), B4.get()
+    def patchfiles(self, patchbtn, patchstr, A, B2, B3, B4, path=None):
+        # Prevent double-patching
+        patchstr.set('Patching...')
+        patchbtn['state'] = 'disabled'
+
         diskA = A.get()
         if diskA.split('.')[-1].lower() in HARD_DISK_FORMATS:
-            print "path.get()", path.get()
             result = patch(diskA, path_in_disk=path.get())
         else:
             result = patch(diskA, B2.get(), B3.get(), B4.get())
             
+        # Enable the patch button again
+        patchstr.set('Patch')
+        patchbtn['state'] = 'normal'
         if not result:
             tkMessageBox.showinfo('Patch successful!', 'Go play it now.')
         else:
-            print result
             tkMessageBox.showerror('Error', 'Error: ' + result)
 
     def openadvanced(self, advpath):
@@ -160,9 +166,19 @@ class PatcherGUI(Tkinter.Frame):
         Label(self, text="Path to Gamefiles").grid(row=6, column=0, sticky='E')
 
 if __name__=='__main__':
+    exe_dir = getcwd()
+    if hasattr(sys, '_MEIPASS'):
+        chdir(sys._MEIPASS)
+
     root = Tkinter.Tk()
     root.title('E.V.O.: The Theory of Evolution Patcher')
-    root.iconbitmap('favicon.ico')
+    root.iconbitmap('46.ico')
     root.geometry('400x160')
     PatcherGUI(root).pack()
     root.mainloop()
+
+
+# TODO: Handle unicode filenames/filepaths.
+# TODO: Make sure to check and re-enable the other disk fields if they're FDIs.
+# TODO: d88 full patches
+# Backups in a subdirectory
