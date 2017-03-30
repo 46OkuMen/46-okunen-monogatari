@@ -1,10 +1,11 @@
 import Tkinter, Tkconstants, tkFileDialog
 import sys
-from os import listdir, path, getcwd, chdir
+from os import listdir, getcwd, chdir
+from os import path as ospath
 from ttk import *
 import tkMessageBox
 from patcher import patch
-from rominfo import common_filenames, DISKS
+from rominfo import common_filenames
 from romtools.disk import HARD_DISK_FORMATS
 
 # TODO: Enter to press the "Patch" button.
@@ -52,9 +53,9 @@ class PatcherGUI(Tkinter.Frame):
         B_entries = [B2Entry, B3Entry, B4Entry]
 
         ABrowse = Button(self, text='Browse...', command= lambda: self.askopenfilenamediskA(diskA, all_entry_text, B_entries, PatchBtn))
-        B2Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB2, all_entry_text, PatchBtn))
-        B3Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB3, all_entry_text, PatchBtn))
-        B4Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB4, all_entry_text, PatchBtn))
+        B2Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB2, all_entry_text, B_entries, PatchBtn))
+        B3Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB3, all_entry_text, B_entries, PatchBtn))
+        B4Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB4, all_entry_text, B_entries, PatchBtn))
 
         ABrowse.grid(row=1, column=2, padx=5)
         B2Browse.grid(row=3, column=2, padx=5)
@@ -77,7 +78,7 @@ class PatcherGUI(Tkinter.Frame):
         # define options for opening or saving a file
         self.file_opt = options = {}
         options['defaultextension'] = '.fdi'
-        options['filetypes'] = [('PC-98 images', ('.fdi', '.hdm', '.hdi')), ('all files', '.*')]
+        options['filetypes'] = [('PC-98 images', ('.fdi', 'fdd', '.hdm', '.hdi', 'd88')), ('all files', '.*')]
         options['initialdir'] = exe_dir
         options['initialfile'] = 'myfile.txt'
         options['parent'] = root
@@ -104,7 +105,7 @@ class PatcherGUI(Tkinter.Frame):
 
         self.toggleDiskBFields(filename, B_entries, patchbtn)
 
-    def askopenfilename(self, field, all_entry_text, patchbtn):
+    def askopenfilename(self, field, all_entry_text, B_entries, patchbtn):
         filename = tkFileDialog.askopenfilename(**self.file_opt)
         field.set(filename)
         self.checkCommonFilenames(all_entry_text)
@@ -114,13 +115,16 @@ class PatcherGUI(Tkinter.Frame):
         else:
             patchbtn['state'] = 'disabled'
 
+        print "Calling toggleDiskBFields"
+        self.toggleDiskBFields(filename, B_entries, patchbtn)
+
     def checkCommonFilenames(self, all_entry_text):
         if sum([len(t.get()) > 0 for t in all_entry_text]) == 1:
             filepath = [t.get() for t in all_entry_text if len(t.get()) > 0][0]
             file_folder = '/'.join(filepath.split('/')[:-1]) + '/'
             filename = filepath.split('/')[-1]
             for c in common_filenames:
-                if filename in c:
+                if filename == c[0]:
                     for i, disk in enumerate(c):
                         if disk in listdir(file_folder):
                             disk_filepath = file_folder + disk
@@ -132,9 +136,14 @@ class PatcherGUI(Tkinter.Frame):
             for b in B_entries:
                 b['state'] = 'disabled'
             patchbtn['state'] = 'normal'
-        elif all(B_entries):
+        elif all([b.get() for b in B_entries]):
+            print [b.get() for b in B_entries]
+            print "All B entries are filled in"
+            for b in B_entries:
+                b['state'] = 'normal'
             patchbtn['state'] = 'normal'
         else:
+            print "Setting the B entries back to normal"
             for b in B_entries:
                 b['state'] = 'normal'
             patchbtn['state'] = 'disabled'
@@ -145,11 +154,13 @@ class PatcherGUI(Tkinter.Frame):
         patchstr.set('Patching...')
         patchbtn['state'] = 'disabled'
 
+        backup = ospath.join(exe_dir, 'backup')
+
         diskA = A.get()
         if diskA.split('.')[-1].lower() in HARD_DISK_FORMATS:
-            result = patch(diskA, path_in_disk=path.get())
+            result = patch(diskA, path_in_disk=path.get(), backup_folder=backup)
         else:
-            result = patch(diskA, B2.get(), B3.get(), B4.get())
+            result = patch(diskA, B2.get(), B3.get(), B4.get(), backup_folder=backup)
             
         # Enable the patch button again
         patchstr.set('Patch')
@@ -179,6 +190,11 @@ if __name__=='__main__':
 
 
 # TODO: Handle unicode filenames/filepaths.
+    # Appears to be a bug in python 2.7 subprocess that they won't fix. Should I do 2to3?
+    # Used an error message for now
 # TODO: Make sure to check and re-enable the other disk fields if they're FDIs.
+    # Done
 # TODO: d88 full patches
+    # Done
 # Backups in a subdirectory
+    # Done
