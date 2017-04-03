@@ -32,8 +32,8 @@ class PatcherGUI(Tkinter.Frame):
         diskB2 = Tkinter.StringVar()
         diskB3 = Tkinter.StringVar()
         diskB4 = Tkinter.StringVar()
-        patchStr = Tkinter.StringVar()
-        patchStr.set('Patch')
+        self.PatchStr = Tkinter.StringVar()
+        self.PatchStr.set('Patch')
 
         AEntry = Entry(self, textvariable=diskA)
         B1Entry = Entry(self)
@@ -52,31 +52,28 @@ class PatcherGUI(Tkinter.Frame):
         # TODO: If I set these to attributes, it will probably cut down on all the argument passing I'm doing
         all_entry_text = [diskA, diskB2, diskB3, diskB4]
         B_entries = [B2Entry, B3Entry, B4Entry]
-        advanced_active = Tkinter.BooleanVar(False)
+        self.advanced_active = Tkinter.BooleanVar(False)
 
-        ABrowse = Button(self, text='Browse...', command= lambda: self.askopenfilenamediskA(diskA, all_entry_text, B_entries, PatchBtn))
-        B2Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB2, all_entry_text, B_entries, PatchBtn))
-        B3Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB3, all_entry_text, B_entries, PatchBtn))
-        B4Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB4, all_entry_text, B_entries, PatchBtn))
+        ABrowse = Button(self, text='Browse...', command= lambda: self.askopenfilenamediskA(diskA, all_entry_text, B_entries, self.PatchBtn))
+        B2Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB2, all_entry_text, B_entries, self.PatchBtn))
+        B3Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB3, all_entry_text, B_entries, self.PatchBtn))
+        B4Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB4, all_entry_text, B_entries, self.PatchBtn))
 
         ABrowse.grid(row=1, column=2, padx=5)
         B2Browse.grid(row=3, column=2, padx=5)
         B3Browse.grid(row=4, column=2, padx=5)
         B4Browse.grid(row=5, column=2, padx=5)
 
-        PatchBtn = Button(self, textvariable=patchStr, command= lambda: self.patchfiles(PatchBtn, patchStr, diskA, diskB2, diskB3, diskB4, pathInDisk))
-        PatchBtn.grid(row=7, column=5)
-        PatchBtn['state'] = 'disabled'
+        self.PatchBtn = Button(self, textvariable=self.PatchStr, command= lambda: self.patchBtnCommand(diskA, diskB2, diskB3, diskB4, pathInDisk))
+        self.PatchBtn.grid(row=7, column=5)
+        self.PatchBtn['state'] = 'disabled'
 
-        AdvancedBtn = Button(self, text="Advanced...", command= lambda: self.toggleadvanced(AdvancedPath, AdvancedLabel, advanced_active))
+        AdvancedBtn = Button(self, text="Advanced...", command= lambda: self.toggleadvanced(AdvancedPath, AdvancedLabel))
         AdvancedBtn.grid(row=7, column=2)
 
         pathInDisk = Tkinter.StringVar('')
         AdvancedPath = Entry(self, textvariable=pathInDisk)
         AdvancedLabel = Label(self, text="Path In Disk")
-
-        #Console = Tkinter.Text(self, height=3, width=30)
-        #Console.grid(row=5, column=1,) # TODO: Use columnspan to do something sane with it
 
         # define options for opening or saving a file
         self.file_opt = options = {}
@@ -106,20 +103,20 @@ class PatcherGUI(Tkinter.Frame):
 
         self.checkCommonFilenames(all_entry_text)
 
-        self.toggleDiskBFields(filename, B_entries, patchbtn)
+        self.toggleDiskBFields(filename, B_entries, self.PatchBtn)
 
-    def askopenfilename(self, field, all_entry_text, B_entries, patchbtn):
+    def askopenfilename(self, field, all_entry_text, B_entries):
         filename = tkFileDialog.askopenfilename(**self.file_opt)
         field.set(filename)
         self.checkCommonFilenames(all_entry_text)
 
         if all([t.get() for t in all_entry_text]):
-            patchbtn['state'] = 'normal'
+            self.PatchBtn['state'] = 'normal'
         else:
-            patchbtn['state'] = 'disabled'
+            self.PatchBtn['state'] = 'disabled'
 
         print "Calling toggleDiskBFields"
-        self.toggleDiskBFields(filename, B_entries, patchbtn)
+        self.toggleDiskBFields(filename, B_entries, self.PatchBtn)
 
     def checkCommonFilenames(self, all_entry_text):
         if sum([len(t.get()) > 0 for t in all_entry_text]) == 1:
@@ -138,36 +135,33 @@ class PatcherGUI(Tkinter.Frame):
         if diskAFilename.split('.')[-1] in HARD_DISK_FORMATS:
             for b in B_entries:
                 b['state'] = 'disabled'
-            patchbtn['state'] = 'normal'
+            self.PatchBtn['state'] = 'normal'
         elif all([b.get() for b in B_entries]):
             print [b.get() for b in B_entries]
             print "All B entries are filled in"
             for b in B_entries:
                 b['state'] = 'normal'
-            patchbtn['state'] = 'normal'
+            self.PatchBtn['state'] = 'normal'
         else:
             print "Setting the B entries back to normal"
             for b in B_entries:
                 b['state'] = 'normal'
-            patchbtn['state'] = 'disabled'
+            self.PatchBtn['state'] = 'disabled'
 
 
-    def patchfiles(self, patchbtn, patchstr, A, B2, B3, B4, path=None):
-        # Prevent double-patching
-        patchstr.set('Patching...')
-        patchbtn['state'] = 'disabled'
-
+    def patchfiles(self, A, B2, B3, B4, path=None):
         backup = ospath.join(exe_dir, 'backup')
 
         diskA = A.get()
         if diskA.split('.')[-1].lower() in HARD_DISK_FORMATS:
-            result = patch(diskA, path_in_disk=path.get(), backup_folder=backup)
+            if self.advanced_active.get():
+                result = patch(diskA, path_in_disk=path.get(), backup_folder=backup)
+            else:
+                result = patch(diskA, backup_folder=backup)
         else:
             result = patch(diskA, B2.get(), B3.get(), B4.get(), backup_folder=backup)
             
-        # Enable the patch button again
-        patchstr.set('Patch')
-        patchbtn['state'] = 'normal'
+        self.patchBtnIdle()
         if not result:
             print "Patching was successful"
             tkMessageBox.showinfo('Patch successful!', 'Go play it now.')
@@ -175,19 +169,37 @@ class PatcherGUI(Tkinter.Frame):
             print "Error while patching:", result
             tkMessageBox.showerror('Error', 'Error: ' + result)
 
-    def toggleadvanced(self, advpath, advlabel, advanced_active):
-        print "advanced_active:", advanced_active.get()
-        if advanced_active.get():
+        
+
+    def patchBtnCommand(self, A, B2, B3, B4, path=None):
+        self.patchBtnPatching()
+        self.update_idletasks() # Necessary to get the button text to update
+        self.patchfiles(A, B2, B3, B4, path)
+
+
+    def patchBtnPatching(self):
+        self.PatchStr.set('Patching...')
+        self.PatchBtn['state'] = 'disabled'
+
+
+    def patchBtnIdle(self):
+        print "Editing patchstr and patchbtn now"
+        self.PatchStr.set('Patch')
+        self.PatchBtn['state'] = 'normal'
+
+    def toggleadvanced(self, advpath, advlabel):
+        print "advanced_active:", self.advanced_active.get()
+        if self.advanced_active.get():
             root.geometry('400x160')
             advpath.grid_forget()
             advlabel.grid_forget()
-            advanced_active.set(False)
+            self.advanced_active.set(False)
         else:
             root.geometry('400x180')
 
             advpath.grid(row=6, column=1)
             advlabel.grid(row=6, column=0, sticky='E')
-            advanced_active.set(True)
+            self.advanced_active.set(True)
 
 if __name__=='__main__':
     exe_dir = getcwd()
@@ -205,8 +217,6 @@ if __name__=='__main__':
     PatcherGUI(root).pack()
     root.mainloop()
 
-
 # TODO: Handle unicode filenames/filepaths.
     # Appears to be a bug in python 2.7 subprocess that they won't fix. Should I do 2to3?
     # Used an error message for now
-# TODO: logging
