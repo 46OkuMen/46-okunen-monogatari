@@ -20,21 +20,6 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None, backu
 
     disk_format = diskA.split('.')[-1].lower()
 
-    if disk_format == 'd88':
-        print disks
-        for d in disks:
-            D88Disk = Disk(d, backup_folder=backup_folder)
-            D88Disk.backup()
-            disk_name = path.basename(d)
-            patch_filename = path.join('patch', disk_name + '.xdelta')
-            patchfile = Patch(d, patch_filename)
-            try:
-                patchfile.apply()
-            except PatchChecksumError:
-                return "Checksum error in disk %s." % d
-
-        return None
-
     for f in files:
         try:
             EVODiskAOriginal.extract(f, path_in_disk)
@@ -49,10 +34,12 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None, backu
             return "Patching in paths containing non-ASCII characters not supported."
 
         if f == '46.EXE' and EVODiskAOriginal.extension.lower() in HARD_DISK_FORMATS:
-            print "It's an HDI, so using a different 46.EXE"
+            print "It's an HDI, so using a different 46.EXE patch"
             patch_filename = path.join('patch', 'HDI_46.EXE.xdelta')
+            backup_patch_filename = path.join('patch', 'FtoH_46.EXE.xdelta')
         else:
             patch_filename = path.join('patch', f + '.xdelta')
+            backup_patch_filename = None
 
         extracted_file_path = diskA_dir + '/' + f
 
@@ -62,10 +49,23 @@ def patch(diskA, diskB2=None, diskB3=None, diskB4=None, path_in_disk=None, backu
         try:
             patchfile.apply()
         except PatchChecksumError:
-            EVODiskAOriginal.restore_from_backup()
-            remove(extracted_file_path)
-            remove(extracted_file_path + '_edited')
-            return "Checksum error in file %s." % f
+            if backup_patch_filename is not None:
+                print "Trying backup patch:", backup_patch_filename
+                patchfile = Patch(extracted_file_path, backup_patch_filename, edited=extracted_file_path + '_edited')
+                try:
+                    print "Applying patch now"
+                    patchfile.apply()
+                    print "The patch successfully"
+                except PatchChecksumError:
+                    EVODiskAOriginal.restore_from_backup()
+                    remove(extracted_file_path)
+                    remove(extracted_file_path + '_edited')
+                    return "Checksum error in file %s." % f
+            else:
+                EVODiskAOriginal.restore_from_backup()
+                remove(extracted_file_path)
+                remove(extracted_file_path + '_edited')
+                return "Checksum error in file %s." % f
 
         copyfile(extracted_file_path + '_edited', extracted_file_path)
 

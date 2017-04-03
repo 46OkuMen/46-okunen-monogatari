@@ -1,5 +1,6 @@
 import Tkinter, Tkconstants, tkFileDialog
 import sys
+import time
 from os import listdir, getcwd, chdir
 from os import path as ospath
 from ttk import *
@@ -51,6 +52,7 @@ class PatcherGUI(Tkinter.Frame):
         # TODO: If I set these to attributes, it will probably cut down on all the argument passing I'm doing
         all_entry_text = [diskA, diskB2, diskB3, diskB4]
         B_entries = [B2Entry, B3Entry, B4Entry]
+        advanced_active = Tkinter.BooleanVar(False)
 
         ABrowse = Button(self, text='Browse...', command= lambda: self.askopenfilenamediskA(diskA, all_entry_text, B_entries, PatchBtn))
         B2Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB2, all_entry_text, B_entries, PatchBtn))
@@ -66,11 +68,12 @@ class PatcherGUI(Tkinter.Frame):
         PatchBtn.grid(row=7, column=5)
         PatchBtn['state'] = 'disabled'
 
-        AdvancedBtn = Button(self, text="Advanced...", command= lambda: self.openadvanced(AdvancedPath))
+        AdvancedBtn = Button(self, text="Advanced...", command= lambda: self.toggleadvanced(AdvancedPath, AdvancedLabel, advanced_active))
         AdvancedBtn.grid(row=7, column=2)
 
         pathInDisk = Tkinter.StringVar('')
         AdvancedPath = Entry(self, textvariable=pathInDisk)
+        AdvancedLabel = Label(self, text="Path In Disk")
 
         #Console = Tkinter.Text(self, height=3, width=30)
         #Console.grid(row=5, column=1,) # TODO: Use columnspan to do something sane with it
@@ -166,20 +169,34 @@ class PatcherGUI(Tkinter.Frame):
         patchstr.set('Patch')
         patchbtn['state'] = 'normal'
         if not result:
+            print "Patching was successful"
             tkMessageBox.showinfo('Patch successful!', 'Go play it now.')
         else:
+            print "Error while patching:", result
             tkMessageBox.showerror('Error', 'Error: ' + result)
 
-    def openadvanced(self, advpath):
-        root.geometry('400x180')
+    def toggleadvanced(self, advpath, advlabel, advanced_active):
+        print "advanced_active:", advanced_active.get()
+        if advanced_active.get():
+            root.geometry('400x160')
+            advpath.grid_forget()
+            advlabel.grid_forget()
+            advanced_active.set(False)
+        else:
+            root.geometry('400x180')
 
-        advpath.grid(row=6, column=1)
-        Label(self, text="Path to Gamefiles").grid(row=6, column=0, sticky='E')
+            advpath.grid(row=6, column=1)
+            advlabel.grid(row=6, column=0, sticky='E')
+            advanced_active.set(True)
 
 if __name__=='__main__':
     exe_dir = getcwd()
     if hasattr(sys, '_MEIPASS'):
         chdir(sys._MEIPASS)
+
+    logfilename = ospath.join(exe_dir, 'evo-patch-log.txt')
+    sys.stderr = sys.stdout = open(logfilename, 'w', 0)
+    print "\n", time.ctime(time.time())
 
     root = Tkinter.Tk()
     root.title('E.V.O.: The Theory of Evolution Patcher')
@@ -192,9 +209,4 @@ if __name__=='__main__':
 # TODO: Handle unicode filenames/filepaths.
     # Appears to be a bug in python 2.7 subprocess that they won't fix. Should I do 2to3?
     # Used an error message for now
-# TODO: Make sure to check and re-enable the other disk fields if they're FDIs.
-    # Done
-# TODO: d88 full patches
-    # Done
-# Backups in a subdirectory
-    # Done
+# TODO: logging

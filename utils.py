@@ -8,6 +8,8 @@ Constants for filenames and locations.
 """
 
 SCRIPT_DIR = os.path.dirname(__file__)
+ORIGINAL_PATH = os.path.join(SCRIPT_DIR, 'original_roms')
+
 SRC_PATH = os.path.join(SCRIPT_DIR, 'intermediate_roms')
 DEST_PATH = os.path.join(SCRIPT_DIR, 'patched_roms')
 TYPESET_PATH = os.path.join(SCRIPT_DIR, 'typeset_roms')
