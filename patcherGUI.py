@@ -54,10 +54,10 @@ class PatcherGUI(Tkinter.Frame):
         B_entries = [B2Entry, B3Entry, B4Entry]
         self.advanced_active = Tkinter.BooleanVar(False)
 
-        ABrowse = Button(self, text='Browse...', command= lambda: self.askopenfilenamediskA(diskA, all_entry_text, B_entries, self.PatchBtn))
-        B2Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB2, all_entry_text, B_entries, self.PatchBtn))
-        B3Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB3, all_entry_text, B_entries, self.PatchBtn))
-        B4Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB4, all_entry_text, B_entries, self.PatchBtn))
+        ABrowse = Button(self, text='Browse...', command= lambda: self.askopenfilenamediskA(diskA, all_entry_text, B_entries))
+        B2Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB2, all_entry_text, B_entries))
+        B3Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB3, all_entry_text, B_entries))
+        B4Browse = Button(self, text='Browse...', command= lambda: self.askopenfilename(diskB4, all_entry_text, B_entries))
 
         ABrowse.grid(row=1, column=2, padx=5)
         B2Browse.grid(row=3, column=2, padx=5)
@@ -91,7 +91,7 @@ class PatcherGUI(Tkinter.Frame):
         options['parent'] = root
         options['title'] = 'Select a disk image'
 
-    def askopenfilenamediskA(self, field, all_entry_text, B_entries, patchbtn):
+    def askopenfilenamediskA(self, field, all_entry_text, B_entries):
 
         """Returns an opened file in read mode.
         This time the dialog just returns a filename and the file is opened by your own code.
